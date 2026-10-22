@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="路考练习">
+<meta name="theme-color" content="#0f6b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>安省路考练习场</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;800&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* 布局：像一张路考路线卡——顶部是“路牌”式标题，下面按操作类型分三组单项，最后是按顺序排列的两条模拟路考路线 */
+:root{
+  --bg:#eef1ee;          /* 浅灰绿，像阴天的路边 */
+  --card:#ffffff;
+  --ink:#17201b;
+  --mute:#5c6a62;
+  --line:#d3dad5;
+  --sign:#0f6b3a;        /* 安省路名牌的绿色 */
+  --sign-ink:#ffffff;
+  --signal:#e8aa1d;      /* 信号灯灯箱的黄色 */
+  --live:#1f8a4c;
+  --soon:#b7791f;
+  --plan:#7a8780;
+  --f-display:"Overpass","Noto Sans SC",system-ui,sans-serif;
+  --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121815;--card:#1b2320;--ink:#e6ece8;--mute:#9aa8a0;--line:#2c3732;--sign:#14824a;--sign-ink:#ffffff;--signal:#f0b93a;--live:#43b072;--soon:#e0a54a;--plan:#87958d;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121815;--card:#1b2320;--ink:#e6ece8;--mute:#9aa8a0;--line:#2c3732;--sign:#14824a;--sign-ink:#ffffff;--signal:#f0b93a;--live:#43b072;--soon:#e0a54a;--plan:#87958d;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+/* 路牌式标题 */
+.sign{background:var(--sign);color:var(--sign-ink);border-radius:10px;padding:18px 22px;border:3px solid var(--sign);box-shadow:inset 0 0 0 2px var(--sign-ink);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px}
+.sign h1{margin:0;font-family:var(--f-display);font-weight:800;font-size:clamp(26px,5vw,38px);line-height:1.15;text-wrap:balance}
+.sign p{margin:4px 0 0;opacity:.92;max-width:52ch}
+.sign .tag{font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.08em;border:2px solid var(--sign-ink);border-radius:6px;padding:2px 8px;white-space:nowrap}
+h2{margin:0 0 4px;font-size:20px;text-wrap:balance}
+.sub{margin:0;color:var(--mute);font-size:14px}
+section{display:flex;flex-direction:column;gap:12px}
+.group{display:flex;flex-direction:column;gap:10px}
+.group h3{margin:6px 0 0;font-size:13px;letter-spacing:.06em;color:var(--mute);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;color:inherit;text-decoration:none}
+a.item{border-color:var(--live);border-width:2px}
+a.item:hover,a.item:focus-visible{outline:3px solid var(--signal);outline-offset:1px}
+.item .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.item b{font-size:16px}
+.item span.d{color:var(--mute);font-size:13px;line-height:1.5}
+.st{font-size:12px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.st::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}
+.st.live{color:var(--live)}.st.soon{color:var(--soon)}.st.plan{color:var(--plan)}
+.go{font-weight:700;color:var(--live);font-size:14px}
+/* 模拟路考路线 */
+.routes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.route{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.route .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.route .badge{font-family:var(--f-display);font-weight:800;font-size:20px;background:var(--signal);color:#1a1405;border-radius:6px;padding:0 10px}
+.route ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:3px}
+.route li::marker{font-family:var(--f-display);font-weight:800;color:var(--sign)}
+.route .diff{color:var(--sign);font-weight:700}
+.note{color:var(--mute);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+
+<div class="wrap">
+  <header class="sign">
+    <div>
+      <h1>安省路考练习场</h1>
+      <p>按 G2、G 路考的项目逐个练习。车自己开，你来决定什么时候停、什么时候走，难点在观察和时机。</p>
+    </div>
+    <span class="tag">ONTARIO · G2 / G</span>
+  </header>
+
+  <section aria-labelledby="h-items">
+    <div>
+      <h2 id="h-items">单项练习</h2>
+      <p class="sub">每个项目一个练习场景，做错当场提示，结束后有总结卡片。</p>
+    </div>
+
+    <div class="group">
+      <h3>路口判断</h3>
+      <div class="grid">
+        <a class="item" href="green-right.html">
+          <div class="top"><b>绿灯右转</b><span class="st live">可以练</span></div>
+          <span class="d">行人和自行车、对面左转车、黄灯、警车，每次随机组合</span>
+          <span class="go">开始练习 →</span>
+        </a>
+        <div class="item"><div class="top"><b>红灯右转</b><span class="st soon">下一个</span></div><span class="d">完全停车，让横向直行车和左边来的行人</span></div>
+        <div class="item"><div class="top"><b>绿灯左转</b><span class="st plan">计划中</span></div><span class="d">进路口待转，找对面直行车的空档</span></div>
+        <div class="item"><div class="top"><b>停牌路口左转／右转</b><span class="st plan">计划中</span></div><span class="d">停在哪里、谁先到谁先走</span></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>行驶中判断</h3>
+      <div class="grid">
+        <div class="item"><div class="top"><b>换线</b><span class="st plan">计划中</span></div><span class="d">打灯、看镜子和肩后盲区，选旁边车道的空档</span></div>
+        <div class="item"><div class="top"><b>上高速</b><span class="st plan">计划中</span></div><span class="d">在加速车道里选空档并入</span></div>
+        <div class="item"><div class="top"><b>下高速</b><span class="st plan">计划中</span></div><span class="d">提前换到出口车道，出口前不急刹</span></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>低速操作</h3>
+      <div class="grid">
+        <div class="item"><div class="top"><b>三点调头</b><span class="st plan">计划中</span></div><span class="d">何时刹车、何时换挡，两头来车和行人</span></div>
+        <div class="item"><div class="top"><b>上下坡停车</b><span class="st plan">计划中</span></div><span class="d">车轮朝哪边、有没有路缘、拉手刹</span></div>
+        <div class="item"><div class="top"><b>平行停车</b><span class="st plan">计划中</span></div><span class="d">何时开始倒、何时停，前后车距离</span></div>
+        <div class="item"><div class="top"><b>停车场出车位／头进／尾进</b><span class="st plan">计划中</span></div><span class="d">倒车观察，进出车位的时机</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-tests">
+    <div>
+      <h2 id="h-tests">模拟路考</h2>
+      <p class="sub">把单项按真实路考的顺序串起来，全程不提示，最后总结严重错误和扣分项。单项做齐后开放。</p>
+    </div>
+    <div class="routes">
+      <div class="route">
+        <div class="top"><span class="badge">G2</span><span class="st plan">计划中</span></div>
+        <ol>
+          <li>停车场出发</li>
+          <li>小路口停牌左转，上大路</li>
+          <li>红绿灯左转或右转</li>
+          <li>换线 1–2 次</li>
+          <li>红绿灯左转或右转，进小区</li>
+          <li>小区里做 3 个项目（三点调头、上下坡停车、平行停车）</li>
+          <li>原路返回（去程的左转变成右转）</li>
+          <li>回停车场，车头或车尾进车位</li>
+        </ol>
+      </div>
+      <div class="route">
+        <div class="top"><span class="badge">G</span><span class="st plan">计划中</span></div>
+        <ol>
+          <li>停车场出发</li>
+          <li>小路口停牌左转，上大路</li>
+          <li>红绿灯左转或右转</li>
+          <li>换线 1–2 次</li>
+          <li class="diff">上高速，高速上换线，下高速</li>
+          <li>原路返回</li>
+          <li>回停车场，车头或车尾进车位</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <p class="note">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p>
+</div>
+
+</body></html>
