@@ -10,11 +10,11 @@
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <title>绿灯右转 · 3D 路考练习</title>
 <style>
-:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
 :root[data-theme="dark"]{--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}
 html,body{height:100%;margin:0;overflow:hidden;background:#bfe3f7;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-canvas{display:block}
+canvas{display:block;position:fixed;left:0;top:0}
 #hud{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center}
 #hud b{font-size:26px}#lt{width:16px;height:16px;border-radius:50%;background:#2ee66b;box-shadow:0 0 8px #2ee66b}
 #bn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 16px;border-radius:10px;font-size:15px;white-space:nowrap}
@@ -25,7 +25,7 @@ canvas{display:block}
 #btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
 .b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
 .b small{display:block;font-size:11px;font-weight:400;opacity:.85}
-#bl{background:#d98a1f}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -50,10 +50,10 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div id="bn">绿灯右转</div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <div id="btns">
-<button class="b" id="bl" data-m="look">右后观察<small>Look back</small></button>
 <button class="b" id="bs" data-m="stop">停车<small>Stop</small></button>
 <button class="b" id="bt" data-m="turn">行驶<small>Go</small></button></div>
 <button class="b" id="bg" data-m="sig">右转灯<small>Signal</small></button>
+<button class="b" id="bl" data-m="look">右后观察<small>Look back</small></button>
 <button class="b" id="bc" data-m="scan">观察路口<small>Left-Right-Left</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html">← 全部项目</a>
