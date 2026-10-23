@@ -153,7 +153,7 @@ function hurryPeds(){const t=R.t;R.peds.forEach(p=>{if((p.k!=='A'&&p.k!=='B')||p
 // 横向等红灯的车：横向变绿后起步直行；跟前车、遇到前方的你会减速
 function crossCar(f,dt){if(f.x0==null){const q=f.p(0);f.x0=q[0];f.z0=q[1];f.dir=Math.sin(q[2])>0?1:-1;f.h=q[2]}
  if(!R||!R.xg){f.s2=0;f.cv2=0;f.c.visible=true;place(f.c,f.x0,f.z0,f.h);return}
- const x=f.x0+f.dir*f.s2;let vt=R.t-R.xgT<(Math.abs(f.x0)>22?2.6:1.3)||(polHold()&&f.dir*x<-12)?0:11;      // 绿灯后约 1.3 秒才起步；警车过来时不进路口
+ const x=f.x0+f.dir*f.s2;let vt=R.t-R.xgT<(Math.abs(f.x0)>22?2.6:1.3)||(polHold()&&f.dir*x<-12)?0:16.5;      // 绿灯后约 1.3 秒才起步；警车过来时不进路口
  flows.forEach(o=>{if(o===f||o.v!==0||o.dir!==f.dir||Math.abs(o.z0-f.z0)>.5||o.s2==null)return;const g=(o.x0+o.dir*o.s2-x)*f.dir;if(g>0)vt=Math.min(vt,Math.max(0,1.5*(g-7)))});
  [myPath(R.u),R.lc&&R.lc.state!=='idle'?R.lc.path(R.lc.u):null].forEach(a=>{if(!a)return;const g=(a[0]-x)*f.dir;if(Math.abs(a[1]-f.z0)<3.6&&g>0&&g<25)vt=Math.min(vt,Math.max(0,1.5*(g-7)))});   // 前方有你的车或左转车：减速跟车
  f.cv2=f.cv2>vt?Math.max(vt,f.cv2-7*dt):Math.min(vt,f.cv2+1.8*dt);f.s2+=f.cv2*dt;const nx=f.x0+f.dir*f.s2;f.c.visible=Math.abs(nx)<170;place(f.c,nx,f.z0,f.h)}

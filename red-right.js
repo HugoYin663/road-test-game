@@ -23,10 +23,10 @@ const OCP=[[-2.75,19.6],[-6.25,19.6],[-6.25,26.5]],OC=OCP.map((a,i)=>car(C[[1,5,
 // 本方变绿灯后直行开走的车：SUV、SUV 后面的车、对面两辆直行车
 function parkAll(){SUV.visible=SUV2.visible=true;place(SUV,2.75,-19.05,0);place(SUV2,2.75,-26.5,0);OC.forEach((c,i)=>{c.visible=true;place(c,OCP[i][0],OCP[i][1],Math.PI)})}
 // 横向另一方向（从右往左开）的车：只作背景
-const bgFlows=[0,70,140].map((o,i)=>({c:car(C[[2,7,4][i]]),p:path([[150,6.25],[-150,6.25]]),off:o,v:11}));
+const bgFlows=[0,70,140].map((o,i)=>({c:car(C[[2,7,4][i]]),p:path([[150,6.25],[-150,6.25]]),off:o,v:16.5}));
 // ---------- 横向直行车（从左往右，两条车道：内道 z=-2.75，外道/右道 z=-6.25）----------
 // sched：每辆车经过路口中线（x=0）的时间；先是连续的车流，然后出现空档
-function makeTraffic(cyc){const L=[],v0=()=>11+Math.random()*2;let t=-2;
+function makeTraffic(cyc){const L=[],v0=()=>15.3+Math.random()*1.9;let t=-2;      /* 限速 60：55–62 km/h */
  if(cyc){const Tc=12+Math.random()*4,run=Math.random()<.5;      // 变灯：Tc 时横向变黄灯；车流一直很密，没有空档
   while(t<Tc+16){t+=1.4+Math.random()*1.3;L.push({lane:Math.random()<.55?-6.25:-2.75,tc:t,v:v0()})}
   const K=L.filter(s=>{const x=s.v*(Tc-s.tc);return !(x>-19.6-s.v*s.v/7-4&&x<12)});      // 黄灯时离停车线太近、停不下来的车先去掉
@@ -190,7 +190,7 @@ function cycle(dt){const C=R.cy,t=R.t;
   R.peds.forEach(p=>{if(p.k==='A')p.sg.push({t:t+.7+Math.random()*.8,v:1.25+Math.random()*.3})})}
  // 绿灯后还在线后等的左转车：让你先转（你有优先权）；你一直不走，它等一会儿再走
  if(C.ph===7)C.LT.forEach(L=>{if(L.hold&&(R.u>ce+1||(t-R.tG>6&&R.v<.05&&!R.entered)))L.hold=false});
- C.MOV.forEach(m=>{if(t<m.t0)return;m.v=Math.min(11,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
+ C.MOV.forEach(m=>{if(t<m.t0)return;m.v=Math.min(16,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
  C.LT.forEach((L,i)=>{if(L.gone)return;const ah=C.LT[i-1];let vt=L.u<112?9:L.u<130?6.5:11;
   if(L.rel==null||t<L.rel)vt=0;
   if(L.hold||((R.entered||(R.goN&&R.mode==='turn'&&R.v>.2))&&R.u<ce+3&&L.u<101.5))vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
