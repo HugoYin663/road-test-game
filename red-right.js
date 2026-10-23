@@ -77,6 +77,9 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
  R.TR.list.forEach(s=>{if(Math.abs(s.x)<40)cr([s.x,s.lane,Math.PI/2],'#eceff1')});cr([2.75,-19.05,0],'#3b4148',11);cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
 function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});flash(t[0])}
+// 线段（视线）是否穿过一个长方形（SUV 的车身）
+function hitBox(x0,z0,x1,z1,xa,xb,za,zb){let t0=0,t1=1;const dx=x1-x0,dz=z1-z0;
+ for(const [p,d,lo,hi] of [[x0,dx,xa,xb],[z0,dz,za,zb]]){if(Math.abs(d)<1e-9){if(p<lo||p>hi)return false}else{let a=(lo-p)/d,b=(hi-p)/d;if(a>b)[a,b]=[b,a];t0=Math.max(t0,a);t1=Math.min(t1,b);if(t0>t1)return false}}return true}
 // ---------- 操作 ----------
 function cmd(m){if(!playing||R.over||R.u>=ce+1)return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
@@ -84,7 +87,7 @@ function cmd(m){if(!playing||R.over||R.u>=ce+1)return;
  if(m==='scan'){if(R.lookT<0&&R.scT<0){R.scT=0;yawD=0;R.scQ=R.u>=uS-3}return}
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-R.u;if(R.u<uS-.2&&dA>R.v*R.v/(2*AB)+.2){R.stopT=uS;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
- if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-15.8)R.goN=true}      // 已经挪出来看清了再按行驶：正常起步转弯
+ if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-14.6)R.goN=true}      // 已经挪出来看清了再按行驶：正常起步转弯
  if(m==='turn'&&!R.turnU)R.turnU=R.u;                      // 从哪里开始转
  R.mode=m;mk()}
 function pickTgt(){return null}
@@ -92,7 +95,7 @@ function pickTgt(){return null}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.mode;
  if(m==='drive'){const vt=u<uS-18?7:Math.max(2.4,7-4.6*(u-(uS-18))/18);v=v>vt?Math.max(vt,v-4*dt):Math.min(vt,v+2*dt)}    // 不停车的话会慢慢滑过停车线
  else if(m==='stop'){const dS=R.stopT-u;if(dS>.05)v=Math.min(v,Math.sqrt(2*R.stopA*dS));else v=0}
-  else if(m==='turn'){const fz0=front(u)[1],cr=fz0<-14.5&&!R.goN;const vt=cr?1.3:4.2+2.8*ss(ce-6,ce+14,u);v=Math.min(vt,v+(cr?1.5:2.2)*dt)}      // 车头进横向道路之前慢慢往前挪（creep），随时可以按停车
+  else if(m==='turn'){const fz0=front(u)[1],cr=fz0<-13&&!R.goN;const vt=cr?1.3:4.2+2.8*ss(ce-6,ce+14,u);v=Math.min(vt,v+(cr?1.5:2.2)*dt)}      // 车头进横向道路之前慢慢往前挪（creep），随时可以按停车
  if(v<.05&&m==='stop'){v=0;R.stT+=dt;if(R.stopAt==null||R.stT<dt*1.5)R.stopAt=R.t;if(myPath(u)[1]<-19.4&&!R.full){R.full=true;R.fullT=R.t}}else R.stT=0;      // 车头在停车线后完全停住
  u+=v*dt;R.v=v;R.u=u;
  const a=myPath(u),f=front(u);
@@ -102,7 +105,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  // 开始转弯（车头进入横向道路）：检查观察和让行
  if(!R.entered&&f[1]>-9.5){R.entered=true;
   if(!(R.lastScan!=null&&R.lastScan>=(R.fullT==null?0:R.fullT)))ev('noScan');
-  else if(R.full&&!(R.scanFront>=-15.6))ev('noCreep');      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
+  else if(R.full&&!(R.scanFront>=-14.4))ev('noCreep');      // 车头要挪进人行横道约 1 米，才看得清 SUV 后面的远处      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
 }
  // G 标准：车头进入右侧人行横道之前，做过右后观察就算有效（真有行人还来得及停）
  if(STD==='g'&&!R.rrc&&f[0]>=11.5&&f[1]>-12){R.rrc=true;if(!(R.lastLook!=null&&R.lastLook>=(R.fullT==null?0:R.fullT)))ev('noRR')}
@@ -129,7 +132,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  // 观察路口：已经停在线前，左-右-左里重点看左边（看久一点）
  if(R.scT>=0){R.scT+=dt;const sT=R.scT;
-  if(R.scQ){const busy=R.TR.list.some(s=>s.x<a[0]&&s.x>-55)||R.peds.some(p=>{const c=pedPos(p,R.t);return c[0]<a[0]&&c[0]>-30&&(p.bike||Math.abs(c[1]+13.8)<2)});   // 左边车流多就多看一会儿
+  if(R.scQ){const ex=a[0]-.38,ez=a[1]-.2,see=(x,z)=>!hitBox(ex,ez,x,z,1.7,3.8,-21.7,-16.4);      // 从驾驶座看出去，视线有没有被左边的 SUV 挡住
+   const busy=R.TR.list.some(s=>s.x<a[0]&&s.x>-70&&see(s.x,s.lane))||R.peds.some(p=>{const c=pedPos(p,R.t);return c[0]<a[0]&&c[0]>-30&&(p.bike||Math.abs(c[1]+13.8)<2)&&see(c[0],c[1])});   // 看得见的左边来车多，就多看一会儿；被挡住看不见，就很快转回来
    if(R.scRel==null&&sT>.8&&(!busy||sT>3.5))R.scRel=sT;const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
   if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1])}}
