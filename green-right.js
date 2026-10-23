@@ -152,8 +152,8 @@ function crossCar(f,dt){if(f.x0==null){const q=f.p(0);f.x0=q[0];f.z0=q[1];f.dir=
  flows.forEach(o=>{if(o===f||o.v!==0||o.dir!==f.dir||Math.abs(o.z0-f.z0)>.5||o.s2==null)return;const g=(o.x0+o.dir*o.s2-x)*f.dir;if(g>0)vt=Math.min(vt,Math.max(0,1.5*(g-7)))});
  [myPath(R.u),R.lc&&R.lc.state!=='idle'?R.lc.path(R.lc.u):null].forEach(a=>{if(!a)return;const g=(a[0]-x)*f.dir;if(Math.abs(a[1]-f.z0)<3.6&&g>0&&g<25)vt=Math.min(vt,Math.max(0,1.5*(g-7)))});   // 前方有你的车或左转车：减速跟车
  f.cv2=f.cv2>vt?Math.max(vt,f.cv2-7*dt):Math.min(vt,f.cv2+1.8*dt);f.s2+=f.cv2*dt;const nx=f.x0+f.dir*f.s2;f.c.visible=Math.abs(nx)<170;place(f.c,nx,f.z0,f.h)}
-function setCross(c){CHEADS.forEach(lm=>{for(const k in lm)lm[k].m.material=k===c?lm[k].on:lm[k].off})}      // 横向道路的信号灯
-function setLight(c){R.light={g:'green',y:'yellow',r:'red'}[c];HEADS.forEach(lm=>{for(const k in lm)lm[k].m.material=k===c?lm[k].on:lm[k].off});
+function setCross(c){CHEADS.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}      // 横向道路的信号灯
+function setLight(c){R.light={g:'green',y:'yellow',r:'red'}[c];HEADS.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off});
  const b=$('bn');b.textContent={g:'绿灯右转',y:'黄灯！',r:'红灯'}[c];b.style.color={g:'',y:'#ffc21a',r:'#ff5a5a'}[c];const d=$('lt'),k={g:'#2ee66b',y:'#ffc21a',r:'#ff3b3b'}[c];d.style.background=k;d.style.boxShadow='0 0 8px '+k}
 const vApp=u=>Math.min(7,Math.sqrt(2*2.2*Math.max(0,LP-u)));
 function tApp(){let u=0,t=0;while(u<LP-.05&&t<30){u+=Math.max(.3,vApp(u))*.02;t+=.02}return t}       // 左转车驶到停车点要多久
