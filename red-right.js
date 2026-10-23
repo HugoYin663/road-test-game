@@ -106,13 +106,15 @@ function hitBox(x0,z0,x1,z1,xa,xb,za,zb){let t0=0,t1=1;const dx=x1-x0,dz=z1-z0;
 function cmd(m){if(!playing||R.over||R.u>=ce+1)return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
  if(m==='look'){if(R.lookT>=0)return;R.scT=-1;R.scRel=null;yawD=0;R.lookT=0;return}
- if(m==='scan'){R.lookT=-1;R.pit=0;R.scT=0;R.scRel=null;yawD=0;R.scQ=R.u>=uS-3;return}      // 随时可以重新看路口（会打断正在做的右后观察）
+ if(m==='scan'){R.lookT=-1;R.pit=0;R.scT=0;R.scRel=null;yawD=0;R.scQ=R.u>=uS-3;R.scHold=true;R.scUp=null;return}      // 随时可以重新看路口（会打断正在做的右后观察）
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-R.u;if(R.u<uS-.2&&dA>R.v*R.v/(2*AB)+.2){R.stopT=uS;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
  if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-14.6){R.goN=true;R.cmtC=lConf()}}      // 从挪出来的位置起步转弯：按这一刻判断有没有抢左转车      // 已经挪出来看清了再按行驶：正常起步转弯
  if(m==='turn'&&!R.turnU)R.turnU=R.u;                      // 从哪里开始转
  R.mode=m;mk()}
 function pickTgt(){return null}
+// 松开“观察路口”：按住的时候一直看左边，松开就转回前方
+function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false;R.scUp=R.scT}
 // ---------- 每一帧 ----------
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.mode;
  if(m==='drive'){const vt=u<uS-18?7:Math.max(2.4,7-4.6*(u-(uS-18))/18);v=v>vt?Math.max(vt,v-4*dt):Math.min(vt,v+2*dt)}    // 不停车的话会慢慢滑过停车线
@@ -167,7 +169,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   const ex=a[0]-.38,ez=a[1]-.2,see=(x,z)=>R.tG!=null||!hitBox(ex,ez,x,z,1.7,3.8,-21.7,-16.4);
   if(R.scQ){      // 从驾驶座看出去，视线有没有被左边的 SUV 挡住
    const busy=R.TR.list.some(s=>s.x<a[0]&&s.x>-70&&see(s.x,s.lane))||R.peds.some(p=>{const c=pedPos(p,R.t);return c[0]<a[0]&&c[0]>-30&&(p.bike||Math.abs(c[1]+13.8)<2)&&see(c[0],c[1])});   // 看得见的左边来车多，就多看一会儿；被挡住看不见，就很快转回来
-   if(R.scRel==null&&sT>.8&&(!busy||sT>3.5))R.scRel=sT;const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
+   if(R.scRel==null&&!R.scHold&&(R.scUp!=null&&R.scUp>=.8?true:sT>.8&&(!busy||sT>3.5)))R.scRel=sT;      /* 按住：一直看左边；按久了再松开：马上转回；只点一下：看清了自动转回 */const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
   if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1]);if(see(-40,-2.75)&&see(-40,-6.25))R.scanClear=true}}
  // 右后观察：中镜→右镜→右后盲区
@@ -193,7 +195,7 @@ function cycle(dt){const C=R.cy,t=R.t;
  C.MOV.forEach(m=>{if(t<m.t0)return;m.v=Math.min(16,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
  C.LT.forEach((L,i)=>{if(L.gone)return;const ah=C.LT[i-1];let vt=L.u<112?9:L.u<130?6.5:11;
   if(L.rel==null||t<L.rel)vt=0;
-  if(L.hold||((R.entered||(R.goN&&R.mode==='turn'&&R.v>.2))&&R.u<ce+3&&L.u<101.5))vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
+  if(L.hold||(R.v>.3&&(R.entered||(R.goN&&R.mode==='turn'))&&R.u<ce+3&&L.u<101.5))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
   if(L.u<130&&R.peds.some(p=>{if(p.k!=='A')return false;const c=pedPos(p,t);return c[1]>-5.5&&c[1]<.5}))vt=Math.min(vt,Math.sqrt(7*Math.max(0,129.5-L.u)));   // 让人行横道上的行人
   if(ah&&!ah.gone)vt=Math.min(vt,Math.max(0,1.5*(ah.u-L.u-6.6)));
   L.v=L.v>vt?Math.max(vt,L.v-6*dt):Math.min(vt,L.v+2.5*dt);L.u+=L.v*dt;if(L.u>240){L.gone=true;L.c.visible=false}})}
