@@ -26,7 +26,7 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
 .b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
 .b small{display:block;font-size:11px;font-weight:400;opacity:.85}
-#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bp{background:#5b6b7d;position:fixed;right:calc(132px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -55,21 +55,20 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b" id="bt" data-m="turn">行驶<small>Go</small></button></div>
 <button class="b" id="bg" data-m="sig">右转灯<small>Signal</small></button>
 <button class="b" id="bl" data-m="look">右后观察<small>Look back</small></button>
-<button class="b" id="bp" data-m="creep">前移<small>Creep</small></button>
 <button class="b" id="bc" data-m="scan">观察路口<small>Left-Right-Left</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html">← 全部项目</a>
 <h2>红灯右转 · 3D</h2>
 <p>本方是<b>红灯</b>，横向是绿灯。你在最右车道，要红灯右转。左边车道停着一辆<b>高大的 SUV</b>，还稍微停过了停车线，会挡住你看左边的视线。</p>
 <div class="modes">
-<button class="md" data-std="g2"><b>按 G2 标准练习</b><span>完全停车、慢慢前移、观察左方、找空档右转</span></button>
+<button class="md" data-std="g2"><b>按 G2 标准练习</b><span>完全停车、慢慢挪出来观察左方、找空档右转</span></button>
 <button class="md" data-std="g"><b>按 G 标准练习</b><span>同上，转弯前还要做一次右后观察</span></button>
 </div>
 <details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
 <p>1. 打<b>右转灯</b>，按<b>停车</b>，在停车线后<b>完全停住</b>（车速 0）。不停车慢慢滑过停车线，路考直接不合格。</p>
-<p>2. 左边的 SUV 挡着视线时，按<b>前移</b>慢慢往前挪，车会在人行横道边自动停下。不能停在人行横道上。</p>
-<p>3. 按<b>观察路口</b>看左边：横向是<b>两条车道</b>，两条都要看。左道（内道）的车虽然不会和你进同一条车道，也不能和它同时进入路口。还要看人行横道上过街的<b>行人</b>和横向自行车道里的<b>自行车</b>。</p>
-<p>4. 车流变少、出现明显的空档，而且没有行人和自行车时，按<b>行驶</b>右转。任何一个有冲突，就继续等。按 G 标准时，起步前还要按一次<b>右后观察</b>。</p>
+<p>2. 左边的 SUV 挡着视线时，按<b>行驶</b>，车会很慢地往前挪（creep out），随时准备按<b>停车</b>。车头没进入横向道路之前，停在本方人行横道上是可以的，但有行人要过就不行。</p>
+<p>3. 挪出来能看清时按<b>观察路口</b>看左边：左边车多，会多看一会儿；车少，看一眼就转回来准备走。横向是<b>两条车道</b>，两条都要看。左道（内道）的车虽然不会和你进同一条车道，也不能和它同时进入路口。还要看过街的<b>行人</b>和横向自行车道里的<b>自行车</b>。</p>
+<p>4. 出现明显的空档、而且没有行人和自行车时，再按<b>行驶</b>转弯；有任何冲突，就按停车继续等。按 G 标准时，起步前还要按一次<b>右后观察</b>。</p>
 <p>红灯右转不是必须的：看不清或没把握，可以一直等。</p></div></details>
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
 <div id="rot">请把手机横过来玩</div>
