@@ -21,7 +21,7 @@ const SUV=car(0x3b4148);SUV.scale.set(1.12,1.5,1.08);const SUV2=car(C[6]);
 // 对面、同向直行方向也是红灯：车都停在各自停车线后（OC[0] 在对面左转道）
 const OCP=[[-2.75,19.6],[-6.25,19.6],[-6.25,26.5]],OC=OCP.map((a,i)=>car(C[[1,5,3][i]]));
 // 本方变绿灯后直行开走的车：SUV、SUV 后面的车、对面两辆直行车
-function parkAll(){place(SUV,2.75,-19.05,0);place(SUV2,2.75,-26.5,0);OC.forEach((c,i)=>{c.visible=true;place(c,OCP[i][0],OCP[i][1],Math.PI)})}
+function parkAll(){SUV.visible=SUV2.visible=true;place(SUV,2.75,-19.05,0);place(SUV2,2.75,-26.5,0);OC.forEach((c,i)=>{c.visible=true;place(c,OCP[i][0],OCP[i][1],Math.PI)})}
 // 横向另一方向（从右往左开）的车：只作背景
 const bgFlows=[0,70,140].map((o,i)=>({c:car(C[[2,7,4][i]]),p:path([[150,6.25],[-150,6.25]]),off:o,v:11}));
 // ---------- 横向直行车（从左往右，两条车道：内道 z=-2.75，外道/右道 z=-6.25）----------
@@ -128,7 +128,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(!R.entered&&f[1]>-9.5){R.entered=true;
   if(R.goN?R.cmtC:lConf())ev('yieldL');      // 对面左转箭头绿灯时，左转车还在转或马上开出来
   if(!(R.lastScan!=null&&R.lastScan>=(R.fullT==null?0:R.fullT)))ev('noScan');
-  else if(R.full&&R.tG==null&&!(R.scanFront>=-14.4))ev('noCreep');      // 车头要挪进人行横道约 1 米，才看得清 SUV 后面的远处      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
+  else if(R.full&&R.tG==null&&!R.scanClear)ev('noCreep');      // 观察时视线真的被挡、看不到左边远处，才算没有挪出来看      // 车头要挪进人行横道约 1 米，才看得清 SUV 后面的远处      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
 }
  // G 标准：车头进入右侧人行横道之前，做过右后观察就算有效（真有行人还来得及停）
  if(STD==='g'&&!R.rrc&&f[0]>=11.5&&f[1]>-12){R.rrc=true;if(!(R.lastLook!=null&&R.lastLook>=(R.fullT==null?0:R.fullT)))ev('noRR')}
@@ -164,11 +164,12 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  // 观察路口：已经停在线前，左-右-左里重点看左边（看久一点）
  if(R.scT>=0){R.scT+=dt;const sT=R.scT;
-  if(R.scQ){const ex=a[0]-.38,ez=a[1]-.2,see=(x,z)=>!hitBox(ex,ez,x,z,1.7,3.8,-21.7,-16.4);      // 从驾驶座看出去，视线有没有被左边的 SUV 挡住
+  const ex=a[0]-.38,ez=a[1]-.2,see=(x,z)=>R.tG!=null||!hitBox(ex,ez,x,z,1.7,3.8,-21.7,-16.4);
+  if(R.scQ){      // 从驾驶座看出去，视线有没有被左边的 SUV 挡住
    const busy=R.TR.list.some(s=>s.x<a[0]&&s.x>-70&&see(s.x,s.lane))||R.peds.some(p=>{const c=pedPos(p,R.t);return c[0]<a[0]&&c[0]>-30&&(p.bike||Math.abs(c[1]+13.8)<2)&&see(c[0],c[1])});   // 看得见的左边来车多，就多看一会儿；被挡住看不见，就很快转回来
    if(R.scRel==null&&sT>.8&&(!busy||sT>3.5))R.scRel=sT;const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
-  if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1])}}
+  if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1]);if(see(-40,-2.75)&&see(-40,-6.25))R.scanClear=true}}
  // 右后观察：中镜→右镜→右后盲区
  if(R.lookT>=0){R.lookT+=dt*1.4;const lt=R.lookT,k9=Math.min(1,dt*12);
   if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(.22-R.pit)*k9}else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}
