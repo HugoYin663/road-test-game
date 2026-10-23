@@ -21,7 +21,7 @@ const SUV=car(0x3b4148);SUV.scale.set(1.12,1.5,1.08);const SUV2=car(C[6]);
 // 对面、同向直行方向也是红灯：车都停在各自停车线后（OC[0] 在对面左转道）
 const OCP=[[-2.75,19.6],[-6.25,19.6],[-6.25,26.5]],OC=OCP.map((a,i)=>car(C[[1,5,3][i]]));
 // 本方变绿灯后直行开走的车：SUV、SUV 后面的车、对面两辆直行车
-function parkAll(){SUV.visible=SUV2.visible=true;place(SUV,2.75,-19.05,0);place(SUV2,2.75,-26.5,0);OC.forEach((c,i)=>{c.visible=true;place(c,OCP[i][0],OCP[i][1],Math.PI)})}
+function parkAll(){SUV.visible=SUV2.visible=true;[SUV,SUV2].forEach(c=>c.userData.bl.forEach(m=>m.visible=false));place(SUV,2.75,-19.05,0);place(SUV2,2.75,-26.5,0);OC.forEach((c,i)=>{c.visible=true;place(c,OCP[i][0],OCP[i][1],Math.PI)})}
 // 横向另一方向（从右往左开）的车：只作背景
 const bgFlows=[0,70,140].map((o,i)=>({c:car(C[[2,7,4][i]]),p:path([[150,6.25],[-150,6.25]]),off:o,v:16.5}));
 // ---------- 横向直行车（从左往右，两条车道：内道 z=-2.75，外道/右道 z=-6.25）----------
@@ -82,7 +82,7 @@ const OLP=path([[2.75,-120],...Array.from({length:31},(_,i)=>{const q=ltb(i/30);
 let LTU1=104,LTX=0;for(let u=104;u<200;u+=.1){const q=LTP(u);if(q[0]<14-.01)LTU1=u;if(!LTX&&q[0]>=10.3)LTX=u}      // 弧线结束的位置、走到人行横道前的位置
 const lConf=()=>{if(!R.cyc)return false;let blk=false;return R.cy.LT.some((L,i)=>{const ah=R.cy.LT[i-1];
   blk=(L.wait&&L.u>=110&&L.v<.5)||(blk&&ah&&!ah.gone&&ah.u-L.u<9.5&&L.v<.5);      // 在路口里停着等的、排在它后面停着的，不算正在转
-  return !L.gone&&L.rel!=null&&R.t>=L.rel-.8&&!L.hold&&!blk&&LTP(L.u)[0]<=4})};      // 箭头一亮，停车线前的第一辆就算要走了
+  return !L.gone&&L.rel!=null&&R.t>=L.rel&&L.u>101.5&&!L.hold&&!blk&&LTP(L.u)[0]<=4})};      /* 已经开过停车线、正在路口里转、还没转过路口中间的左转车 */      // 箭头一亮，停车线前的第一辆就算要走了
 function mk(){document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===R.mode))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
@@ -120,7 +120,7 @@ function cmd(m){if(!playing||R.over||R.u>=ce+1)return;
  if(m==='scan'){R.lookT=-1;R.pit=0;R.scT=0;R.scRel=null;yawD=0;R.scQ=R.u>=uS-3;R.scHold=true;R.scUp=null;return}      // 随时可以重新看路口（会打断正在做的右后观察）
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-R.u;if(R.u<uS-.2&&dA>R.v*R.v/(2*AB)+.2){R.stopT=uS;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
- if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-14.6){R.goN=true;R.cmtC=lConf()}}      // 从挪出来的位置起步转弯：按这一刻判断有没有抢左转车      // 已经挪出来看清了再按行驶：正常起步转弯
+ if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-14.6)R.goN=true}      // 已经挪出来看清了再按行驶：正常起步转弯
  if(m==='turn'&&!R.turnU)R.turnU=R.u;
  if(m==='turn'&&R.mode==='stop'&&R.tG!=null&&R.entered&&!(R.lastLook>R.stopAt))ev('noLook2');      // 绿灯下转弯途中停车让行，再起步前要再看右后方                      // 从哪里开始转
  R.mode=m;mk()}
@@ -140,7 +140,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  // 停在人行横道上
  // 开始转弯（车头进入横向道路）：检查观察和让行
  if(!R.entered&&f[1]>-9.5){R.entered=true;
-  if(R.goN?R.cmtC:lConf())ev('yieldL');      // 对面左转箭头绿灯时，左转车还在转或马上开出来
+  if(lConf())ev('yieldL');      // 车头进入横向道路的这一刻，对面左转车正在转或马上开出来：没有让行（车头进横向道路之前停下都算让行）
   if(!(R.lastScan!=null&&R.lastScan>=(R.fullT==null?0:R.fullT)))ev('noScan');
   else if(R.full&&R.tG==null&&!R.scanClear)ev('noCreep');      // 观察时视线真的被挡、看不到左边远处，才算没有挪出来看      // 车头要挪进人行横道约 1 米，才看得清 SUV 后面的远处      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
 }
@@ -243,7 +243,8 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
   const sp=p.bike?p.sg[0].v:p.k==='A'?(p.dd!=null&&p.dd===p.ldd?0:pedSeg(p,t).v):(p.sg[0].v||1.3),s=sp?Math.sin(t*(sp*5+2))*(.45+sp*.1):0,u=p.o.userData;p.ldd=p.dd;
   if(p.bike){u.wh.forEach(w=>w.rotation.x=-t*sp/.36);u.l.rotation.x=-.3;u.r.rotation.x=-.3}else{u.l.rotation.x=s;u.r.rotation.x=-s;u.al.rotation.x=-s*.8;u.ar.rotation.x=s*.8}});
  pedSigTick(ts);
- if(R.cyc)R.cy.LT.forEach(L=>{if(L.gone)return;const q=LTP(L.u);place(L.c,q[0],q[1],q[2])});
+ if(R.cyc){const b=Math.sin(ts/1000*15)>0;R.cy.LT.forEach(L=>{if(L.gone)return;const q=LTP(L.u);place(L.c,q[0],q[1],q[2]);L.c.userData.bl.forEach(m=>m.visible=b&&L.u<LTU1)});      // 左转车打着左转灯，转完才关
+  R.cy.OL.forEach(L=>L.c.userData.bl.forEach(m=>m.visible=b&&!L.gone&&L.u<LTU1))}
  if(R.fol){const fq=myPath(R.fol.u);place(R.fol.car,fq[0],fq[1],fq[2])}
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
