@@ -34,8 +34,8 @@ const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
 const pedPos=(p,t)=>p.path(Math.min(p.off+pedD(p,t),p.len-.06));
 function pedZone(p,t){if(p.wait||p.blk)return 0;      // 被你的车挡在后面的自行车不算冲突
 const q=pedPos(p,t),z=q[1];                       // 0 无冲突 1 即将进入 2 冲突
- if(p.k==='A')return z>-10.5&&z<10.5?2:z>=10.5&&z<14?1:0;
- if(p.k==='B')return z>-11.5&&z<0?2:z<=-11.5&&z>-14.5?1:0;
+ if(p.k==='A')return GR.zone(z,'far');
+ if(p.k==='B')return GR.zone(z,'near');
  if(p.k==='S')return z>-40&&z<-8?2:0;
  return 0}
 // 对面左转车
@@ -103,10 +103,7 @@ function mk(){const md=R.mode==='slow'?'look':R.mode;document.querySelectorAll('
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function toast(t){const b=$('bn');b.textContent=t;setTimeout(()=>b.textContent={green:'绿灯右转',yellow:'黄灯！',red:'红灯'}[R.light],1500)}
 // 违规／危险提示：当场闪现，游戏继续；结束后汇总成卡片
-const TXT={
- xwalk:["停车占用了人行横道","你的车停在了人行横道上，行人只能绕着你的车走，这是严重错误。停车时不应占用人行横道。"],
- pedA:["没有让行对面的行人","从对面走来的行人还在人行横道上（或正要踏上），你就转弯了。对面来的行人要等他们完全走完人行横道再转。"],
- pedB:["没有让行同侧的行人","从你身后一侧来、要直行过街的行人，还没走过道路一半，你就转弯了。需要等他们走过一半以上才可以转；转弯前要看右后方。"],
+const TXT=Object.assign({
  cut:["对面左转车抢行","对面的左转车在你进入路口的同时启动了。它通常转入左侧车道，你转入右侧车道，两车会肩并肩同时进入路口，这是应避免的危险时刻。错在抢行的它，但你看到它启动后，只有确认能错开进入路口才可以继续，否则要先停车让它先转。"],
  delay:["延误交通","路口明确没有冲突，你停着不走，后方车辆鸣笛了。看清之后应马上行驶：等右转走开的行人要在 2 秒内走，其余情况 3 秒内。"],
  delayP:["延误交通","对面在路口里等着左转的是一辆警车，但它没有闪灯、没有鸣笛，不是在执行紧急任务，就按普通车对待：你有路权，直接转，不用让它。你停了超过 3 秒，后方鸣笛了。"],
@@ -123,14 +120,12 @@ const TXT={
  blockX2:["占用人行横道，没有及时完成转弯","灯变黄后你的车头停在了人行横道上。让过对面左转车后，应该马上跟着完成转弯；你一直等到横向变绿灯、直行车开始走，这时已经走不了了，车还占着人行横道，挡住了横向过街的行人。"],
  inX:["已在路口里，应完成转弯","灯变黄时你已经进入横向道路，应该继续完成转弯、尽快离开路口，不要停在路口里。"],
  police:["没有给紧急车辆让路","听到警笛、看到闪灯的紧急车辆时，必须让路：安全的话靠边停车，未进入路口的车切勿进入路口，等它通过后再走。你在警车通过之前开进了路口，快到路口时听到警笛，要左右观察，找到它从哪里来。这是严重错误，路考直接不合格，警车已示意你靠边停车。"],
- noLook2:["起步前没有再次观察右后方","你停车让行以后，绿灯下再起步前没有再按“右后观察”。停车等待期间，后面可能又有行人或自行车过来，每次重新起步前都要再看一遍中镜、右镜和右后盲区。"],
  noScanP:["警车过去后没有再观察路口","警车过去以后跟着转弯是可以的，但车头进入路口前要再按“观察路口”看一眼左边，确认后面没有别的紧急车辆。"],
  hitP:["撞到了行人","你的车撞到了正在过马路的行人。转弯时一定要先让行人，看不清就停车等。"],
  hitBA:["没有观察右后方，撞倒了自行车","右转前你没有做右后观察，没发现右边自行车道里的自行车，并入自行车道／转弯时把它撞倒了。转弯前一定要看中镜、右镜和右后盲区；发现自行车，就留在原车道，让它先过再转。"],
  hitBB:["没有让行自行车，撞倒了它","你看到了右后方的自行车，却没有停车让它先过，把它撞倒了。自行车在你右边直行时，要等它过去再转。"],
- noLastLook:["转弯前没有做最后一次右后观察","车头进入右侧人行横道之前，要再做一次右后观察（中镜、右镜、右后盲区），确认没有行人、自行车从右后方过来。"],
  sig:["转弯前没有打右转灯","右转前一定要打右转灯，让后车、自行车和行人知道你要转。一般在停车线前约 30 米就打开。"],
- sigL:["右转灯打得太晚","你打了右转灯，但离停车线已经不到 15 米，后车、自行车和行人来不及反应。要更早打灯，一般在停车线前约 30 米就打开。"]};
+ sigL:["右转灯打得太晚","你打了右转灯，但离停车线已经不到 15 米，后车、自行车和行人来不及反应。要更早打灯，一般在停车线前约 30 米就打开。"]},GR.TXT);      // 让行人、占用人行横道、右后观察的提示和红灯右转共用（lib/rules.js）
 function snap(){const c=document.createElement('canvas');c.width=280;c.height=200;const x=c.getContext('2d'),X=a=>(a+20)*4.5,Y=a=>(18-a)*4.5;
  x.fillStyle='#7bbf52';x.fillRect(0,0,280,200);x.fillStyle='#6c6c75';x.fillRect(X(-9.5),0,85.5,200);x.fillRect(0,Y(9.5),280,85.5);
  x.fillStyle='#f3f3f3';for(let i=0;i<19;i++){x.fillRect(X(11.5),Y(-9.5+i+.5),15.75,2.25);x.fillRect(X(-9.5+i),Y(-11.5),2.25,15.75)}
@@ -188,7 +183,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   else{L.v=Math.max(0,L.v-7*dt);if(L.v===0){L.sT+=dt;if(L.sT>1.5&&R.lc&&R.lc.state==='run'&&!lcAct())L.st='go'}}
   L.u+=L.v*dt;v=Math.min(v,Math.sqrt(2*6*Math.max(0,L.u-6.8-u)))}       // 跟车：不会撞上前车
  u+=v*dt;R.v=v;R.u=u;
- {const w=myPath(u);R.onE=false;if(m==='stop'&&v<.05){const onS=w[1]>-17.35&&w[1]<-9.15&&w[0]<10,onE=w[0]>9.15&&w[0]<17.35&&w[1]>-9.2;R.onE=onE;if(R.hitT==null&&(onS&&R.light==='red'&&!R.pastY&&!(R.yT>=0&&!behind())||R.hitT==null&&onE))ev('xwalk'+(onE?'E':'S'),'xwalk')}}
+ {const w=myPath(u);R.onE=false;if(m==='stop'&&v<.05){const onS=GR.onS(w),onE=GR.onE(w);R.onE=onE;if(R.hitT==null&&(onS&&R.light==='red'&&!R.pastY&&!(R.yT>=0&&!behind())||R.hitT==null&&onE))ev('xwalk'+(onE?'E':'S'),'xwalk')}}
  const lc=R.lc;
  if(lc){if(lc.state==='app'&&R.t>=lc.ta){lc.v=Math.max(.3,vApp(lc.u));lc.u+=lc.v*dt;if(lc.u>=LP-.05){lc.u=LP;lc.v=0;lc.state='idle'}}
   if(lc.state==='idle'){if(lc.type==='cut'&&u>=uS-10){lc.d0-=dt;if(lc.d0<0)startLC()}else if(lc.type==='wait'&&!lc.l5&&u>=ce+8)startLC()}
@@ -198,7 +193,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   const q=lc.path(lc.u);place(lc.car,q[0],q[1],q[2]);
   if(lc.type==='cut'&&lc.state==='run'){const a=myPath(u),inZ=p=>p[0]>-10&&p[0]<22&&p[1]>-12&&p[1]<10;if(inZ(a)&&inZ(q)&&Math.hypot(a[0]-q[0],a[1]-q[1])<7)ev('cut')}}
  const q=myPath(u);
- if(R.committed&&q[0]>=10.8&&q[0]<=15.6)R.peds.forEach(p=>{if((p.k==='A'||p.k==='B')&&pedZone(p,R.t)===2)ev('ped'+p.k)});
+ if(R.committed&&GR.inBand(q))R.peds.forEach(p=>{if((p.k==='A'||p.k==='B')&&pedZone(p,R.t)===2)ev('ped'+p.k)});
  R.peds.forEach(p=>{if(p.k==='S'&&!p.hit&&!R.ev.some(e=>e.key==='hitB')){const c=pedPos(p,R.t);if(q[0]>7.1&&q[1]<-7&&Math.abs(q[1]-c[1])<4.5)ev('hook',R.chk?'hookB':'hookA')}});   // 右转切进了自行车道
  if(R.cs[0]==='5'){const w=myPath(u);R.stT=(v<.05)?(R.stT||0)+dt:0;
   if(R.yT<0&&!R.fl&&(R.cs==='5e'?R.peds.some(p=>p.k==='B'&&pedPos(p,R.t)[1]>-9):R.cs==='5d'?myPath(R.ld.u)[1]>=-30:(v>.5&&R.uY-u<=3.5*v))){R.fl=true;R.flT=R.t;setPedSig('M','flash');hurryPeds()}   // 变黄前约 4 秒：行人灯白色人形开始闪，1.5 秒后变红手，再过 2–3 秒绿灯变黄

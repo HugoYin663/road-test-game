@@ -57,7 +57,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
   peds.push({k:'K',o,bike:true,path:path([[-150,-8.75],[150,-8.75]]),len:300,sg:[{t:0,v}],off:Math.max(0,150+8-v*tMeet)})}
  // 变灯：右侧路口角上站着一个等着过你要转入那条路的行人（本方绿灯后才走）
  const aP=S=>{const o=ped(PCOL[Math.random()*5|0]);live.push(o);const x=hard?(S?12.9:13.6):13.25;      // 困难：两个人一南一北，错开一点走
-  peds.push({k:'A',o,late:!S&&hard,path:path(S?[[x,-11.2],[x,14],[x,60]]:[[x,11.2],[x,-11.4],[x,-60]]),len:70,sg:[{t:0,v:0}],off:0})};
+  peds.push({k:'A',side:S?'near':'far',o,late:!S&&hard,path:path(S?[[x,-11.2],[x,14],[x,60]]:[[x,11.2],[x,-11.4],[x,-60]]),len:70,sg:[{t:0,v:0}],off:0})};
  if(hard){aP(true);aP(false)}else if(cyc&&Math.random()<.6)aP(Math.random()<.65);
  R={t:0,u:U0,v:7,mode:'drive',over:false,peds,TR,ev:[],cyc,sig:false,sigChk:false,lookT:-1,scT:-1,yaw:0,pit:0,full:false,stopAt:null,lastLook:null,lastScan:null,stT:0,hitT:null};
  {const fc=car(C[Math.random()*9|0]);live.push(fc);R.fol={car:fc,u:R.u-16,v:R.v}}
@@ -79,7 +79,7 @@ const lConf=()=>R.cyc&&R.cy.LT.some(L=>!L.gone&&L.rel!=null&&R.t>=L.rel-.8&&!L.h
 function mk(){document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===R.mode))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
-const TXT={
+const TXT=Object.assign({
  noStop:["没有完全停车","红灯右转前，必须在停车线后完全停住（车速为 0），然后再观察、再转。慢慢滑过停车线不算停车，路考直接不合格。"],
  yieldX:["没有让行横向直行车","你转弯时，横向有直行车正开过来或已经在路口里。红灯右转要让横向的车：两条车道都要看，左道（内道）的车虽然不会和你进同一条车道，也不能和它同时进入路口。要等到明显的空档再转。"],
  yieldP:["没有让行过街行人","你车头前的人行横道上有行人在过街（横向是绿灯，他们有路权），你就开了过去。要等行人走过你的车头、离开你的路线再走。"],
@@ -93,13 +93,9 @@ const TXT={
  stopXw:["第一次停车就停在了人行横道上","红灯右转应该先在停车线后停稳，再慢慢往前挪出来观察。你一次就停到了人行横道上，完全停车是做到了，但位置不对；如果这时有行人过街，就是挡住行人的严重错误。"],
  blockP:["停车挡住了过街行人","你的车停在人行横道上，挡住了正在过街的行人，他们只能绕着你的车走。没有行人时，车头可以挪到人行横道上观察；有行人时，车头要停在人行横道前。"],
  yieldL:["没有让行对面左转车","对面亮起左转箭头绿灯时，对面左转车有优先权。你还是红灯，红灯右转要等左转车转完、或者出现明显的空档再转；左转车已经在转、或者马上就要开出来时，不能进入路口。"],
- yieldP2:["没有让行转入道路上的行人","本方变成绿灯后，你要转入的那条路的人行横道上，行人可以过街。你右转时有行人正在你前面的人行横道上，要等他走过你的路线再转。"],
- xwalk:["停车占用了人行横道","本方绿灯后，你转弯时把车停在了要转入那条路的人行横道上，挡住了正在过街的行人，他只能绕着你的车走。应该在人行横道前停下，等行人走过再转。"],
- noLastLook:["转弯前没有做最后一次右后观察","本方变绿灯后右转，车头进入右侧人行横道之前，要做一次右后观察（中镜、右镜、右后盲区），确认没有行人、自行车从右后方过来。"],
- noLook2:["起步前没有再次观察右后方","绿灯下你停车让行以后，再起步前没有再按“右后观察”。停车等待期间，后面可能又有行人或自行车过来，每次重新起步前都要再看一遍。"],
  sig:["转弯前没有打右转灯","右转前一定要打右转灯，一般在停车线前约 30 米就打开。"],
- sigL:["右转灯打得太晚","离停车线不到 15 米才打右转灯，后车和行人来不及反应。"]};
-const SER=['xwalk','yieldL','yieldP2','blockP','noStop','yieldX','yieldP','yieldK','hitP','hitB','noScan'];
+ sigL:["右转灯打得太晚","离停车线不到 15 米才打右转灯，后车和行人来不及反应。"]},GR.TXT);      /* 变绿灯以后：让行人、占用人行横道、右后观察，和绿灯右转同一套（lib/rules.js） */
+const SER=['xwalk','pedA','pedB','yieldL','blockP','noStop','yieldX','yieldP','yieldK','hitP','hitB','noScan'];
 function snap(){const c=document.createElement('canvas');c.width=280;c.height=200;const x=c.getContext('2d'),X=a=>(a+20)*4.5,Y=a=>(18-a)*4.5;
  x.fillStyle='#7bbf52';x.fillRect(0,0,280,200);x.fillStyle='#6c6c75';x.fillRect(X(-9.5),0,85.5,200);x.fillRect(0,Y(9.5),280,85.5);
  x.fillStyle='#f3f3f3';for(let i=0;i<19;i++){x.fillRect(X(11.5),Y(-9.5+i+.5),15.75,2.25);x.fillRect(X(-9.5+i),Y(-11.5),2.25,15.75)}
@@ -149,8 +145,9 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   R.peds.forEach(p=>{if(p.hit)return;const c=pedPos(p,R.t);if(p.bike){if(Math.abs(c[1]+8.75)<.5&&c[0]>a[0]-14&&c[0]<a[0]+1.5)ev('yieldK')}})}
  // 行人：在你车头前的人行横道上、离你的路线很近时你还在动
  if(v>.3&&f[1]>-15.6)R.peds.forEach(p=>{if(p.bike||p.hit||p.k==='A')return;const c=pedPos(p,R.t);if(c[1]>-15&&c[1]<-11.5&&Math.abs(c[0])<10.5&&Math.abs(c[0]-f[0])<3.2)ev('yieldP')});
- // 本方绿灯后：你转入的那条路的人行横道上有行人
- if(v>.3&&f[0]>8)R.peds.forEach(p=>{if(p.k!=='A'||p.hit)return;const c=pedPos(p,R.t);if(c[1]>-10&&c[1]<9.5&&Math.abs(c[1]-a[1])<3.6&&c[0]-f[0]>-2.5&&c[0]-f[0]<4)ev('yieldP2')});
+ // 本方绿灯后：和绿灯右转同一套判定——车身压到右侧人行横道时，人行横道上有行人就是没有让行；停在人行横道后面等不算
+ if(GR.inBand(a))R.peds.forEach(p=>{if(p.k!=='A'||p.hit||!(p.dd!=null||pedSeg(p,R.t).v>0))return;if(GR.zone(pedPos(p,R.t)[1],p.side)===2)ev(p.side==='far'?'pedA':'pedB')});
+ if(m==='stop'&&v<.05&&R.hitT==null&&GR.onE(a))ev('xwalk');      // 停车时车身压在右侧人行横道上
  // 撞到行人或自行车：倒地，急停
  R.peds.forEach(p=>{if(p.hit)return;const c=pedPos(p,R.t),dx=c[0]-a[0],dz=c[1]-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
   if(Math.abs(fw)<2.45&&Math.abs(lat)<1.05&&v>.4){p.hit=true;p.dd=pedD(p,R.t);p.sg=[{t:0,v:0}];ev(p.bike?'hitB':'hitP');R.mode=m='stop';R.stopA=7;R.stopT=u+v*v/14;R.hitT=R.t;mk()}});
@@ -159,7 +156,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  R.peds.forEach(p=>{if(p.bike||p.hit)return;const n=p.path(p.off+pedD(p,R.t)+1.6),dx=n[0]-a[0],dz=n[1]-a[1],blk=Math.abs(dx*Math.sin(a[2])+dz*Math.cos(a[2]))<2.6&&Math.abs(dx*Math.cos(a[2])-dz*Math.sin(a[2]))<1.3;
   if(p.k==='A'){if(p.dd==null&&!(pedSeg(p,R.t).v>0&&blk))return;if(p.dd==null){p.dd=pedD(p,R.t);p.wv=pedSeg(p,R.t).v}
    if(p.det){const D=p.det,z=p.path(p.off+p.dd)[1],uu=(z-D.zs)/(2*(D.zc-D.zs));p.dd+=p.wv*dt;if(uu>=1){p.ox=0;p.det=null}else p.ox=D.A*(.5-.5*Math.cos(2*Math.PI*Math.max(0,uu)));return}      // 绕着你的车走一个弧线
-   if(blk&&!p.free){p.bt=(p.bt||0)+dt;if(p.bt>1&&!R.ev.some(e=>e.key==='yieldP2'))ev('xwalk');      // 你的车停在人行横道上挡住了他：先等一会儿，再绕过去
+   if(blk&&!p.free){p.bt=(p.bt||0)+dt;      // 你的车停在人行横道上挡住了他：先等一会儿，再绕过去
     if(p.bt>1.6){const z0=p.path(p.off+p.dd)[1],dir=Math.sign(p.path(p.off+p.dd+1)[1]-z0)||1;let zc=a[1];if((zc-z0)*dir<1.5)zc=z0+1.5*dir;
      const px=p.path(p.off+p.dd)[0],A1=Math.max(1.2,f[0]+1.3-px),A2=a[0]-2.35*Math.sin(a[2])-1.3-px;p.det={zs:z0,zc,A:Math.abs(A1)<=Math.abs(A2)?A1:A2};p.free=true}}
    else p.dd+=p.wv*dt;return}      // 你挡在它前面：停下等你过去
