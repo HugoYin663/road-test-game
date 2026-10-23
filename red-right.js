@@ -83,8 +83,8 @@ function hitBox(x0,z0,x1,z1,xa,xb,za,zb){let t0=0,t1=1;const dx=x1-x0,dz=z1-z0;
 // ---------- 操作 ----------
 function cmd(m){if(!playing||R.over||R.u>=ce+1)return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
- if(m==='look'){if(R.lookT>=0)return;R.scT=-1;yawD=0;R.lookT=0;return}
- if(m==='scan'){if(R.lookT<0&&R.scT<0){R.scT=0;yawD=0;R.scQ=R.u>=uS-3}return}
+ if(m==='look'){if(R.lookT>=0)return;R.scT=-1;R.scRel=null;yawD=0;R.lookT=0;return}
+ if(m==='scan'){R.lookT=-1;R.pit=0;R.scT=0;R.scRel=null;yawD=0;R.scQ=R.u>=uS-3;return}      // 随时可以重新看路口（会打断正在做的右后观察）
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-R.u;if(R.u<uS-.2&&dA>R.v*R.v/(2*AB)+.2){R.stopT=uS;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
  if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-14.6)R.goN=true}      // 已经挪出来看清了再按行驶：正常起步转弯

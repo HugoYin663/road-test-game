@@ -164,7 +164,7 @@ const vApp=u=>Math.min(7,Math.sqrt(2*2.2*Math.max(0,LP-u)));
 function tApp(){let u=0,t=0;while(u<LP-.05&&t<30){u+=Math.max(.3,vApp(u))*.02;t+=.02}return t}       // 左转车驶到停车点要多久
 function tArr(){let u=U0,t=0;while(u<uS-5&&t<30){u+=vOf(u)*.02;t+=.02}return t}                    // 你（不按按钮）到停车线前约 5 米要多久
 function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
- if(m==='scan'){if(R.lookT<0&&R.scT<0){R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3}return}      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
+ if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
  if(m==='look'){if(R.lookT>=0)return;R.scT=-1;yawD=0;const slow=R.mode!=='stop';R.lookT=0;if(slow)R.mode='slow';mk();return}
  if(m===R.mode)return;
