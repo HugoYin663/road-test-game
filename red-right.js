@@ -66,10 +66,12 @@ const TXT={
  noScan:["转弯前没有观察左方","红灯右转前，最危险的车和人都从左边来。车头进入路口前，要按“观察路口”看左边（两条车道和人行横道），确认没有车和人再走。"],
  noCreep:["视线被挡时没有慢慢往前观察","左边停着一辆高大的 SUV，挡住了你看横向车流的视线。在停车线停稳后，应该按“行驶”慢慢往前挪（随时准备按停车），挪到能看清左边的位置再按“观察路口”，不能只在 SUV 后面看一眼就转。"],
  noRR:["转弯前没有观察右后方（G 标准）","按 G 路考的要求，红灯右转时，车头进入右侧人行横道之前要做一次右后观察，确认右后方没有自行车或行人。"],
- xwalk:["停车挡住了过街行人","往前挪观察时，没有行人过街的话车头可以停在本方的人行横道上；但这时有行人正要过，你的车挡住了他们。有行人时，车头要停在人行横道前。"],
+ stopOver:["停车越过了停车线","红灯右转第一次停车，应该停在停车线后面。你停过了线（还没到人行横道），完全停车是做到了，但位置不对。"],
+ stopXw:["第一次停车就停在了人行横道上","红灯右转应该先在停车线后停稳，再慢慢往前挪出来观察。你一次就停到了人行横道上，完全停车是做到了，但位置不对；如果这时有行人过街，就是挡住行人的严重错误。"],
+ blockP:["停车挡住了过街行人","你的车停在人行横道上，挡住了正在过街的行人，他们只能绕着你的车走。没有行人时，车头可以挪到人行横道上观察；有行人时，车头要停在人行横道前。"],
  sig:["转弯前没有打右转灯","右转前一定要打右转灯，一般在停车线前约 30 米就打开。"],
  sigL:["右转灯打得太晚","离停车线不到 15 米才打右转灯，后车和行人来不及反应。"]};
-const SER=['noStop','yieldX','yieldP','yieldK','hitP','hitB','noScan'];
+const SER=['blockP','noStop','yieldX','yieldP','yieldK','hitP','hitB','noScan'];
 function snap(){const c=document.createElement('canvas');c.width=280;c.height=200;const x=c.getContext('2d'),X=a=>(a+20)*4.5,Y=a=>(18-a)*4.5;
  x.fillStyle='#7bbf52';x.fillRect(0,0,280,200);x.fillStyle='#6c6c75';x.fillRect(X(-9.5),0,85.5,200);x.fillRect(0,Y(9.5),280,85.5);
  x.fillStyle='#f3f3f3';for(let i=0;i<19;i++){x.fillRect(X(11.5),Y(-9.5+i+.5),15.75,2.25);x.fillRect(X(-9.5+i),Y(-11.5),2.25,15.75)}
@@ -96,11 +98,11 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(m==='drive'){const vt=u<uS-18?7:Math.max(2.4,7-4.6*(u-(uS-18))/18);v=v>vt?Math.max(vt,v-4*dt):Math.min(vt,v+2*dt)}    // 不停车的话会慢慢滑过停车线
  else if(m==='stop'){const dS=R.stopT-u;if(dS>.05)v=Math.min(v,Math.sqrt(2*R.stopA*dS));else v=0}
   else if(m==='turn'){const fz0=front(u)[1],cr=fz0<-13&&!R.goN;const vt=cr?1.3:4.2+2.8*ss(ce-6,ce+14,u);v=Math.min(vt,v+(cr?1.5:2.2)*dt)}      // 车头进横向道路之前慢慢往前挪（creep），随时可以按停车
- if(v<.05&&m==='stop'){v=0;R.stT+=dt;if(R.stopAt==null||R.stT<dt*1.5)R.stopAt=R.t;if(myPath(u)[1]<-19.4&&!R.full){R.full=true;R.fullT=R.t}}else R.stT=0;      // 车头在停车线后完全停住
+ if(v<.05&&m==='stop'){v=0;R.stT+=dt;if(R.stopAt==null||R.stT<dt*1.5)R.stopAt=R.t;if(!R.full&&front(u)[1]<-11.5){R.full=true;R.fullT=R.t;const fz=front(u)[1];if(fz>=-15.1)ev('stopXw');else if(fz>-17)ev('stopOver')}}      // 第一次完全停车：停在哪里都算停了，但停过线、停在人行横道上要扣分else R.stT=0;      // 车头在停车线后完全停住
  u+=v*dt;R.v=v;R.u=u;
  const a=myPath(u),f=front(u);
  // 没有完全停车就过了停车线
- if(!R.full&&!R.ns&&f[1]>-17){R.ns=true;ev('noStop')}
+ if(!R.full&&!R.ns&&f[1]>-11.5){R.ns=true;ev('noStop')}      // 一直没停就开进了横向道路
  // 停在人行横道上
  // 开始转弯（车头进入横向道路）：检查观察和让行
  if(!R.entered&&f[1]>-9.5){R.entered=true;
@@ -120,7 +122,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.hitT!=null&&R.t-R.hitT>3){finish();return}
  // 行人遇到挡在人行横道上的车，会停下等
  R.peds.forEach(p=>{if(p.bike||p.hit)return;const n=p.path(p.off+pedD(p,R.t)+1.6),dx=n[0]-a[0],dz=n[1]-a[1],blk=Math.abs(dx*Math.sin(a[2])+dz*Math.cos(a[2]))<2.6&&Math.abs(dx*Math.cos(a[2])-dz*Math.sin(a[2]))<1.3;
-  if(blk&&!p.det){p.bt=(p.bt||0)+dt;if(p.bt>.8)ev('xwalk');if(p.bt>1.6)p.det=true}      // 只有真的挡住了过街的行人才算错；没人过街时停在人行横道上观察没问题if(p.det){const fz=f[1]+1.4,cz=p.path(p.off+pedD(p,R.t))[1];p.oz=(p.oz||0)+Math.max(-dt,Math.min(dt,(Math.abs(n[0]-f[0])<4?fz-cz:0)-(p.oz||0)))}   // 等一会儿，再从车头前绕过去
+  if(blk&&!p.det){p.bt=(p.bt||0)+dt;if(p.bt>.8)ev('blockP');if(p.bt>1.6)p.det=true}      /* 只有真的挡住了过街的行人才算错；没人过街时停在人行横道上观察没问题 */if(p.det){const fz=f[1]+1.4,cz=p.path(p.off+pedD(p,R.t))[1];p.oz=(p.oz||0)+Math.max(-dt,Math.min(dt,(Math.abs(n[0]-f[0])<4?fz-cz:0)-(p.oz||0)))}   // 等一会儿，再从车头前绕过去
   if((blk&&!p.det)||p.dd!=null){if(p.dd==null)p.dd=pedD(p,R.t);p.wv=p.wv||p.sg[0].v;p.dd+=(blk&&!p.det?0:p.wv)*dt}});
  // 横向车：按时间表开，前面有车或你的车挡在车道上就减速
  R.TR.list.forEach(s=>{let vt=s.v;R.TR.list.forEach(o=>{if(o!==s&&o.lane===s.lane&&o.x>s.x&&o.x-s.x<14)vt=Math.min(vt,Math.max(0,(o.x-s.x-7)*1.5))});
