@@ -70,7 +70,11 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function setHeads(L,c){L.forEach(lm=>{for(const k in lm)lm[k].m.material=k===c?lm[k].on:lm[k].off})}
 function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col}
 // 对面左转车是否正在转或马上要开出来（已经放行、没有在停车线等、还没开过路口中间）
-const lConf=()=>R.cyc&&R.cy.LT.some(L=>!L.gone&&L.rel!=null&&R.t>=L.rel-.8&&!L.hold&&POPP(L.u)[0]<=4);      // 箭头一亮，停车线前的第一辆就算要走了
+// 对面左转车的路线：过了停车线就开始慢慢转，弧线自然一些（不是直角），转进内侧车道
+const ltb=t=>{const u=1-t,P=[[-2.75,16],[-2.75,5],[1.5,-2.75],[14,-2.75]];return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
+const LTP=path([[-2.75,120],...Array.from({length:31},(_,i)=>ltb(i/30)),[170,-2.75]]);
+let LTU1=104,LTX=0;for(let u=104;u<200;u+=.1){const q=LTP(u);if(q[0]<14-.01)LTU1=u;if(!LTX&&q[0]>=10.3)LTX=u}      // 弧线结束的位置、走到人行横道前的位置
+const lConf=()=>R.cyc&&R.cy.LT.some(L=>!L.gone&&L.rel!=null&&R.t>=L.rel-.8&&!L.hold&&LTP(L.u)[0]<=4);      // 箭头一亮，停车线前的第一辆就算要走了
 function mk(){document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===R.mode))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
@@ -97,7 +101,7 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  x.fillStyle='#f3f3f3';for(let i=0;i<19;i++){x.fillRect(X(11.5),Y(-9.5+i+.5),15.75,2.25);x.fillRect(X(-9.5+i),Y(-11.5),2.25,15.75)}
  const cr=(q,col,l)=>{x.save();x.translate(X(q[0]),Y(q[1]));x.rotate(q[2]);x.fillStyle=col;x.fillRect(-4.3,-(l||10),8.6,2*(l||10));x.restore()};
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
- R.TR.list.forEach(s=>{if(Math.abs(s.x)<40)cr([s.x,s.lane,Math.PI/2],'#eceff1')});cr([2.75,-19.05,0],'#3b4148',11);if(R.cyc)R.cy.LT.forEach(L=>{const q=POPP(L.u);if(!L.gone&&Math.abs(q[0])<40&&Math.abs(q[1])<40)cr(q,'#e0b070')});cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
+ R.TR.list.forEach(s=>{if(Math.abs(s.x)<40)cr([s.x,s.lane,Math.PI/2],'#eceff1')});cr([2.75,-19.05,0],'#3b4148',11);if(R.cyc)R.cy.LT.forEach(L=>{const q=LTP(L.u);if(!L.gone&&Math.abs(q[0])<40&&Math.abs(q[1])<40)cr(q,'#e0b070')});cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
 function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});flash(t[0])}
 // 线段（视线）是否穿过一个长方形（SUV 的车身）
 function hitBox(x0,z0,x1,z1,xa,xb,za,zb){let t0=0,t1=1;const dx=x1-x0,dz=z1-z0;
@@ -193,10 +197,10 @@ function cycle(dt){const C=R.cy,t=R.t;
  // 绿灯后还在线后等的左转车：让你先转（你有优先权）；你一直不走，它等一会儿再走
  if(C.ph===7)C.LT.forEach(L=>{if(L.hold&&(R.u>ce+1||(t-R.tG>6&&R.v<.05&&!R.entered)))L.hold=false});
  C.MOV.forEach(m=>{if(t<m.t0)return;m.v=Math.min(16,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
- C.LT.forEach((L,i)=>{if(L.gone)return;const ah=C.LT[i-1];let vt=L.u<112?9:L.u<130?6.5:11;
+ C.LT.forEach((L,i)=>{if(L.gone)return;const ah=C.LT[i-1];let vt=L.u<104?9:L.u<LTU1?7:11;
   if(L.rel==null||t<L.rel)vt=0;
-  if(L.hold||(R.v>.3&&(R.entered||(R.goN&&R.mode==='turn'))&&R.u<ce+3&&L.u<101.5))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
-  if(L.u<130&&R.peds.some(p=>{if(p.k!=='A')return false;const c=pedPos(p,t);return c[1]>-5.5&&c[1]<.5}))vt=Math.min(vt,Math.sqrt(7*Math.max(0,129.5-L.u)));   // 让人行横道上的行人
+  if(L.hold||(C.ph>=7&&R.v>.3&&(R.entered||(R.goN&&R.mode==='turn'))&&R.u<ce+3&&L.u<101.5))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
+  if(L.u<LTX&&R.peds.some(p=>{if(p.k!=='A')return false;const c=pedPos(p,t);return c[1]>-5.5&&c[1]<.5}))vt=Math.min(vt,Math.sqrt(7*Math.max(0,LTX-L.u)));   // 让人行横道上的行人
   if(ah&&!ah.gone)vt=Math.min(vt,Math.max(0,1.5*(ah.u-L.u-6.6)));
   L.v=L.v>vt?Math.max(vt,L.v-6*dt):Math.min(vt,L.v+2.5*dt);L.u+=L.v*dt;if(L.u>240){L.gone=true;L.c.visible=false}})}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.title}${SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'}</b><span>${e.text}</span></div>`).join('')+'</div>'}
@@ -216,7 +220,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
   const sp=p.bike?p.sg[0].v:p.k==='A'?(p.dd!=null&&p.dd===p.ldd?0:pedSeg(p,t).v):(p.sg[0].v||1.3),s=sp?Math.sin(t*(sp*5+2))*(.45+sp*.1):0,u=p.o.userData;p.ldd=p.dd;
   if(p.bike){u.wh.forEach(w=>w.rotation.x=-t*sp/.36);u.l.rotation.x=-.3;u.r.rotation.x=-.3}else{u.l.rotation.x=s;u.r.rotation.x=-s;u.al.rotation.x=-s*.8;u.ar.rotation.x=s*.8}});
  pedSigTick(ts);
- if(R.cyc)R.cy.LT.forEach(L=>{if(L.gone)return;const q=POPP(L.u);place(L.c,q[0],q[1],q[2])});
+ if(R.cyc)R.cy.LT.forEach(L=>{if(L.gone)return;const q=LTP(L.u);place(L.c,q[0],q[1],q[2])});
  if(R.fol){const fq=myPath(R.fol.u);place(R.fol.car,fq[0],fq[1],fq[2])}
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
