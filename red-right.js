@@ -65,7 +65,7 @@ const TXT={
  hitB:["撞到了自行车","你的车撞到了横向骑过来的自行车。"],
  noScan:["转弯前没有观察左方","红灯右转前，最危险的车和人都从左边来。车头进入路口前，要按“观察路口”看左边（两条车道和人行横道），确认没有车和人再走。"],
  noCreep:["视线被挡时没有慢慢往前观察","左边停着一辆高大的 SUV，挡住了你看横向车流的视线。在停车线停稳后，应该按“行驶”慢慢往前挪（随时准备按停车），挪到能看清左边的位置再按“观察路口”，不能只在 SUV 后面看一眼就转。"],
- noRR:["转弯前没有观察右后方（G 标准）","按 G 路考的要求，红灯右转起步前也要做一次右后观察，确认右后方没有自行车或行人。"],
+ noRR:["转弯前没有观察右后方（G 标准）","按 G 路考的要求，红灯右转时，车头进入右侧人行横道之前要做一次右后观察，确认右后方没有自行车或行人。"],
  xwalk:["停车挡住了过街行人","往前挪观察时，没有行人过街的话车头可以停在本方的人行横道上；但这时有行人正要过，你的车挡住了他们。有行人时，车头要停在人行横道前。"],
  sig:["转弯前没有打右转灯","右转前一定要打右转灯，一般在停车线前约 30 米就打开。"],
  sigL:["右转灯打得太晚","离停车线不到 15 米才打右转灯，后车和行人来不及反应。"]};
@@ -104,7 +104,9 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(!R.entered&&f[1]>-9.5){R.entered=true;
   if(!(R.lastScan!=null&&R.lastScan>=(R.fullT==null?0:R.fullT)))ev('noScan');
   else if(R.full&&!(R.scanFront>=-15.6))ev('noCreep');      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
-  if(STD==='g'&&!(R.lastLook!=null&&R.lastLook>=(R.stopAt==null?0:R.stopAt-3)))ev('noRR')}
+}
+ // G 标准：车头进入右侧人行横道之前，做过右后观察就算有效（真有行人还来得及停）
+ if(STD==='g'&&!R.rrc&&f[0]>=11.5&&f[1]>-12){R.rrc=true;if(!(R.lastLook!=null&&R.lastLook>=(R.fullT==null?0:R.fullT)))ev('noRR')}
  if(R.entered&&a[0]<14&&v>.3){
   R.TR.list.forEach(s=>{const tArr=(a[0]-s.x)/Math.max(1,s.cv);if(s.x<a[0]+1&&(s.x>-14||tArr<3.2))ev('yieldX')});      // 横向车还没开过你的位置，并且已经在路口里或 3 秒内就到
   R.peds.forEach(p=>{if(p.hit)return;const c=pedPos(p,R.t);if(p.bike){if(Math.abs(c[1]+8.75)<.5&&c[0]>a[0]-14&&c[0]<a[0]+1.5)ev('yieldK')}})}
