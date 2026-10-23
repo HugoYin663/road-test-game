@@ -132,7 +132,8 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
  const cr=(q,col)=>{x.save();x.translate(X(q[0]),Y(q[1]));x.rotate(q[2]);x.fillStyle=col;x.fillRect(-4.3,-10,8.6,20);x.restore()};
  if(R.lc)cr(R.lc.path(R.lc.u),'#eceff1');cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
-function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});if(!EX)flash(t[0]);if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
+const LATE=['noRR','noLastLook','noLook2','noLook','noLook1'];      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
+function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});if(!EX){if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:t[0]});else flash(t[0])}if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
 const SER=['hitP','hitBA','hitBB','xwalk','pedA','pedB','hookA','hookB','red','redR','police','blockX','blockX2'];      // 严重错误：路考直接不合格
 const lcAct=()=>R.lc&&(R.lc.type==='cut'||R.lc.l5)&&R.lc.state==='run'&&R.lc.path(R.lc.u)[0]<(R.lc.l5?12:20);   // 黄灯局：左转车开过人行横道一带就算转过去了
 const behind=()=>myPath(R.u)[1]<-19.6;
@@ -170,6 +171,7 @@ function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
  R.mode=m;mk()}
 function pickTgt(q){let b=null,bd=1e9;R.peds.forEach(p=>{if(p.k==='A'||p.k==='D'||!p.o.visible)return;const a=pedPos(p,R.t),dx=a[0]-q[0],dz=a[1]-q[1],d=Math.hypot(dx,dz),y=normA(Math.atan2(dx,dz)-q[2]);if(d<70&&y>1.1&&y<3.1&&d<bd){bd=d;b=p}});return b}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.mode;
+ if(R.flQ&&R.flQ.length&&R.t>=R.flQ[0].t)flash(R.flQ.shift().s);
  if(!R.committed&&u>=uS-1.2){R.committed=true;if(m==='slow'){R.mode=m='turn';mk()}}
  if(m==='stop'){const dS=R.stopT-u;if(dS>.1)v=Math.min(v,Math.sqrt(2*R.stopA*dS));else v=0}
  else{const t=vOf(u);v=v>t?Math.max(t,v-5*dt):Math.min(t,v+2.5*dt)}

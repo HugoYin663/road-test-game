@@ -109,7 +109,8 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  const cr=(q,col,l)=>{x.save();x.translate(X(q[0]),Y(q[1]));x.rotate(q[2]);x.fillStyle=col;x.fillRect(-4.3,-(l||10),8.6,2*(l||10));x.restore()};
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
  R.TR.list.forEach(s=>{if(Math.abs(s.x)<40)cr([s.x,s.lane,Math.PI/2],'#eceff1')});cr([2.75,-19.05,0],'#3b4148',11);if(R.cyc)R.cy.LT.forEach(L=>{const q=LTP(L.u);if(!L.gone&&Math.abs(q[0])<40&&Math.abs(q[1])<40)cr(q,'#e0b070')});cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
-function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});flash(t[0])}
+const LATE=['noRR','noLastLook','noLook2','noLook','noLook1'];      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
+function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:t[0]});else flash(t[0])}
 // 线段（视线）是否穿过一个长方形（SUV 的车身）
 function hitBox(x0,z0,x1,z1,xa,xb,za,zb){let t0=0,t1=1;const dx=x1-x0,dz=z1-z0;
  for(const [p,d,lo,hi] of [[x0,dx,xa,xb],[z0,dz,za,zb]]){if(Math.abs(d)<1e-9){if(p<lo||p>hi)return false}else{let a=(lo-p)/d,b=(hi-p)/d;if(a>b)[a,b]=[b,a];t0=Math.max(t0,a);t1=Math.min(t1,b);if(t0>t1)return false}}return true}
@@ -129,6 +130,7 @@ function pickTgt(){return null}
 function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false;R.scUp=R.scT}
 // ---------- 每一帧 ----------
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.mode;
+ if(R.flQ&&R.flQ.length&&R.t>=R.flQ[0].t)flash(R.flQ.shift().s);
  if(m==='drive'){const vt=u<uS-18?7:Math.max(2.4,7-4.6*(u-(uS-18))/18);v=v>vt?Math.max(vt,v-4*dt):Math.min(vt,v+2*dt)}    // 不停车的话会慢慢滑过停车线
  else if(m==='stop'){const dS=R.stopT-u;if(dS>.05)v=Math.min(v,Math.sqrt(2*R.stopA*dS));else v=0}
   else if(m==='turn'){const fz0=front(u)[1],cr=fz0<-13&&!R.goN;const vt=cr?1.3:4.2+2.8*ss(ce-6,ce+14,u);v=Math.min(vt,v+(cr?1.5:2.2)*dt)}      // 车头进横向道路之前慢慢往前挪（creep），随时可以按停车
@@ -206,7 +208,7 @@ function cycle(dt){const C=R.cy,t=R.t;
  const both=C.kind==='both',onc=a=>C.MOV.push({o:OC[a[0]],x:-6.25,z:OCP[a[0]][1],h:Math.PI,t0:t+a[1],v:0});
  if(C.ph===4&&t>=C.Tc+4){C.ph=5;C.tA=t;C.LT.forEach((L,i)=>L.rel=t+.8+i*.9+(i>=C.slowK?C.slowD:0));
   if(both){setArrow('g');C.OL.forEach((L,i)=>L.rel=t+.8+i*.9);banner('红灯 + 左转箭头','#2ee66b')}      // 两个方向同时左转
-  else{setHeads(dirHeads(OPP),'g');setArrow('g',OPP);[[1,1],[2,2.2]].forEach(onc)}}      // 只有对面放行：你这边灯不变，只看得到对面左转车开始转、对面直行车开过来
+  else{setHeads(dirHeads(OPP),'g');setArrow('g',OPP);[[1,1],[2,2.2]].forEach(onc);banner('本方红灯','#ff5a5a')}}      // 对面已经是绿灯 + 左转箭头（你看不到），这里只说你看到的      // 只有对面放行：你这边灯不变，只看得到对面左转车开始转、对面直行车开过来
  if(C.ph===5&&(C.LT[2].u>=98.5||t>C.tA+16)){C.ph=6;C.tY=t;setArrow('y',both?null:OPP);if(both){C.LT.forEach(L=>{if(L.u<99.5&&100.4-L.u>=L.v*L.v/7)L.hold=true});banner('左转箭头变黄','#ffc21a')}}      // 3 辆转过去，箭头变黄；后面能停的停下
  if(C.ph===6&&t>=C.tY+1.5){C.ph=7;R.tG=t;setArrow('off');setHeads(HEADS,'g');setPedSig('M','walk');banner('绿灯 · 右转让行人','#2ee66b');
   if(both)[[1,1],[2,2.2]].forEach(onc);else[[SUV,2.75,-19.05,0,1.2],[SUV2,2.75,-26.5,0,2.4]].forEach(a=>C.MOV.push({o:a[0],x:a[1],z:a[2],h:a[3],t0:t+a[4],v:0}));
