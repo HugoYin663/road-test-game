@@ -122,7 +122,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.hitT!=null&&R.t-R.hitT>3){finish();return}
  // 行人遇到挡在人行横道上的车，会停下等
  R.peds.forEach(p=>{if(p.bike||p.hit)return;const n=p.path(p.off+pedD(p,R.t)+1.6),dx=n[0]-a[0],dz=n[1]-a[1],blk=Math.abs(dx*Math.sin(a[2])+dz*Math.cos(a[2]))<2.6&&Math.abs(dx*Math.cos(a[2])-dz*Math.sin(a[2]))<1.3;
-  if(blk&&!p.det){p.bt=(p.bt||0)+dt;if(p.bt>.8)ev('blockP');if(p.bt>1.6)p.det=true}      /* 只有真的挡住了过街的行人才算错；没人过街时停在人行横道上观察没问题 */if(p.det){const fz=f[1]+1.4,cz=p.path(p.off+pedD(p,R.t))[1];p.oz=(p.oz||0)+Math.max(-dt,Math.min(dt,(Math.abs(n[0]-f[0])<4?fz-cz:0)-(p.oz||0)))}   // 等一会儿，再从车头前绕过去
+  if(blk&&!p.det){p.bt=(p.bt||0)+dt;if(p.bt>.8&&!R.ev.some(e=>e.key==='blockP')){R.ev=R.ev.filter(e=>e.key!=='stopXw');ev('blockP')}if(p.bt>1.6)p.det=true}      /* 只有真的挡住了过街的行人才算错；没人过街时停在人行横道上观察没问题 */if(p.det){const fz=f[1]+1.4,cz=p.path(p.off+pedD(p,R.t))[1];p.oz=(p.oz||0)+Math.max(-dt,Math.min(dt,(Math.abs(n[0]-f[0])<4?fz-cz:0)-(p.oz||0)))}   // 等一会儿，再从车头前绕过去
   if((blk&&!p.det)||p.dd!=null){if(p.dd==null)p.dd=pedD(p,R.t);p.wv=p.wv||p.sg[0].v;p.dd+=(blk&&!p.det?0:p.wv)*dt}});
  // 横向车：按时间表开，前面有车或你的车挡在车道上就减速
  R.TR.list.forEach(s=>{let vt=s.v;R.TR.list.forEach(o=>{if(o!==s&&o.lane===s.lane&&o.x>s.x&&o.x-s.x<14)vt=Math.min(vt,Math.max(0,(o.x-s.x-7)*1.5))});
