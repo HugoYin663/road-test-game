@@ -116,7 +116,7 @@ function oppConf(){const tc={};let n=0;
 const rtAct=()=>R.RT&&!R.RT.gone&&!R.RT.stop&&ORT(R.RT.u)[0]>-19&&ORT(R.RT.u)[1]<45;
 function bikeConf(){return R.peds.some(p=>{if(!p.bike||p.hit)return false;const c=pedPos(p,R.t),zc=ZC[-12.25];if(c[1]<zc-1.5)return false;return (c[1]-(zc+1.2))/p.sg[0].v<tClear(-12.25)+.8})}
 const walking=p=>p.dd!=null||pedSeg(p,R.t).v>0;
-const pedConf=p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);if(c[0]<-19.8||c[0]>-13.7)return false;if(c[1]>9.8||c[1]<-9.8)return false;return c[1]>0||p.dir>0};      /* 和绿灯右转一样：从对面（北边）走来的行人过了路中线就可以转；从你这一侧（南边）走过去的行人要走到对面人行道上 */
+const pedConf=p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);if(c[0]<-19.8||c[0]>-13.7)return false;if(c[1]>9.3||c[1]<-9.3)return false;return p.dir>0||c[1]>0};      // 已经走上人行道（路边 z=±9.5）的不算      /* 和绿灯右转一样：从对面（北边）走来的行人过了路中线就可以转；从你这一侧（南边）走过去的行人要走到对面人行道上 */
 // ---------- 操作 ----------
 function cmd(m){if(!playing||R.over||R.crash||R.u>=ce+1)return;if(m==='look')return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
@@ -158,7 +158,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  // 转到一半停在对面车道上
  if(R.cmt&&v===0&&a[0]<-4&&a[0]>-13&&!R.crash&&R.hitT==null){R.stO=(R.stO||0)+dt;if(R.stO>.6)ev('stuckO')}else R.stO=0;
  // 转弯时车头压进人行横道，前面有行人
- if(v>.3&&f[0]<-14.8&&a[0]>-20.5)R.peds.forEach(p=>{if(p.bike||p.hit||!walking(p))return;const c=pedPos(p,R.t);if(c[0]>-19.8&&c[0]<-13.7&&Math.abs(c[1]-a[1])<3.4)ev('yieldPL')});
+ if(v>.3&&f[0]<-14.8&&a[0]>-20.5)R.peds.forEach(p=>{if(!pedConf(p))return;const c=pedPos(p,R.t);if(Math.abs(c[1]-a[1])<3.4)ev('yieldPL')});      // 转弯时车头进了人行横道：只算还没让完的行人（对面来的过了中线、你这侧的上了人行道都不算）
  // 变红后还停在路口里
  if(R.light==='r'&&f[1]>-17.25&&u<ce&&v===0&&!R.crash){const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40)||rtAct()||bikeConf()||R.peds.some(pedConf);      /* 还有车、自行车或行人要让，就不算 */R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
  // 撞到行人或自行车
