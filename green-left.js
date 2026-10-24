@@ -5,7 +5,7 @@
 // 路线：左转专用道（x=2.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.6，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
-const XW=-1.2,SPS=[[2.75,-19.3],[2.75,-15.5],[XW,-14.5],[XW,-10]],TRN=[[XW,-2.8],[XW,-1.0],[-6,2.75],[-21,2.75]];      // 车头一过停车线就开始，向左移约 4 米：和对面左转车并排错开（各自在对方右边），车身左边离对面直行车道线约 2.3 米（对面也这样做，视线就好很多）；顺着自然的弧线转，不是直角弯
+const XW=1.55,SPS=[[2.75,-19.3],[2.75,-16],[XW,-14.5],[XW,-11]],TRN=[[XW,-6.6],[XW,-2.5],[-5,2.75],[-21,2.75]];      // S-shift 只向左移约 1.2 米（把意思做出来）；起步时一边往前开一边慢慢往左打方向，顺着自然的弧线转
 const myPts=[[2.75,-120],...Array.from({length:21},(_,i)=>cub(SPS,i/20)),...Array.from({length:41},(_,i)=>cub(TRN,i/40)),[-90,2.75]];
 const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i-1][1]):0,0);
 const myPath=path(myPts);
@@ -13,7 +13,7 @@ let cs=0,ce=0;{let L=0;for(let i=1;i<myPts.length;i++){L+=Math.hypot(myPts[i][0]
 const AB=4,UEND=ce+16;
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
 const uS=uAt(-19.95),      // 停车线后的停车位置（车头离停车线约 0.6 米）
-      uW=uAt(-3.0);       // 路口里等候的位置：车头离路口中心约 2.5 米，车正轮正
+      uW=uAt(-6.85);      // 路口里等候的位置：车头离路口中心约 4.5 米，车正轮正；和对面待转车之间留出足够距离
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
 // 你的路线穿过对面各条车道的位置（z）
 const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(L=>{for(let u=cs;u<myLen;u+=.05){const q=myPath(u);if(q[0]<=L){ZC[L]=q[1];break}}});
@@ -54,7 +54,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 你前面的左转车（你是第二辆）
  if(sc.LC){const c=car(C[[3,5,7][Math.random()*3|0]]);live.push(c);R.LC={c,u:U0+13,v:11,st:'drive',goAt:G.a0+.4}}
  // 对面在路口里等左转的大车（挡住你看对面外侧车道）
- if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);const uw=(()=>{for(let u=0;u<200;u+=.05)if(OLT(u)[1]<=3.25)return u;return 110})();R.BK={c,uw,u:uw-62,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
+ if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);const uw=(()=>{for(let u=0;u<200;u+=.05)if(OLT(u)[1]<=7.1)return u;return 110})();R.BK={c,uw,u:uw-62,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
  // 对面右转车：在大空档开始时到达，打右转灯，慢下来转进西边道路
  if(sc.RT){const c=car(C[1+Math.random()*8|0]);live.push(c);c.userData.bl.forEach(m=>m.position.x=-m.position.x);const tA=sc.Y?sc.Ty-.5+Math.random()*1.5:G.s+.4;R.RT={c,u:150-30-16*tA+8,v:16,gone:false}}      // 大约 tA 时开到停车线附近
  // 行人：西边人行横道（你要转入的那条路），本方绿灯，他们有路权
