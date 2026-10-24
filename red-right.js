@@ -111,7 +111,7 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
  R.TR.list.forEach(s=>{if(Math.abs(s.x)<40)cr([s.x,s.lane,Math.PI/2],'#eceff1')});cr([2.75,-19.05,0],'#3b4148',11);if(R.cyc)R.cy.LT.forEach(L=>{const q=LTP(L.u);if(!L.gone&&Math.abs(q[0])<40&&Math.abs(q[1])<40)cr(q,'#e0b070')});cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
 const LATE=['noRR','noLastLook','noLook2','noLook','noLook1'];      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
-function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:t[0]});else flash(t[0])}
+function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap3D()||snap()});if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:t[0]});else flash(t[0])}
 // 线段（视线）是否穿过一个长方形（SUV 的车身）
 function hitBox(x0,z0,x1,z1,xa,xb,za,zb){let t0=0,t1=1;const dx=x1-x0,dz=z1-z0;
  for(const [p,d,lo,hi] of [[x0,dx,xa,xb],[z0,dz,za,zb]]){if(Math.abs(d)<1e-9){if(p<lo||p>hi)return false}else{let a=(lo-p)/d,b=(hi-p)/d;if(a>b)[a,b]=[b,a];t0=Math.max(t0,a);t1=Math.min(t1,b);if(t0>t1)return false}}return true}

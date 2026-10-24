@@ -133,7 +133,7 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  const cr=(q,col)=>{x.save();x.translate(X(q[0]),Y(q[1]));x.rotate(q[2]);x.fillStyle=col;x.fillRect(-4.3,-10,8.6,20);x.restore()};
  if(R.lc)cr(R.lc.path(R.lc.u),'#eceff1');cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
 const LATE=['noRR','noLastLook','noLook2','noLook','noLook1'];      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
-function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});if(!EX){if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:t[0]});else flash(t[0])}if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
+function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap3D()||snap()});if(!EX){if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:t[0]});else flash(t[0])}if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
 const SER=['hitP','hitBA','hitBB','xwalk','pedA','pedB','hookA','hookB','red','redR','police','blockX','blockX2'];      // 严重错误：路考直接不合格
 const lcAct=()=>R.lc&&(R.lc.type==='cut'||R.lc.l5)&&R.lc.state==='run'&&R.lc.path(R.lc.u)[0]<(R.lc.l5?12:20);   // 黄灯局：左转车开过人行横道一带就算转过去了
 const behind=()=>myPath(R.u)[1]<-19.6;

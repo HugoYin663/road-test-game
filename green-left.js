@@ -5,28 +5,28 @@
 // 路线：左转专用道（x=2.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.6，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
-const XL=2.25,XW=-1.0,SPS=[[XL,-19.3],[XL,-15.5],[XW,-13.5],[XW,-9.5]],TRN=[[XW,-6.6],[XW,-2.5],[-5,2.75],[-21,2.75]];      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 3 米，停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
+const XL=2.25,XW=-1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 3 米，停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
 // 两条路线：S＝出白线后做 S-shift（按“S-停车”）；N＝直着开进路口（按“直行停车”）。停车线以前两条路线完全一样
-function mkPath(xw){const SP=[[XL,-19.3],[XL,-15.5],[xw,-13.5],[xw,-9.5]],TR=[[xw,-6.6],[xw,-2.5],[-5,2.75],[-21,2.75]];
+function mkPath(xw){const SP=[[XL,SL-2.05],[XL,SL+1.75],[xw,SL+3.75],[xw,SL+7.75]],TR=[[xw,-8.6],[xw,-3],[-7.5,2.75],[-26,2.75]];      // 路口加大后弧线半径更大
  const pts=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20)),...Array.from({length:41},(_,i)=>cub(TR,i/40)),[-90,2.75]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===22)cs=L;if(i===62)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
- return{pts,len:L,p,cs,ce,uW:at(-6.85),ZC}}
+ return{pts,len:L,p,cs,ce,uW:at(-8.85),ZC}}
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,cs,ce,UEND,uW,ZC;
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPath=P.p;cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+16}
 usePath('N');
 const ZC0=PK.S.ZC,AB=4;      // 排车流时间表用的位置
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
-const uS=uAt(-19.95),      // 停车线后的停车位置（车头离停车线约 0.6 米）
-      uDiv=uAt(-19.3);     // 两条路线从这里分开
+const uS=uAt(SL-2.7),      // 停车线后的停车位置（车头离停车线约 0.6 米）
+      uDiv=uAt(SL-2.05);     // 两条路线从这里分开
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
 const OLT=path(myPts.map(p=>[-p[0],-p[1]]));      // （对面车也做 S-shift 时用的路线，现在先不用）
 // 对面左转车：不做 S-shift，进路口后把车头歪向它自己的左边等着（车头不进你这边的直行车道）——不对的做法，但生活中很常见
-const BKP=path([[-2.25,120],...Array.from({length:41},(_,i)=>cub([[-2.25,12],[-2.25,-0.5],[4.5,-2.75],[21,-2.75]],i/40)),[170,-2.75]]);
+const BKP=path([[-2.25,120],...Array.from({length:41},(_,i)=>cub([[-2.25,15.5],[-2.25,1],[6,-2.75],[26,-2.75]],i/40)),[170,-2.75]]);
 // 对面右转车：转进西边道路的外侧车道（z=6.25）
-const ORT=path([[-9.75,150],...Array.from({length:31},(_,i)=>cub([[-9.75,30],[-9.75,16],[-11.5,6.25],[-20,6.25]],i/30)),[-90,6.25]]);      // 对面外侧直行道右转，转进西边道路的外侧车道
+const ORT=path([[-9.75,150],...Array.from({length:31},(_,i)=>cub([[-9.75,33],[-9.75,20],[-12,9.75],[-23,9.75]],i/30)),[-90,9.75]]);      // 对面外侧直行道右转，转进西边道路的外侧车道
 const mine=car(C[0]);
 let DIFF='easy',R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=0,ly=0,STD='g2',LASTK=null;
 const live=[];
@@ -38,7 +38,7 @@ const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.pa
 function makeOpp(sc){const L=[],v0=()=>15.3+Math.random()*1.9,lane=()=>Math.random()<.5?-6.25:-9.75;let t=-1;const push=tt=>L.push({lane:lane(),tc:tt,v:v0()});
  const G={};
  if(sc.Y){while(t<sc.Ty+16){t+=1.3+Math.random()*1.5;push(t)}      // 一直很密，等不到空档
-  L.forEach(s=>{const z=ZC0[s.lane]+s.v*(s.tc-sc.Ty);if(z>0&&z<19.6+s.v*s.v/9+3)s.run=true});      // 黄灯时离停车线太近、停不下来的车照直开过去（等它们过去才能转）
+  L.forEach(s=>{const z=ZC0[s.lane]+s.v*(s.tc-sc.Ty);if(z>0&&z<OSZ+s.v*s.v/9+3)s.run=true});      // 黄灯时离停车线太近、停不下来的车照直开过去（等它们过去才能转）
   return{list:L,G}}
  const G1=sc.LC?16+Math.random()*2:17+Math.random()*3;      /* 你慢慢溜进路口大约要 15 秒 */while(t<G1){t+=1.3+Math.random()*1.5;push(t)}
  t+=3.6+Math.random()*.8;push(t);t+=1.4+Math.random();push(t);      // 一个看起来像空档、其实不够的 4 秒间隔
@@ -60,19 +60,19 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 你前面的左转车（你是第二辆）
  if(sc.LC){const c=car(C[[3,5,7][Math.random()*3|0]]);live.push(c);R.LC={c,u:U0+13,v:11,st:'drive',goAt:G.a0+.4}}
  // 对面在路口里等左转的大车（挡住你看对面外侧车道）
- if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);let us=0,uw=0;for(let u=0;u<200;u+=.05){const q=BKP(u);if(!us&&q[1]<=19.9)us=u;if(!uw&&Math.abs(normA(q[2]-Math.PI))>=.55){uw=u;break}}R.BK={c,us,uw,u:us-50,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
+ if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);let us=0,uw=0;for(let u=0;u<200;u+=.05){const q=BKP(u);if(!us&&q[1]<=OSZ+.3)us=u;if(!uw&&Math.abs(normA(q[2]-Math.PI))>=.55){uw=u;break}}R.BK={c,us,uw,u:us-50,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
  // 对面右转车：在大空档开始时到达，打右转灯，慢下来转进西边道路
  if(sc.RT){const c=car(C[1+Math.random()*8|0]);live.push(c);c.userData.bl.forEach(m=>m.position.x=-m.position.x);const tA=sc.Y?sc.Ty-.5+Math.random()*3:G.s+.4;      /* 黄灯情况：右转车有时刚好赶上黄灯开过去，有时还没到停车线、停下来 */R.RT={c,u:Math.max(0,150-30-16*tA+8),v:16,gone:false,t0:tA-7.5}}      // 大约 tA 时开到停车线附近
  // 行人：西边人行横道（你要转入的那条路），本方绿灯，他们有路权
  if(sc.PW){const n=hard?2:P([1,1,2]);for(let i=0;i<n;i++){const S=Math.random()<.5,x=-16.75+(i?(S?.35:-.35):0),v=1.25+Math.random()*.3,o=ped(PCOL[Math.random()*5|0]);live.push(o);
-   const tMeet=(sc.Y?sc.Ty-9:G.s)+i*1.2+Math.random()*1.5,pts=S?[[x,-11.2],[x,11.2],[x,150]]:[[x,11.2],[x,-11.2],[x,-150]];      // 大约 tMeet 时走到你的路线（z≈2.75）
-   const pp={k:'W',dir:S?1:-1,o,path:path(pts),len:170,sg:[{t:0,v}],off:0},d0=S?11.2+2.75:11.2-2.75;pp.off=Math.max(0,d0-v*tMeet);
+   const tMeet=(sc.Y?sc.Ty-9:G.s)+i*1.2+Math.random()*1.5,pts=S?[[x,-hwX-1.7],[x,hwX+1.7],[x,150]]:[[x,hwX+1.7],[x,-hwX-1.7],[x,-150]];      // 大约 tMeet 时走到你的路线（z≈2.75）
+   const pp={k:'W',dir:S?1:-1,o,path:path(pts),len:170,sg:[{t:0,v}],off:0},d0=S?hwX+1.7+2.75:hwX+1.7-2.75;pp.off=Math.max(0,d0-v*tMeet);
    if(d0-v*tMeet<0){pp.sg=[{t:0,v:0},{t:tMeet-d0/v,v}]}R.peds.push(pp)}}
  // 自行车：对面自行车道（x=-8.75）直行过来
  if(sc.BI){const o=cyclist(PCOL[Math.random()*5|0]);live.push(o);const v=5+Math.random(),tMeet=sc.Y?sc.Ty-6:G.s+1+Math.random()*2;
   R.peds.push({k:'K',o,bike:true,path:path([[-12.25,150],[-12.25,-150]]),len:300,sg:[{t:0,v}],off:Math.max(0,150-ZC0[-12.25]-v*tMeet)})}
  // 横向等红灯的车（两边各两条车道）：只有黄灯情况下横向变绿后才开
- [[-1,-2.75],[-1,-6.25],[1,2.75],[1,6.25]].forEach((a,i)=>{const c=car(C[[2,4,6,8][i]]);live.push(c);R.XQ.push({c,dir:-a[0],z:a[1],x:a[0]*(hwM+10.1),h:a[0]<0?Math.PI/2:-Math.PI/2,cv:0})});
+ [[-1,-6.25],[-1,-9.75],[1,6.25],[1,9.75]].forEach((a,i)=>{const c=car(C[[2,4,6,8][i]]);live.push(c);R.XQ.push({c,dir:-a[0],z:a[1],x:a[0]*(hwM+10.1),h:a[0]<0?Math.PI/2:-Math.PI/2,cv:0})});
  {const fc=car(C[Math.random()*9|0]);live.push(fc);R.fol={car:fc,u:R.u-16,v:R.v}}
  setHeads(HEADS,'g');setHeads(CHEADS,'r');setArrow('off');banner('绿灯左转','');setPedSig('M','walk');setPedSig('X','hand');
  gt=0;mk();$('sp').textContent='0'}
@@ -85,6 +85,7 @@ function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout
 const TXT={
  sig:["转弯前没有打左转灯","左转前一定要打左转灯，一般在停车线前约 30 米就打开。"],
  sigL:["左转灯打得太晚","离停车线不到 15 米才打左转灯，后车和对面的车来不及反应。"],
+ wheels:["待转时没有车正轮正","在路口里等候左转时，车身要摆正、车轮朝正前方。你停下来时车头已经往左歪了（车轮已经打了方向），如果被后车追尾，会被推进对面的车流。不要提前开始转弯，停在路口里车正轮正地等。"],
  noEnter:["延误交通：没有进入路口等候","你是第一辆左转车，绿灯时应该开过停车线，进入路口里等候（车头大约在路口中间前面，车轮朝正前方）。停在停车线后面等，会延误后面的车，也更难找到空档。"],
  enter2:["前车还在路口里等，你也跟着开进了路口","一次只能有一辆左转车在路口里等候。前面已经有车在路口里等左转时，你要停在停车线后面，等它转走了再开进路口。"],
  noScanL:["转弯前没有观察路口","左转前要按“观察路口”看一眼左边——你要转入那条路的人行横道上有没有行人，再确认对面车流的空档。"],
@@ -103,24 +104,24 @@ const TXT={
 const SER=['sameLT','yieldO','yieldRT','yieldBk','yieldPL','stuckO','stuckRed','redIn','crash','hitP','hitB'];
 function snap(){const c=document.createElement('canvas');c.width=280;c.height=200;const x=c.getContext('2d'),X=a=>(a+31)*4.5,Y=a=>(22-a)*4.5;
  x.fillStyle='#7bbf52';x.fillRect(0,0,280,200);x.fillStyle='#6c6c75';x.fillRect(X(-hwM),0,hwM*9,200);x.fillRect(0,Y(hwX),280,hwX*9);
- x.fillStyle='#f3f3f3';for(let i=0;i<19;i++)x.fillRect(X(-hwM-5.5),Y(-9.5+i+.5),15.75,2.25);for(let i=0;i<26;i++)x.fillRect(X(-13+i),Y(-11.5),2.25,15.75);
- x.fillStyle='#9b9da3';x.fillRect(X(-1),Y(-15.5),9,200)
+ x.fillStyle='#f3f3f3';for(let i=0;i<2*hwX;i++)x.fillRect(X(-hwM-5.5),Y(-hwX+i+.5),15.75,2.25);for(let i=0;i<26;i++)x.fillRect(X(-13+i),Y(-hwX-2),2.25,15.75);
+ x.fillStyle='#9b9da3';x.fillRect(X(-1),Y(-hwX-6),9,200)
  const cr=(q,col,l,w)=>{x.save();x.translate(X(q[0]),Y(q[1]));x.rotate(q[2]);x.fillStyle=col;x.fillRect(-(w||4.3),-(l||10),2*(w||4.3),2*(l||10));x.restore()};
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
  R.OC.forEach(s=>{if(!s.gone&&Math.abs(s.z)<45)cr([s.lane,s.z,Math.PI],'#eceff1')});
  if(R.BK){const q=BKP(R.BK.u);cr(q,'#d8d8d0',12,5)}if(R.RT&&!R.RT.gone)cr(ORT(R.RT.u),'#ffd28a');if(R.LC)cr(PK.S.p(R.LC.u),'#9aa4b5');
  cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
-function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap()});flash(t[0])}
+function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap3D()||snap()});flash(t[0])}
 // ---------- 冲突判断 ----------
 // 你从现在开始一直开，车尾离开某条对面车道要多久
 function tClear(L){let u=R.u,v=R.v,t=0;while(t<12){const a=myPath(u);if(a[0]-2.35*Math.sin(a[2])<L-1.9)return t;const vt=vGo(u);v=Math.min(vt,v+2.5*.05);u+=v*.05;t+=.05}return t}
 function oppConf(){const tc={};let n=0;
  R.OC.forEach(s=>{if(s.gone||s.stop)return;const zc=ZC[s.lane];if(s.z+2.35<zc-1.3)return;      // 已经开过去了，或者黄灯红灯时正在停车线前停下
   if(tc[s.lane]==null)tc[s.lane]=tClear(s.lane);const tA=(s.z-2.35-(zc+1.3))/Math.max(.5,s.cv);if(tA<tc[s.lane]+.8)n++});return n}
-const rtAct=()=>R.RT&&!R.RT.gone&&!R.RT.stop&&ORT(R.RT.u)[0]>-19&&ORT(R.RT.u)[1]<45;
+const rtAct=()=>R.RT&&!R.RT.gone&&!R.RT.stop&&ORT(R.RT.u)[0]>-22&&ORT(R.RT.u)[1]<45;
 function bikeConf(){return R.peds.some(p=>{if(!p.bike||p.hit)return false;const c=pedPos(p,R.t),zc=ZC[-12.25];if(c[1]<zc-1.5)return false;return (c[1]-(zc+1.2))/p.sg[0].v<tClear(-12.25)+.8})}
 const walking=p=>p.dd!=null||pedSeg(p,R.t).v>0;
-const pedConf=p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);if(c[0]<-19.8||c[0]>-13.7)return false;if(c[1]>9.3||c[1]<-9.3)return false;return p.dir>0||c[1]>0};      // 已经走上人行道（路边 z=±9.5）的不算      /* 和绿灯右转一样：从对面（北边）走来的行人过了路中线就可以转；从你这一侧（南边）走过去的行人要走到对面人行道上 */
+const pedConf=p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);if(c[0]<-19.8||c[0]>-13.7)return false;if(c[1]>hwX-.2||c[1]<-hwX+.2)return false;return p.dir>0||c[1]>0};      // 已经走上人行道（路边 z=±9.5）的不算      /* 和绿灯右转一样：从对面（北边）走来的行人过了路中线就可以转；从你这一侧（南边）走过去的行人要走到对面人行道上 */
 // ---------- 操作 ----------
 function cmd(m){if(!playing||R.over||R.crash||R.u>=ce+1)return;if(m==='look')return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
@@ -152,26 +153,28 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(v<.02)v=0;
  u+=v*dt;R.v=v;R.u=u;
  const a=myPath(u),f=front(u);
- if(v===0&&(m==='enter'&&u>=uW-.3||m==='stop'&&front(u)[1]>-17.25)&&u<cs&&R.atW==null)R.atW=R.t;      // 停在路口里等候
+ if(v===0&&(m==='enter'&&u>=uW-.3||m==='stop'&&front(u)[1]>SL)&&u<cs&&R.atW==null)R.atW=R.t;      // 停在路口里等候
  // 过停车线：黄灯、红灯
- if(!R.lineX&&f[1]>-17.25){R.lineX=R.t;if(R.light==='y'&&R.yD>13)ev('yelIn');if(R.light==='r')ev('redIn');
+ if(!R.lineX&&f[1]>SL){R.lineX=R.t;if(R.light==='y'&&R.yD>13)ev('yelIn');if(R.light==='r')ev('redIn');
   if(R.LC&&R.LC.st!=='go')ev('enter2')}
  if(R.lineT==null&&u>=uS-3)R.lineT=R.t;
  // 第一辆左转车：绿灯时停在停车线后面不进路口
  const firstCar=!R.LC||R.LC.st==='go';
- if(v===0&&f[1]<-17.25&&R.light==='g'&&firstCar){R.neT=(R.neT||0)+dt;if(R.neT>3.5){ev('noEnter');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.neT=0;      // 后车按喇叭催
+ if(v===0&&f[1]<SL&&R.light==='g'&&firstCar){R.neT=(R.neT||0)+dt;if(R.neT>3.5){ev('noEnter');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.neT=0;      // 后车按喇叭催
  // 开始转弯的那一刻：检查对面车、右转车、自行车、行人、有没有观察
  if(m==='go'&&f[0]<-3.4&&v>.05&&R.cmtArm){      // 车头开始伸向对面车道：真正开始转弯的那一刻
  R.cmtArm=false;R.cmt=true;
 if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');if(R.peds.some(pedConf))ev('yieldPL');
   if(!(R.lastScan!=null&&R.lastScan>=(R.lineT==null?R.t:R.lineT)-.5))ev('noScanL')}
  if(R.cmt&&v===0)R.cmtArm=true;
+ // 在路口里停下等候时车身已经歪了（车轮已经往左打）：没有车正轮正
+ if(v===0&&m==='stop'&&f[1]>SL&&f[0]>-3.4&&!R.cmt&&R.light==='g'&&Math.abs(a[2])>.1){R.wsT=(R.wsT||0)+dt;if(R.wsT>1)ev('wheels')}else R.wsT=0;
  // 转到一半停在对面车道上
  if(R.cmt&&v===0&&a[0]<-4&&a[0]>-13&&!R.crash&&R.hitT==null){R.stO=(R.stO||0)+dt;if(R.stO>.6)ev('stuckO')}else R.stO=0;
  // 转弯时车头压进人行横道，前面有行人
  if(v>.3&&f[0]<-14.8&&a[0]>-20.5)R.peds.forEach(p=>{if(!pedConf(p))return;const c=pedPos(p,R.t);if(Math.abs(c[1]-a[1])<3.4)ev('yieldPL')});      // 转弯时车头进了人行横道：只算还没让完的行人（对面来的过了中线、你这侧的上了人行道都不算）
  // 变红后还停在路口里
- if(R.light==='r'&&f[1]>-17.25&&u<ce&&v===0&&!R.crash){const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40)||rtAct()||bikeConf()||R.peds.some(pedConf);      /* 还有车、自行车或行人要让，就不算 */R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
+ if(R.light==='r'&&f[1]>SL&&u<ce&&v===0&&!R.crash){const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40)||rtAct()||bikeConf()||R.peds.some(pedConf);      /* 还有车、自行车或行人要让，就不算 */R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
  // 撞到行人或自行车
  R.peds.forEach(p=>{if(p.hit)return;const c=pedPos(p,R.t),dx=c[0]-a[0],dz=c[1]-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
   if(Math.abs(fw)<2.45&&Math.abs(lat)<1.05&&v>.4){p.hit=true;p.dd=pedD(p,R.t);p.sg=[{t:0,v:0}];ev(p.bike?'hitB':'hitP');R.mode=m='stop';R.stopA=7;R.stopT=u+v*v/14;R.hitT=R.t;mk()}});
@@ -182,7 +185,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  R.peds.forEach(p=>{if(p.bike||p.hit)return;
   if(p.dd==null&&p.sg.length>1&&p.sg[0].v===0&&R.t<p.sg[1].t+.2){const s1=p.sg[1];if(busy&&R.t>=s1.t-.3)s1.t+=dt;return}
   const c=pedPos(p,R.t),toward=p.dir*c[1]<0;      // 还在人行道上、正要走上人行横道
-  if(busy&&Math.abs(c[1])>9.3&&Math.abs(c[1])<11.4&&toward&&walking(p)){if(p.dd==null){p.dd=pedD(p,R.t);p.wv=pedSeg(p,R.t).v}p.hold=true}else p.hold=false})}
+  if(busy&&Math.abs(c[1])>hwX-.2&&Math.abs(c[1])<hwX+1.9&&toward&&walking(p)){if(p.dd==null){p.dd=pedD(p,R.t);p.wv=pedSeg(p,R.t).v}p.hold=true}else p.hold=false})}
  // 行人：被你的车挡住就停下等一会儿，再绕过去
  R.peds.forEach(p=>{if(p.bike||p.hit)return;const n=p.path(p.off+pedD(p,R.t)+1.6),dx=n[0]-a[0],dz=n[1]-a[1],blk=Math.abs(dx*Math.sin(a[2])+dz*Math.cos(a[2]))<2.6&&Math.abs(dx*Math.cos(a[2])-dz*Math.sin(a[2]))<1.3;
   if(p.dd==null&&!(pedSeg(p,R.t).v>0&&blk))return;if(p.dd==null){p.dd=pedD(p,R.t);p.wv=pedSeg(p,R.t).v}
@@ -195,12 +198,12 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  R.OC.forEach(s=>{if(s.gone)return;if(s.crash){s.cv=0;return}let vt=s.v;
   R.OC.forEach(o=>{if(o!==s&&!o.gone&&o.lane===s.lane&&o.z<s.z&&s.z-o.z<16)vt=Math.min(vt,Math.max(0,(s.z-o.z-7)*1.5))});
   if(s.lane===-9.75&&R.RT&&!R.RT.gone){const q=ORT(R.RT.u);if(q[0]>-11.3&&q[1]<s.z&&s.z-q[1]<24)vt=Math.min(vt,Math.max(0,(s.z-q[1]-7)*1.5))}
-  if(s.stop)vt=Math.min(vt,Math.sqrt(7*Math.max(0,s.z-19.6)));
+  if(s.stop)vt=Math.min(vt,Math.sqrt(7*Math.max(0,s.z-OSZ)));
   const g=s.z-a[1];if(Math.abs(a[0]-s.lane)<2.6&&g>0&&g<45){if(s.seeT==null)s.seeT=R.t;if(R.t-s.seeT>.7)vt=Math.min(vt,Math.max(0,(g-5.5)*1.3));if(g<22&&!R.honked){R.honked=true;honk()}}
   s.cv=s.cv>vt?Math.max(vt,s.cv-7*dt):Math.min(vt,s.cv+2.5*dt);s.z-=s.cv*dt;if(s.z<-170)s.gone=true});
  // 对面右转车：慢下来转弯，让人行横道上的行人
- if(R.RT&&!R.RT.gone&&R.t>=R.RT.t0){const T=R.RT,q=ORT(T.u);if(T.crash)T.v=0;else{let vt=q[1]>45?16:q[1]>16?Math.max(4.5,16-(45-q[1])*.45):4.5;if(q[0]<-20.5)vt=Math.min(11,4.5+(-20.5-q[0])*.4);if(T.stop)vt=Math.min(vt,Math.sqrt(7*Math.max(0,q[1]-19.6)));
-   const pb=R.peds.some(p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);return c[0]>-19.8&&c[0]<-13.7&&(c[1]>2.5&&c[1]<10.5||(p.dir>0&&c[1]>-9.8&&c[1]<=2.5))});
+ if(R.RT&&!R.RT.gone&&R.t>=R.RT.t0){const T=R.RT,q=ORT(T.u);if(T.crash)T.v=0;else{let vt=q[1]>45?16:q[1]>16?Math.max(4.5,16-(45-q[1])*.45):4.5;if(q[0]<-23)vt=Math.min(11,4.5+(-23-q[0])*.4);if(T.stop)vt=Math.min(vt,Math.sqrt(7*Math.max(0,q[1]-OSZ)));
+   const pb=R.peds.some(p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);return c[0]>-19.8&&c[0]<-13.7&&(c[1]>6&&c[1]<hwX+1||(p.dir>0&&c[1]>-hwX&&c[1]<=6))});
    if(pb&&q[0]>-12.3)vt=Math.min(vt,Math.sqrt(7*Math.max(0,q[0]+12.3)));      // 车头停在人行横道前
    T.v=T.v>vt?Math.max(vt,T.v-5*dt):Math.min(vt,T.v+2.2*dt);T.u+=T.v*dt;if(q[0]<-85)T.gone=true}}
  // 对面在路口里等的大车：时机到了就左转
@@ -215,7 +218,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  R.XQ.forEach(q=>{if(R.xgT==null||R.t<R.xgT+1.3||q.crash){q.cv=0;return}let vt=inBox&&q.dir*q.x<-(hwM+4)?0:16;const g=(a[0]-q.x)*q.dir;if(Math.abs(a[1]-q.z)<2.6&&g>0&&g<40)vt=Math.min(vt,Math.max(0,(g-6)*1.3));
   q.cv=q.cv>vt?Math.max(vt,q.cv-7*dt):Math.min(vt,q.cv+2*dt);q.x+=q.dir*q.cv*dt});
  // 转向灯
- if(!R.sigChk&&f[1]>-17.25){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-12)ev('sig','sigL')}
+ if(!R.sigChk&&f[1]>SL){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-12)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
  if(R.scT>=0){R.scT+=dt;const sT=R.scT;
@@ -238,16 +241,16 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  // 后车：你开进路口后，它停在停车线后面
  {const fo=R.fol;const gap=u-fo.u-4.6;let vt=Math.max(0,Math.min(11,2.2*(gap-2.5)));if(u<ce)vt=Math.min(vt,Math.sqrt(2*3*Math.max(0,uS-fo.u)));fo.v=fo.v>vt?Math.max(vt,fo.v-6*dt):Math.min(vt,fo.v+3*dt);fo.u=Math.min(fo.u+fo.v*dt,u-4.6)}
  // 结束
- if(sc.Y7&&R.light==='r'&&f[1]<-17.25&&R.t>R.Ty+5){finish();return}
+ if(sc.Y7&&R.light==='r'&&f[1]<SL&&R.t>R.Ty+5){finish();return}
  if(u>=UEND||R.t>90)finish()}
 // ---------- 信号灯：黄灯情况 ----------
 function lights(){const sc=R.sc,t=R.t,f=front(R.u);
- if(sc.Y7&&R.Ty==null){if(!R.p1&&f[1]>=-98){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&f[1]>=-74){R.p1=2;setPedSig('M','hand')}if(f[1]>=-45){R.Ty=t;R.yD=-17.25-f[1]}}      // 到停车线前约 28 米时变黄
- if(sc.Y&&R.Ty==null){if(!R.p1&&t>=sc.Ty-5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&t>=sc.Ty-3){R.p1=2;setPedSig('M','hand')}if(t>=sc.Ty){R.Ty=t;R.yD=-17.25-f[1]}}
+ if(sc.Y7&&R.Ty==null){if(!R.p1&&f[1]>=-98-3.5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&f[1]>=-74-3.5){R.p1=2;setPedSig('M','hand')}if(f[1]>=-48.5){R.Ty=t;R.yD=SL-f[1]}}      // 到停车线前约 28 米时变黄
+ if(sc.Y&&R.Ty==null){if(!R.p1&&t>=sc.Ty-5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&t>=sc.Ty-3){R.p1=2;setPedSig('M','hand')}if(t>=sc.Ty){R.Ty=t;R.yD=SL-f[1]}}
  if(R.Ty==null)return;
- if(R.light==='g'){setLight('y');R.OC.forEach(s=>{if(s.z-19.6<=s.cv*s.cv/9+1&&s.z>0)s.run=true})}      // 黄灯时已经离停车线很近、停不下来的车照直开过去
- if(R.light!=='g'){R.OC.forEach(s=>{if(s.run&&s.z-19.6>s.cv*s.cv/9+.5){s.run=false}if(!s.run&&!s.stop&&s.z-19.6>s.cv*s.cv/9+1)s.stop=true});      // 原来停不下的车被前车挡慢了、现在能停：也停      // 黄灯、红灯：还没到停车线、能安全停下的直行车和右转车都要停（后来才开到的车也一样）
-  if(R.RT&&!R.RT.gone&&!R.RT.stop&&!R.RT.go){const q=ORT(R.RT.u);if(q[0]>-9.8&&q[1]-19.6>R.RT.v*R.RT.v/9+.5)R.RT.stop=true;else R.RT.go=true}}      // 对面右转车还没到停车线、能安全停下：也要停
+ if(R.light==='g'){setLight('y');R.OC.forEach(s=>{if(s.z-OSZ<=s.cv*s.cv/9+1&&s.z>0)s.run=true})}      // 黄灯时已经离停车线很近、停不下来的车照直开过去
+ if(R.light!=='g'){R.OC.forEach(s=>{if(s.run&&s.z-OSZ>s.cv*s.cv/9+.5){s.run=false}if(!s.run&&!s.stop&&s.z-OSZ>s.cv*s.cv/9+1)s.stop=true});      // 原来停不下的车被前车挡慢了、现在能停：也停      // 黄灯、红灯：还没到停车线、能安全停下的直行车和右转车都要停（后来才开到的车也一样）
+  if(R.RT&&!R.RT.gone&&!R.RT.stop&&!R.RT.go){const q=ORT(R.RT.u);if(q[0]>-9.8&&q[1]-OSZ>R.RT.v*R.RT.v/9+.5)R.RT.stop=true;else R.RT.go=true}}      // 对面右转车还没到停车线、能安全停下：也要停
  if(R.light==='y'&&t>=R.Ty+2)setLight('r');
  if(R.xgT==null&&t>=R.Ty+4){R.xgT=t;setHeads(CHEADS,'g');setPedSig('X','walk')}}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.title}${SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'}</b><span>${e.text}</span></div>`).join('')+'</div>'}
