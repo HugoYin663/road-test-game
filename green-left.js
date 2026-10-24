@@ -11,13 +11,13 @@ const XL=2.25,XW=-1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线�
 function turnPts(x0,R,L1,L3){const La=R*(Math.PI/2-L1/(2*R)-L3/(2*R)),tot=L1+La+L3,ds=.05,out=[];let x=0,z=0,h=0,s=0,k=0;
  while(s<tot){k=s<L1?s/L1/R:s<L1+La?1/R:(tot-s)/L3/R;h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;s+=ds;if(out.length===0||Math.round(s/ds)%10===0)out.push([x,z])}
  out.push([x,z]);const z0=2.75-z;return out.map(q=>[x0+q[0],z0+q[1]])}
-const TURN={R:9,L1:8,L3:8};
-function mkPath(xw){const SP=[[XL,SL-2.05],[XL,SL+1.75],[xw,SL+3.75],[xw,SL+7.75]],TR=turnPts(xw,TURN.R,TURN.L1,TURN.L3);
- const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,[xw,TR[0][1]],...TR.slice(1),[-90,2.75]],p=path(pts);
+const TURN={R:10,L1:12,L3:8};      // 打方向盘 12 米、保持（半径 10 米）、回正 8 米
+function mkPath(xw){const TR=turnPts(xw,TURN.R,TURN.L1,TURN.L3),z0=TR[0][1],SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,z0-2.2],[xw,z0]];      // S-shift 做完停住的地方，就是开始打方向盘的地方
+ const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR.slice(1),[-90,2.75]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
- return{pts,len:L,p,cs,ce,uW:at(TR[0][1]-.4),ZC}}      // 等候点：开始转弯的地方稍前一点
+ return{pts,len:L,p,cs,ce,uW:at(z0-.05),ZC}}      // 等候点＝开始打方向盘的地方
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,cs,ce,UEND,uW,ZC;
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPath=P.p;cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+16}
