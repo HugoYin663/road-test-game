@@ -4,7 +4,8 @@
 // 路口：主路有左转专用道（页面里 IXO={ltl:1,hwM:13}）。主路每边：隔离带 0–1、左转道 1–4.5（中心 2.75）、直行道 6.25 和 9.75、自行车道 12.25
 // 路线：左转专用道（x=2.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.6，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
-const XW=1.6,SPS=[[2.75,-13],[2.75,-10.5],[XW,-10.5],[XW,-8]],TRN=[[XW,-2.5],[XW,1.6],[-2.4,2.75],[-19,2.75]];
+// S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
+const XW=-3.2,SPS=[[2.75,-18],[2.75,-13],[XW,-13],[XW,-8]],TRN=[[XW,-4],[XW,-.3],[-6.6,2.75],[-19,2.75]];
 const myPts=[[2.75,-120],...Array.from({length:21},(_,i)=>cub(SPS,i/20)),...Array.from({length:41},(_,i)=>cub(TRN,i/40)),[-90,2.75]];
 const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i-1][1]):0,0);
 const myPath=path(myPts);
@@ -12,7 +13,7 @@ let cs=0,ce=0;{let L=0;for(let i=1;i<myPts.length;i++){L+=Math.hypot(myPts[i][0]
 const AB=4,UEND=ce+16;
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
 const uS=uAt(-19.95),      // 停车线后的停车位置（车头离停车线约 0.6 米）
-      uW=uAt(-6.95);       // 路口里等候的位置：车头离路口中线约 4.6 米，车轮朝正前方
+      uW=uAt(-4.5);        // 路口里等候的位置：车头离路口中线约 2 米，车身左边离对面直行车道线约 0.35 米，车轮朝正前方
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
 // 你的路线穿过对面各条车道的位置（z）
 const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(L=>{for(let u=cs;u<myLen;u+=.05){const q=myPath(u);if(q[0]<=L){ZC[L]=q[1];break}}});
@@ -53,7 +54,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 你前面的左转车（你是第二辆）
  if(sc.LC){const c=car(C[[3,5,7][Math.random()*3|0]]);live.push(c);R.LC={c,u:U0+13,v:11,st:'drive',goAt:G.a0+.4}}
  // 对面在路口里等左转的大车（挡住你看对面外侧车道）
- if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);R.BK={c,u:(()=>{for(let u=0;u<200;u+=.05)if(OLT(u)[1]<=7.1)return u;return 110})(),v:0,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}
+ if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);R.BK={c,u:(()=>{for(let u=0;u<200;u+=.05)if(OLT(u)[1]<=4.75)return u;return 110})(),v:0,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}
  // 对面右转车：在大空档开始时到达，打右转灯，慢下来转进西边道路
  if(sc.RT){const c=car(C[1+Math.random()*8|0]);live.push(c);c.userData.bl.forEach(m=>m.position.x=-m.position.x);const tA=sc.Y?sc.Ty-7:G.s+.4;R.RT={c,u:150-30-16*tA+8,v:16,gone:false}}      // 大约 tA 时开到停车线附近
  // 行人：西边人行横道（你要转入的那条路），本方绿灯，他们有路权
@@ -147,16 +148,15 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(v===0&&f[1]<-17.25&&R.light==='g'&&firstCar){R.neT=(R.neT||0)+dt;if(R.neT>3.5)ev('noEnter')}else R.neT=0;
  // 开始转弯的那一刻：检查对面车、右转车、自行车、行人、有没有观察
  if(m==='go'&&u>=uW-1.5&&v>.05&&R.cmtArm){R.cmtArm=false;R.cmt=true;
-  R.cmtB=!!(R.BK&&R.BK.go&&OLT(R.BK.u)[1]<1.5&&OLT(R.BK.u)[0]<5.5);      // 对面左转车已经先转了，还没开过你的车头
-  if(R.cmtB)ev('sameLT');if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');if(R.peds.some(pedConf))ev('yieldPL');
+if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');if(R.peds.some(pedConf))ev('yieldPL');
   if(!(R.lastScan!=null&&R.lastScan>=(R.lineT==null?R.t:R.lineT)-.5))ev('noScanL')}
  if(R.cmt&&v===0)R.cmtArm=true;
  // 转到一半停在对面车道上
- if(R.cmt&&v===0&&a[0]<.4&&a[0]>-13&&!R.crash&&R.hitT==null){R.stO=(R.stO||0)+dt;if(R.stO>.6)ev('stuckO')}else R.stO=0;
+ if(R.cmt&&v===0&&a[0]<-4&&a[0]>-13&&!R.crash&&R.hitT==null){R.stO=(R.stO||0)+dt;if(R.stO>.6)ev('stuckO')}else R.stO=0;
  // 转弯时车头压进人行横道，前面有行人
  if(v>.3&&f[0]<-14.8&&a[0]>-20.5)R.peds.forEach(p=>{if(p.bike||p.hit||!walking(p))return;const c=pedPos(p,R.t);if(c[0]>-19.8&&c[0]<-13.7&&Math.abs(c[1]-a[1])<3.4)ev('yieldPL')});
  // 变红后还停在路口里
- if(R.light==='r'&&f[1]>-17.25&&u<ce&&v===0&&!R.crash){const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40);R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
+ if(R.light==='r'&&f[1]>-17.25&&u<ce&&v===0&&!R.crash){const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40)||rtAct()||bikeConf()||R.peds.some(pedConf);      /* 还有车、自行车或行人要让，就不算 */R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
  // 撞到行人或自行车
  R.peds.forEach(p=>{if(p.hit)return;const c=pedPos(p,R.t),dx=c[0]-a[0],dz=c[1]-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
   if(Math.abs(fw)<2.45&&Math.abs(lat)<1.05&&v>.4){p.hit=true;p.dd=pedD(p,R.t);p.sg=[{t:0,v:0}];ev(p.bike?'hitB':'hitP');R.mode=m='stop';R.stopA=7;R.stopT=u+v*v/14;R.hitT=R.t;mk()}});
@@ -183,8 +183,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
    if(pb&&q[0]>-12.3)vt=Math.min(vt,Math.sqrt(7*Math.max(0,q[0]+12.3)));      // 车头停在人行横道前
    T.v=T.v>vt?Math.max(vt,T.v-5*dt):Math.min(vt,T.v+2.2*dt);T.u+=T.v*dt;if(q[0]<-120)T.gone=true}}
  // 对面在路口里等的大车：时机到了就左转
- if(R.BK&&!R.BK.crash){const B=R.BK;if(!B.go&&R.t>=B.goAt&&!(R.cmt&&a[0]>-4.5&&u<ce))B.go=true;      // 你已经在转：它等你转过它的车道再走
-  if(B.go){let vt=OLT(B.u)[0]<14?6:9;const q=OLT(B.u);if(R.cmt&&!R.cmtB&&a[0]>-4.5&&u<ce&&q[1]>1.5)vt=0;B.v=vt?Math.min(vt,B.v+2*dt):Math.max(0,B.v-6*dt);B.u+=B.v*dt}}
+ if(R.BK&&!R.BK.crash){const B=R.BK;if(!B.go&&R.t>=B.goAt)B.go=true;      // 两车各自顺着弧线转，路线不交叉，可以同时转
+  if(B.go){let vt=OLT(B.u)[0]<14?6:9;B.v=Math.min(vt,B.v+2*dt);B.u+=B.v*dt}}
  // 你前面的左转车
  if(R.LC){const L=R.LC;let vt=11;if(L.st==='drive'){vt=L.u<uW?Math.min(11,Math.sqrt(2*2.2*Math.max(0,uW-L.u))):0;if(L.u>=uW-.3&&L.v<.1)L.st='wait'}
   if(L.st==='wait'&&R.t>=L.goAt)L.st='go';if(L.st==='wait')vt=0;if(L.st==='go')vt=L.u<cs-6?11:4.2+2.8*ss(ce-6,ce+14,L.u);
