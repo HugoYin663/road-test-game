@@ -7,12 +7,17 @@ const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
 const XL=2.25,XW=-1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 3 米，停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
 // 两条路线：S＝出白线后做 S-shift（按“S-停车”）；N＝直着开进路口（按“直行停车”）。停车线以前两条路线完全一样
-function mkPath(xw){const SP=[[XL,SL-2.05],[XL,SL+1.75],[xw,SL+3.75],[xw,SL+7.75]],TR=[[xw,-8.6],[xw,-3],[-7.5,2.75],[-26,2.75]];      // 路口加大后弧线半径更大
- const pts=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20)),...Array.from({length:41},(_,i)=>cub(TR,i/40)),[-90,2.75]],p=path(pts);
- let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===22)cs=L;if(i===62)ce=L}
+// 左转弧线：方向盘慢慢打起来（曲率从 0 逐渐加大），中间保持，最后慢慢回正（缓和曲线），不是一下子打很多；转完正好在西边道路的内侧车道（z=2.75）
+function turnPts(x0,R,L1,L3){const La=R*(Math.PI/2-L1/(2*R)-L3/(2*R)),tot=L1+La+L3,ds=.05,out=[];let x=0,z=0,h=0,s=0,k=0;
+ while(s<tot){k=s<L1?s/L1/R:s<L1+La?1/R:(tot-s)/L3/R;h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;s+=ds;if(out.length===0||Math.round(s/ds)%10===0)out.push([x,z])}
+ out.push([x,z]);const z0=2.75-z;return out.map(q=>[x0+q[0],z0+q[1]])}
+const TURN={R:9,L1:8,L3:8};
+function mkPath(xw){const SP=[[XL,SL-2.05],[XL,SL+1.75],[xw,SL+3.75],[xw,SL+7.75]],TR=turnPts(xw,TURN.R,TURN.L1,TURN.L3);
+ const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,[xw,TR[0][1]],...TR.slice(1),[-90,2.75]],p=path(pts);
+ let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
- return{pts,len:L,p,cs,ce,uW:at(-8.85),ZC}}
+ return{pts,len:L,p,cs,ce,uW:at(TR[0][1]-.4),ZC}}      // 等候点：开始转弯的地方稍前一点
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,cs,ce,UEND,uW,ZC;
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPath=P.p;cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+16}
@@ -65,7 +70,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  if(sc.RT){const c=car(C[1+Math.random()*8|0]);live.push(c);c.userData.bl.forEach(m=>m.position.x=-m.position.x);const tA=sc.Y?sc.Ty-.5+Math.random()*3:G.s+.4;      /* 黄灯情况：右转车有时刚好赶上黄灯开过去，有时还没到停车线、停下来 */R.RT={c,u:Math.max(0,150-30-16*tA+8),v:16,gone:false,t0:tA-7.5}}      // 大约 tA 时开到停车线附近
  // 行人：西边人行横道（你要转入的那条路），本方绿灯，他们有路权
  if(sc.PW){const n=hard?2:P([1,1,2]);for(let i=0;i<n;i++){const S=Math.random()<.5,x=-16.75+(i?(S?.35:-.35):0),v=1.25+Math.random()*.3,o=ped(PCOL[Math.random()*5|0]);live.push(o);
-   const tMeet=(sc.Y?sc.Ty-9:G.s)+i*1.2+Math.random()*1.5,pts=S?[[x,-hwX-1.7],[x,hwX+1.7],[x,150]]:[[x,hwX+1.7],[x,-hwX-1.7],[x,-150]];      // 大约 tMeet 时走到你的路线（z≈2.75）
+   const tMeet=(sc.Y?sc.Ty-11:G.s-3.5)+i*1.2+Math.random()*1.5,pts=S?[[x,-hwX-1.7],[x,hwX+1.7],[x,150]]:[[x,hwX+1.7],[x,-hwX-1.7],[x,-150]];      // 大约 tMeet 时走到你的路线（z≈2.75）
    const pp={k:'W',dir:S?1:-1,o,path:path(pts),len:170,sg:[{t:0,v}],off:0},d0=S?hwX+1.7+2.75:hwX+1.7-2.75;pp.off=Math.max(0,d0-v*tMeet);
    if(d0-v*tMeet<0){pp.sg=[{t:0,v:0},{t:tMeet-d0/v,v}]}R.peds.push(pp)}}
  // 自行车：对面自行车道（x=-8.75）直行过来
