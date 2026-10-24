@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="路考练习">
+<meta name="theme-color" content="#0f6b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>绿灯左转 · 3D 路考练习</title>
+<style>
+:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
+:root[data-theme="dark"]{--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}
+html,body{height:100%;margin:0;overflow:hidden;background:#111418;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!important;z-index:0}      /* 铺满整个屏幕（包括刘海两侧） */
+#hud,#bn,#fl,#vb,#hm,#fs,#btns,.b,.ov,#rot{z-index:2}      /* 按钮和提示要盖在画面上面 */
+#hud{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center}
+#hud b{font-size:26px}#lt{width:16px;height:16px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+#bn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 16px;border-radius:10px;font-size:15px;white-space:nowrap}
+#fl{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(214,45,45,.92);padding:8px 18px;border-radius:10px;font-size:18px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#fs{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#hm{position:fixed;right:calc(92px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#vb{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
+.b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
+.b small{display:block;font-size:11px;font-weight:400;opacity:.85}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
+.pn h2{margin:0 0 8px;font-size:20px}.pn p{margin:6px 0;font-size:14px;line-height:1.55}.pn .mu{color:var(--mu);font-size:12px}
+.pn button{margin-top:10px;padding:10px 28px;font-size:17px;border:0;border-radius:10px;background:#2f6fe0;color:#fff;font-weight:700;cursor:pointer}
+.st{font-size:28px;color:#f5b301;letter-spacing:4px}
+.cards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.card{background:var(--cd);border-radius:10px;padding:8px;width:250px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.card img{width:100%;border-radius:6px}.card b{font-size:15px;color:#d62d2d}.card span{font-size:12.5px;line-height:1.5}
+
+.modes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.pn button.md{margin:0;padding:10px 14px;width:200px;display:flex;flex-direction:column;gap:4px;align-items:center;background:#2f6fe0}
+.pn button.md:nth-child(2){background:#2aa24a}.pn button.md:nth-child(3){background:#c0392b}
+.md b{font-size:17px}.md span{font-size:12px;font-weight:400;line-height:1.4;opacity:.92}
+details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-weight:700}
+.sc{font-size:44px;font-weight:800;margin:4px 0}.pass{color:#2aa24a}.fail{color:#d62d2d}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px;color:#fff;background:#d98a1f}.tag.s{background:#d62d2d}
+.back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
+#rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
+</style></head><body>
+<div id="hud"><div id="lt"></div><div><b id="sp">0</b> km/h</div><div id="exl" style="font-size:13px"></div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="bn">绿灯左转</div><div id="fl"></div>
+<button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
+<div id="btns">
+<button class="b" id="bs" data-m="stop">停车<small>Stop</small></button>
+<button class="b" id="bt" data-m="turn">行驶<small>Go</small></button></div>
+<button class="b" id="bg" data-m="sig">左转灯<small>Signal</small></button>
+<button class="b" id="bc" data-m="scan">观察路口<small>路口里按住看左边</small></button>
+<div class="ov" id="ov"><div class="pn">
+<a class="back" href="index.html">← 全部项目</a>
+<h2>绿灯左转 · 3D</h2>
+<p>绿灯，你在内侧车道准备<b>左转</b>。车会自己开过停车线、停在路口里等候；看准了按<b>行驶</b>就转弯。</p>
+<div class="modes">
+<button class="md" data-diff="easy"><b>简单</b><span>一次一种情况：对面车流、右转车、视线被挡、行人、自行车、黄灯、你是第二辆</span></button>
+<button class="md" data-diff="hard"><b>困难</b><span>视线被挡、右转车、行人、自行车叠加，有时还会变黄灯</span></button>
+</div>
+<details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
+<p>1. 离路口约 30 米打<b>左转灯</b>。绿灯时，第一辆左转车要<b>开过停车线、进入路口里等候</b>：车头大约在路口中间前面，车轮朝正前方（游戏里车会自己开到等候的位置停住）。一直停在停车线后面不进路口，算延误。</p>
+<p>2. 如果前面已经有一辆左转车在路口里等，你是<b>第二辆</b>：要按<b>停车</b>停在停车线后面，等它转走了，再按<b>行驶</b>开进路口等候。</p>
+<p>3. 等候时，看对面<b>两条直行车道</b>（还有自行车道）的车流：要等到两条车道都有足够的空档、你能在对面车到达之前一次转过去，再按<b>行驶</b>转弯。看起来不大的空档不要冒险。</p>
+<p>4. 对面有车打着<b>右转灯</b>要转进同一条路：它比你优先，等它转完。对面有一辆大车也在路口里等左转时，它会挡住你看对面外侧车道，要特别小心。</p>
+<p>5. <b>行人</b>：你要转入那条路的人行横道上有行人在过（或正要从你这一侧走过来），就不能开始转。转弯前要确认两件事都满足：能让行人、对面直行车有安全空档。不能转到一半停在对面车道上。</p>
+<p>6. 转弯前按<b>观察路口</b>看一眼左边（人行横道）：在路口里点一下看一眼，按住就一直看左边，松开转回。</p>
+<p>7. <b>黄灯</b>：如果你已经在路口里等候，灯变黄、变红后，对面的车会停下，你要确认对面车真的停了（小心抢黄灯的车），然后尽快完成左转、离开路口。如果你还没到停车线、离得还远，就停在停车线后面。</p>
+<p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
+</div></details>
+<p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
+<div id="rot">请把手机横过来玩</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="lib/core.js"></script>
+<script src="lib/intersection.js"></script>
+<script src="lib/actors.js"></script>
+<script src="lib/cockpit.js"></script>
+<script src="lib/rules.js"></script>
+<script src="lib/ui.js"></script>
+<script src="green-left.js"></script>
+</body></html>
