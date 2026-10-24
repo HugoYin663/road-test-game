@@ -5,8 +5,8 @@
 // 路线：左转专用道（x=2.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.6，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
-const XW=1.55,SPS=[[2.75,-19.3],[2.75,-16],[XW,-14.5],[XW,-11]],TRN=[[XW,-6.6],[XW,-2.5],[-5,2.75],[-21,2.75]];      // S-shift 只向左移约 1.2 米（把意思做出来）；起步时一边往前开一边慢慢往左打方向，顺着自然的弧线转
-const myPts=[[2.75,-120],...Array.from({length:21},(_,i)=>cub(SPS,i/20)),...Array.from({length:41},(_,i)=>cub(TRN,i/40)),[-90,2.75]];
+const XL=2.25,XW=-1.0,SPS=[[XL,-19.3],[XL,-15.5],[XW,-13.5],[XW,-9.5]],TRN=[[XW,-6.6],[XW,-2.5],[-5,2.75],[-21,2.75]];      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 3 米，停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
+const myPts=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SPS,i/20)),...Array.from({length:41},(_,i)=>cub(TRN,i/40)),[-90,2.75]];
 const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i-1][1]):0,0);
 const myPath=path(myPts);
 let cs=0,ce=0;{let L=0;for(let i=1;i<myPts.length;i++){L+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===22)cs=L;if(i===62)ce=L}}      // cs：开始左转；ce：转完
