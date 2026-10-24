@@ -32,7 +32,7 @@ let DIFF='easy',R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,dr
 const live=[];
 const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<g.length;i++){const a=g[i].t,b=i+1<g.length?g[i+1].t:1e9;if(t<=a)break;d+=g[i].v*(Math.min(t,b)-a)}return d};
 const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
-const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),p.len-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};
+const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};
 // ---------- 对面直行车流（两条车道，向 -z 开）：tc＝车身中心经过你路线的时间 ----------
 // sc：这一局的情况。K＝L1 只有车流；RT 右转车；BK 视线被挡；PW 行人；BI 自行车；Y 等候时变黄；Y7 到路口前变黄；LC 你是第二辆
 function makeOpp(sc){const L=[],v0=()=>15.3+Math.random()*1.9,lane=()=>Math.random()<.5?-6.25:-9.75;let t=-1;const push=tt=>L.push({lane:lane(),tc:tt,v:v0()});
@@ -60,13 +60,13 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 你前面的左转车（你是第二辆）
  if(sc.LC){const c=car(C[[3,5,7][Math.random()*3|0]]);live.push(c);R.LC={c,u:U0+13,v:11,st:'drive',goAt:G.a0+.4}}
  // 对面在路口里等左转的大车（挡住你看对面外侧车道）
- if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);let us=0,uw=0;for(let u=0;u<200;u+=.05){const q=BKP(u);if(!us&&q[1]<=19.9)us=u;if(!uw&&Math.abs(normA(q[2]-Math.PI))>=.4){uw=u;break}}R.BK={c,us,uw,u:us-50,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
+ if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);let us=0,uw=0;for(let u=0;u<200;u+=.05){const q=BKP(u);if(!us&&q[1]<=19.9)us=u;if(!uw&&Math.abs(normA(q[2]-Math.PI))>=.55){uw=u;break}}R.BK={c,us,uw,u:us-50,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
  // 对面右转车：在大空档开始时到达，打右转灯，慢下来转进西边道路
  if(sc.RT){const c=car(C[1+Math.random()*8|0]);live.push(c);c.userData.bl.forEach(m=>m.position.x=-m.position.x);const tA=sc.Y?sc.Ty-.5+Math.random()*3:G.s+.4;      /* 黄灯情况：右转车有时刚好赶上黄灯开过去，有时还没到停车线、停下来 */R.RT={c,u:Math.max(0,150-30-16*tA+8),v:16,gone:false,t0:tA-7.5}}      // 大约 tA 时开到停车线附近
  // 行人：西边人行横道（你要转入的那条路），本方绿灯，他们有路权
  if(sc.PW){const n=hard?2:P([1,1,2]);for(let i=0;i<n;i++){const S=Math.random()<.5,x=-16.75+(i?(S?.35:-.35):0),v=1.25+Math.random()*.3,o=ped(PCOL[Math.random()*5|0]);live.push(o);
-   const tMeet=(sc.Y?sc.Ty-9:G.s)+i*1.2+Math.random()*1.5,pts=S?[[x,-11.2],[x,11.2],[x,60]]:[[x,11.2],[x,-11.2],[x,-60]];      // 大约 tMeet 时走到你的路线（z≈2.75）
-   const pp={k:'W',dir:S?1:-1,o,path:path(pts),len:80,sg:[{t:0,v}],off:0},d0=S?11.2+2.75:11.2-2.75;pp.off=Math.max(0,d0-v*tMeet);
+   const tMeet=(sc.Y?sc.Ty-9:G.s)+i*1.2+Math.random()*1.5,pts=S?[[x,-11.2],[x,11.2],[x,150]]:[[x,11.2],[x,-11.2],[x,-150]];      // 大约 tMeet 时走到你的路线（z≈2.75）
+   const pp={k:'W',dir:S?1:-1,o,path:path(pts),len:170,sg:[{t:0,v}],off:0},d0=S?11.2+2.75:11.2-2.75;pp.off=Math.max(0,d0-v*tMeet);
    if(d0-v*tMeet<0){pp.sg=[{t:0,v:0},{t:tMeet-d0/v,v}]}R.peds.push(pp)}}
  // 自行车：对面自行车道（x=-8.75）直行过来
  if(sc.BI){const o=cyclist(PCOL[Math.random()*5|0]);live.push(o);const v=5+Math.random(),tMeet=sc.Y?sc.Ty-6:G.s+1+Math.random()*2;
@@ -264,7 +264,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(R.BK){const q=BKP(R.BK.u);place(R.BK.c,q[0],q[1],q[2]+(R.BK.spin||0));R.BK.c.userData.bl.forEach(m=>m.visible=bl&&q[0]<19)}
  if(R.LC){const q=PK.S.p(R.LC.u);place(R.LC.c,q[0],q[1],q[2]+(R.LC.spin||0));R.LC.c.userData.bl.forEach(m=>m.visible=bl&&q[0]>-19)}
  R.XQ.forEach(q=>{place(q.c,q.x,q.z,q.h+(q.spin||0));q.c.visible=Math.abs(q.x)<170});
- R.peds.forEach(p=>{const q=p.path(Math.min(p.off+pedD(p,t),p.len-.06));p.o.visible=true;place(p.o,q[0]+(p.ox||0),q[1]+(p.oz||0),q[2],.1);
+ R.peds.forEach(p=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));p.o.visible=true;place(p.o,q[0]+(p.ox||0),q[1]+(p.oz||0),q[2],.1);
   if(p.hit){p.o.rotation.order='YXZ';if(p.bike){p.o.rotation.z=Math.min(1.45,(p.o.rotation.z||0)+.12);p.o.position.y=.15}else{p.o.rotation.x=Math.max(-1.45,(p.o.rotation.x||0)-.12);p.o.position.y=.2}return}
   const sp=p.bike?p.sg[0].v:(p.dd!=null&&p.dd===p.ldd?0:pedSeg(p,t).v),s=sp?Math.sin(t*(sp*5+2))*(.45+sp*.1):0,u=p.o.userData;p.ldd=p.dd;
   if(p.bike){u.wh.forEach(w=>w.rotation.x=-t*sp/.36);u.l.rotation.x=-.3;u.r.rotation.x=-.3}else{u.l.rotation.x=s;u.r.rotation.x=-s;u.al.rotation.x=-s*.8;u.ar.rotation.x=s*.8}});

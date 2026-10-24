@@ -42,7 +42,7 @@ function makeTraffic(cyc,hard){const L=[],v0=()=>15.3+Math.random()*1.9;let t=-2
 // ---------- 过街行人（走你车头前的人行横道，横向绿灯）和横向自行车道里的自行车 ----------
 const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<g.length;i++){const a=g[i].t,b=i+1<g.length?g[i+1].t:1e9;if(t<=a)break;d+=g[i].v*(Math.min(t,b)-a)}return d};
 const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
-const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),p.len-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};      // 包括绕车时的偏移
+const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};      // 包括绕车时的偏移
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;parkAll();
  const hard=DIFF==='hard',cyc=hard||Math.random()<.55;      // 简单：55% 等待中横向变灯 → 全红 → 两个方向的左转箭头 → 本方绿灯；困难：每次都变灯，情况全部叠加
  const TR=makeTraffic(cyc,hard);TR.list.forEach(s=>live.push(s.c));
@@ -250,7 +250,7 @@ let last=0,fovH=110;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const t=R.t;
  R.TR.list.forEach(s=>{place(s.c,s.x,s.lane,Math.PI/2+(s.spin||0));s.c.visible=s.x>-160&&s.x<160});
  bgFlows.forEach(f=>{const q=f.p(f.off);place(f.c,q[0],q[1],q[2]+(f.spin||0))});
- R.peds.forEach(p=>{const q=p.path(Math.min(p.off+pedD(p,t),p.len-.06));p.o.visible=true;place(p.o,q[0]+(p.ox||0),q[1]+(p.oz||0),q[2],.1);
+ R.peds.forEach(p=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));p.o.visible=true;place(p.o,q[0]+(p.ox||0),q[1]+(p.oz||0),q[2],.1);
   if(p.hit){p.o.rotation.order='YXZ';if(p.bike){p.o.rotation.z=Math.min(1.45,(p.o.rotation.z||0)+.12);p.o.position.y=.15}else{p.o.rotation.x=Math.max(-1.45,(p.o.rotation.x||0)-.12);p.o.position.y=.2}return}
   const sp=p.bike?p.sg[0].v:p.k==='A'?(p.dd!=null&&p.dd===p.ldd?0:pedSeg(p,t).v):(p.sg[0].v||1.3),s=sp?Math.sin(t*(sp*5+2))*(.45+sp*.1):0,u=p.o.userData;p.ldd=p.dd;
   if(p.bike){u.wh.forEach(w=>w.rotation.x=-t*sp/.36);u.l.rotation.x=-.3;u.r.rotation.x=-.3}else{u.l.rotation.x=s;u.r.rotation.x=-s;u.al.rotation.x=-s*.8;u.ar.rotation.x=s*.8}});

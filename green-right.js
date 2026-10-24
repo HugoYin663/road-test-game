@@ -31,7 +31,7 @@ for(const k in BP){BPATH[k]=path(BP[k]);BLEN[k]=BP[k].reduce((a,p,i)=>i?a+Math.h
 // 行人/自行车的速度分段：sg=[{t,v,f}]，v<0 表示往回走，f=true 表示身体朝回走方向
 const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<g.length;i++){const a=g[i].t,b=i+1<g.length?g[i+1].t:1e9;if(t<=a)break;d+=g[i].v*(Math.min(t,b)-a)}return d};
 const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
-const pedPos=(p,t)=>p.path(Math.min(p.off+pedD(p,t),p.len-.06));
+const pedPos=(p,t)=>p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));
 function pedZone(p,t){if(p.wait||p.blk)return 0;      // 被你的车挡在后面的自行车不算冲突
 const q=pedPos(p,t),z=q[1];                       // 0 无冲突 1 即将进入 2 冲突
  if(p.k==='A')return GR.zone(z,'far');
@@ -279,7 +279,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  const fdt=Math.max(0,t-(loop.pt||0));loop.pt=t;
  flows.forEach(f=>{if(f.v===0){crossCar(f,fdt);return}if(f.s==null||t<.001)f.s=f.off+f.v*t;let vt=f.v;if(f.v>0&&(R.light!=='green'||polHold())){const q0=f.p(f.s),ds=q0[0]<0?q0[1]-20:-20-q0[1];if(ds>0&&ds<40)vt=Math.min(f.v,Math.sqrt(2*3*Math.max(0,ds-.5)))}
   f.cv=f.cv==null?f.v:(f.cv>vt?Math.max(vt,f.cv-6*dt):Math.min(vt,f.cv+3*dt));f.s+=f.cv*fdt;const q=f.p(f.s);place(f.c,q[0],q[1],q[2])});
- R.peds.forEach(p=>{const D=pedD(p,t),uu=p.off+D;p.o.visible=!p.hide&&uu<p.len-.05;const q=p.path(Math.min(uu,p.len-.06)),mc=myPath(R.u),ox=R.onE?Math.max(0,mc[0]+3.2-q[0])*Math.max(0,1-Math.abs(q[1]-mc[1])/3.5):0,G=pedSeg(p,t);place(p.o,q[0]+(p.hit?0:ox),q[1]+(p.oz||0),q[2]+(G.f?Math.PI:0)+(p.ohd||0),.1);
+ R.peds.forEach(p=>{const D=pedD(p,t),uu=p.off+D;p.o.visible=!p.hide&&uu<p.len-.05;const q=p.path(Math.min(uu,Math.min(p.len,p.path.len)-.06)),mc=myPath(R.u),ox=R.onE?Math.max(0,mc[0]+3.2-q[0])*Math.max(0,1-Math.abs(q[1]-mc[1])/3.5):0,G=pedSeg(p,t);place(p.o,q[0]+(p.hit?0:ox),q[1]+(p.oz||0),q[2]+(G.f?Math.PI:0)+(p.ohd||0),.1);
   if(p.hit){p.o.rotation.order='YXZ';if(p.bike){p.o.rotation.z=Math.min(1.45,(p.o.rotation.z||0)+.12);p.o.position.y=.15}else{p.o.rotation.x=Math.max(-1.45,(p.o.rotation.x||0)-.12);p.o.position.y=.2}return}   // 倒地
   const sp=Math.abs(G.v),run=sp>2.2,s=sp<.05?0:Math.sin(t*(run?12:sp*5+2))*(run?.95:.45+sp*.1),u=p.o.userData,k=run?1.1:.8;
   if(p.bike){u.wh.forEach(w=>w.rotation.x=-t*sp/.36);u.l.rotation.x=-.3;u.r.rotation.x=-.3;if(p.k==='R'){if(q[0]<15.5)u.al.rotation.set(0,0,-1.5);else u.al.rotation.set(0,0,0)}}      // 右转的自行车伸出右手示意
