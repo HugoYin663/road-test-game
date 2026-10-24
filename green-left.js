@@ -5,7 +5,7 @@
 // 路线：左转专用道（x=2.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.6，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
-const XW=.3,SPS=[[2.75,-19.3],[2.75,-15.5],[XW,-14.5],[XW,-10]],TRN=[[XW,-4.6],[XW,-2.6],[-6,2.75],[-21,2.75]];      // 车头一过停车线就开始，向左移约 2.5 米（对面也这样做，视线就好很多）；顺着自然的弧线转，不是直角弯
+const XW=-1.2,SPS=[[2.75,-19.3],[2.75,-15.5],[XW,-14.5],[XW,-10]],TRN=[[XW,-2.8],[XW,-1.0],[-6,2.75],[-21,2.75]];      // 车头一过停车线就开始，向左移约 4 米：和对面左转车并排错开（各自在对方右边），车身左边离对面直行车道线约 2.3 米（对面也这样做，视线就好很多）；顺着自然的弧线转，不是直角弯
 const myPts=[[2.75,-120],...Array.from({length:21},(_,i)=>cub(SPS,i/20)),...Array.from({length:41},(_,i)=>cub(TRN,i/40)),[-90,2.75]];
 const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i-1][1]):0,0);
 const myPath=path(myPts);
@@ -13,7 +13,7 @@ let cs=0,ce=0;{let L=0;for(let i=1;i<myPts.length;i++){L+=Math.hypot(myPts[i][0]
 const AB=4,UEND=ce+16;
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
 const uS=uAt(-19.95),      // 停车线后的停车位置（车头离停车线约 0.6 米）
-      uW=uAt(-4.85);       // 路口里等候的位置：车头离路口中心约 2.5 米，车正轮正
+      uW=uAt(-3.0);       // 路口里等候的位置：车头离路口中心约 2.5 米，车正轮正
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
 // 你的路线穿过对面各条车道的位置（z）
 const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(L=>{for(let u=cs;u<myLen;u+=.05){const q=myPath(u);if(q[0]<=L){ZC[L]=q[1];break}}});
@@ -54,7 +54,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 你前面的左转车（你是第二辆）
  if(sc.LC){const c=car(C[[3,5,7][Math.random()*3|0]]);live.push(c);R.LC={c,u:U0+13,v:11,st:'drive',goAt:G.a0+.4}}
  // 对面在路口里等左转的大车（挡住你看对面外侧车道）
- if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);const uw=(()=>{for(let u=0;u<200;u+=.05)if(OLT(u)[1]<=5.1)return u;return 110})();R.BK={c,uw,u:uw-62,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
+ if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);const uw=(()=>{for(let u=0;u<200;u+=.05)if(OLT(u)[1]<=3.25)return u;return 110})();R.BK={c,uw,u:uw-62,v:11,go:false,goAt:sc.Y?sc.Ty+2.8:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
  // 对面右转车：在大空档开始时到达，打右转灯，慢下来转进西边道路
  if(sc.RT){const c=car(C[1+Math.random()*8|0]);live.push(c);c.userData.bl.forEach(m=>m.position.x=-m.position.x);const tA=sc.Y?sc.Ty-.5+Math.random()*1.5:G.s+.4;R.RT={c,u:150-30-16*tA+8,v:16,gone:false}}      // 大约 tA 时开到停车线附近
  // 行人：西边人行横道（你要转入的那条路），本方绿灯，他们有路权
@@ -203,6 +203,8 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
   if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
   if(sT>.3&&R.scT>=0)R.lastScan=R.t}
+ // 在路口里等候时，司机会稍微偏头、身体往左探，看对面远处的直行车
+ {const w=R.atW!=null&&v===0&&m==='drive'&&R.scT<0&&u<cs;R.lean=(R.lean||0)+((w?1:0)-(R.lean||0))*Math.min(1,dt*2.5)}
  // 和其他车相撞
  if(!R.crash){const me=[a[0],a[1],a[2],2.3,.95],O=[];
   R.OC.forEach(s=>{if(!s.gone)O.push([[s.lane,s.z,Math.PI,2.3,.95],s])});
@@ -251,7 +253,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(R.fol){const fq=myPath(R.fol.u);place(R.fol.car,fq[0],fq[1],fq[2])}
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
- if(view===1){const h=q[2]+R.yaw+yawD,L=R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
+ if(view===1){const ln=R.lean||0,h=q[2]+R.yaw+yawD-.2*ln,L=R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=(.38+.14*ln)*Math.cos(q[2]),oz=(.38+.14*ln)*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+R.pit*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
