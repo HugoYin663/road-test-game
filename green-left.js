@@ -11,13 +11,13 @@ const XL=2.25,XW=-1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线�
 function turnPts(x0,R,L1,L3){const La=R*(Math.PI/2-L1/(2*R)-L3/(2*R)),tot=L1+La+L3,ds=.05,out=[];let x=0,z=0,h=0,s=0,k=0;
  while(s<tot){k=s<L1?s/L1/R:s<L1+La?1/R:(tot-s)/L3/R;h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;s+=ds;if(out.length===0||Math.round(s/ds)%10===0)out.push([x,z])}
  out.push([x,z]);const z0=2.75-z;return out.map(q=>[x0+q[0],z0+q[1]])}
-const TURN={R:10.5,L1:14,L3:8};      // 打方向盘 14 米、保持（半径 10.5 米）、回正 8 米
-function mkPath(xw){const TR=turnPts(xw,TURN.R,TURN.L1,TURN.L3),z0=TR[0][1],SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,z0-2.2],[xw,z0]];      // S-shift 做完停住的地方，就是开始打方向盘的地方
- const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR.slice(1),[-90,2.75]],p=path(pts);
+const TURN={R:10.5,L1:2.5,L3:2.5,W:3.5};      // 参考现实做法：先直着开进路口，车头进路口约 6 米时开始转；半径约 10.5 米的圆弧，两头各用 2.5 米打方向盘、回正；等候点在开始转弯处往后 3.5 米
+function mkPath(xw){const TR=turnPts(xw,TURN.R,TURN.L1,TURN.L3),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // S-shift 做完停在等候点；起步后先直走一小段再转
+ const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-90,2.75]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-2.75,-6.25,-9.75,-12.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
- return{pts,len:L,p,cs,ce,uW:at(z0-.05),ZC}}      // 等候点＝开始打方向盘的地方
+ return{pts,len:L,p,cs,ce,uW:at(zW-.05),ZC}}
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,cs,ce,UEND,uW,ZC;
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPath=P.p;cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+16}
@@ -141,7 +141,7 @@ function cmd(m){if(!playing||R.over||R.crash||R.u>=ce+1)return;if(m==='look')ret
 function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}
 // 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 S-shift，到等候点停住（约 6 km/h）
 // 默认（不按停车）的车速：快到路口时慢下来，顺着弧线转
-const vGo=u=>u<uS-20?11:u<cs?Math.max(5.5,11-(u-(uS-20))*.25):5.5+3*ss(ce-6,ce+14,u);
+const vGo=u=>u<uS-20?11:u<cs?Math.max(4.5,11-(u-(uS-20))*.3):4.5+3.5*ss(ce-4,ce+14,u);      // 转弯时约 16 km/h
 const crawl=(u,uw)=>{uw=uw||uW;      // enter：开到停车线再慢慢溜进路口等候点
  return u<uS?Math.min(11,Math.sqrt(2*2.2*Math.max(0,uS-u))+1.7):u<uw?Math.min(1.7,Math.sqrt(2*1.2*Math.max(0,uw-u))+.05):0};
 // ---------- 每一帧 ----------
