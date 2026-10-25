@@ -155,8 +155,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  let vt=11;
  if(m==='enter')vt=crawl(u);
  else if(m==='go')vt=vGo(u);
- if(R.LC&&m!=='stop'){const g=R.LC.u-u-7;vt=Math.min(vt,Math.max(0,g*1.5));
-  if(R.LC.st!=='go'&&u<uS+.5&&m==='go'&&!R.lcStop){vt=Math.min(vt,Math.sqrt(2*2.5*Math.max(0,uS-u)));if(v<.05&&u>=uS-1){R.lcStop=true;R.mode=m='stop';R.stopT=u;R.stopA=5;mk()}}}      // 你是第二辆：前车在路口里等，你自动停在白线后，之后由你决定什么时候开进去
+ if(R.LC&&m!=='stop'){const g=R.LC.u-u-7;vt=Math.min(vt,Math.max(0,g*1.5));}
+ /* 你是第二辆：前车在路口里等时不再自动停车，由玩家自己决定停在哪里（正确：白线后） */
  if(m==='stop'){const dS=R.stopT-u;v=dS>.05?Math.min(v,Math.sqrt(2*R.stopA*dS)):0;if(R.LC)v=Math.min(v,Math.max(0,(R.LC.u-u-6.5)*1.5))}
  else v=v>vt?Math.max(vt,v-4*dt):Math.min(vt,v+2.5*dt);
  if(v<.02)v=0;
