@@ -61,7 +61,7 @@ function makeOpp(sc){const L=[],v0=()=>Math.random()<.12?18.06:16.67,lane=()=>Ma
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
- if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.5};}
+ if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8};      /* 困难模式：约 80% 的局会变黄灯 */}
  else{const ks=['K','RT','BK','PW','BI','Y','Y7','LC'].filter(k=>k!==LASTK);const k=P(ks);LASTK=k;sc[k]=1}
  if(typeof FORCE!=='undefined'&&FORCE)sc=Object.assign({},FORCE);      // 测试用
  if(sc.Y){sc.Ty=23+Math.random()*3;sc.run=hard||Math.random()<.5;if(hard&&sc.rush==null)sc.rush=Math.random()<.5?2:1}
