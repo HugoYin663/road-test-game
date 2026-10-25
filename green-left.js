@@ -7,12 +7,14 @@ const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
 const XL=2.25,XW=-1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 3 米，停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
 // 两条路线：S＝出白线后做 S-shift（按“S-停车”）；N＝直着开进路口（按“直行停车”）。停车线以前两条路线完全一样
-// 左转弧线：方向盘慢慢打起来（曲率从 0 逐渐加大），中间保持，最后慢慢回正（缓和曲线），不是一下子打很多；转完正好在西边道路的内侧车道（z=2.75）
-function turnPts(x0,R,L1,L3){const La=R*(Math.PI/2-L1/(2*R)-L3/(2*R)),tot=L1+La+L3,ds=.05,out=[];let x=0,z=0,h=0,s=0,k=0;
- while(s<tot){k=s<L1?s/L1/R:s<L1+La?1/R:(tot-s)/L3/R;h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;s+=ds;if(out.length===0||Math.round(s/ds)%10===0)out.push([x,z])}
- out.push([x,z]);const z0=2.75-z;return out.map(q=>[x0+q[0],z0+q[1]])}
-const TURN={R:10.5,L1:2.5,L3:2.5,W:3.5};      // 参考现实做法：先直着开进路口，车头进路口约 6 米时开始转；半径约 10.5 米的圆弧，两头各用 2.5 米打方向盘、回正；等候点在开始转弯处往后 3.5 米
-function mkPath(xw){const TR=turnPts(xw,TURN.R,TURN.L1,TURN.L3),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // S-shift 做完停在等候点；起步后先直走一小段再转
+// 左转路线（参考现实）：先直着开进路口，开始转后打方向盘约 70°（半径约 8 米），然后斜着穿过对面车道，
+// 借着中间隔离带末端的弧形尖头斜着进入目标车道（内侧车道 z=2.75），进去以后再慢慢回正（车身在隔离带尖头之后才完全摆正）
+const TURN={R:8,L1:2.5,TH:70*Math.PI/180,L3:10,END:-(hwM+13),W:3.5};
+function turnShape(D){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;const go=k=>{h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;if(++n%8===0)out.push([x,z])};
+ const La=T.R*(T.TH-T.L1/T.R);for(let s=0;s<T.L1;s+=ds)go(s/T.L1/T.R);for(let s=0;s<La;s+=ds)go(1/T.R);for(let s=0;s<T.L1;s+=ds)go((T.L1-s)/T.L1/T.R);
+ for(let s=0;s<D;s+=ds)go(0);const dh=Math.PI/2-h,km=2*dh/T.L3;for(let s=0;s<T.L3;s+=ds)go(km*(s<T.L3/2?s/(T.L3/2):(T.L3-s)/(T.L3/2)));out.push([x,z]);return out}
+function turnPts(x0){const a=turnShape(0),D=(x0+a[a.length-1][0]-TURN.END)/Math.sin(TURN.TH),b=turnShape(Math.max(0,D)),z0=2.75-b[b.length-1][1];return b.map(q=>[x0+q[0],z0+q[1]])}
+function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // S-shift 做完停在等候点；起步后先直走一小段再转
  const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-90,2.75]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
