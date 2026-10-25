@@ -5,15 +5,17 @@
 // 路线：左转专用道（x=2.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.6，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
 // S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
-const XL=2.25,XW=-1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 3 米，停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
+const XL=2.25,XW=.75,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 1.5 米（一次调整，不要太多），停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
 // 两条路线：S＝出白线后做 S-shift（按“S-停车”）；N＝直着开进路口（按“直行停车”）。停车线以前两条路线完全一样
-// 左转路线（参考现实）：先直着开进路口，开始转后打方向盘约 70°（半径约 8 米），然后斜着穿过对面车道，
+// 左转路线（参考现实）：先直着开进路口，开始转后打方向盘约 75°（半径约 8 米），然后斜着穿过对面车道，
 // 借着中间隔离带末端的弧形尖头斜着进入目标车道（内侧车道 z=2.75），进去以后再慢慢回正（车身在隔离带尖头之后才完全摆正）
-const TURN={R:8,L1:2.5,TH:70*Math.PI/180,L3:10,END:-(hwM+13),W:3.5};
-function turnShape(D){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;const go=k=>{h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;if(++n%8===0)out.push([x,z])};
- const La=T.R*(T.TH-T.L1/T.R);for(let s=0;s<T.L1;s+=ds)go(s/T.L1/T.R);for(let s=0;s<La;s+=ds)go(1/T.R);for(let s=0;s<T.L1;s+=ds)go((T.L1-s)/T.L1/T.R);
+const TURN={R:8,L1:2.5,TH:70*Math.PI/180,L3:10,Z0:-10.6,END:-(hwM+13.5),W:1.2};
+function turnShape(D,TH){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;const go=k=>{h+=k*ds;x-=Math.sin(h)*ds;z+=Math.cos(h)*ds;if(++n%8===0)out.push([x,z])};
+ const La=T.R*(TH-T.L1/T.R);for(let s=0;s<T.L1;s+=ds)go(s/T.L1/T.R);for(let s=0;s<La;s+=ds)go(1/T.R);for(let s=0;s<T.L1;s+=ds)go((T.L1-s)/T.L1/T.R);
  for(let s=0;s<D;s+=ds)go(0);const dh=Math.PI/2-h,km=2*dh/T.L3;for(let s=0;s<T.L3;s+=ds)go(km*(s<T.L3/2?s/(T.L3/2):(T.L3-s)/(T.L3/2)));out.push([x,z]);return out}
-function turnPts(x0){const a=turnShape(0),D=(x0+a[a.length-1][0]-TURN.END)/Math.sin(TURN.TH),b=turnShape(Math.max(0,D)),z0=2.75-b[b.length-1][1];return b.map(q=>[x0+q[0],z0+q[1]])}
+// 开始转弯的位置固定（Z0），斜着进车道后约在 END 摆正；两者之间的斜穿角度按路线自动选（约 65°–80°）
+function turnPts(x0){let best=null;for(let d=60;d<=82;d+=.5){const TH=d*Math.PI/180,a=turnShape(0,TH);let D=(2.75-TURN.Z0-a[a.length-1][1])/Math.cos(TH);if(D<0)continue;let b=turnShape(D,TH);D+=(2.75-TURN.Z0-b[b.length-1][1])/Math.cos(TH);b=turnShape(D,TH);const e=Math.abs(x0+b[b.length-1][0]-TURN.END);if(!best||e<best.e)best={e,b}}
+ return best.b.map(q=>[x0+q[0],TURN.Z0+q[1]])}
 function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // S-shift 做完停在等候点；起步后先直走一小段再转
  const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-90,2.75]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
@@ -143,7 +145,7 @@ function cmd(m){if(!playing||R.over||R.crash||R.u>=ce+1)return;if(m==='look')ret
 function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}
 // 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 S-shift，到等候点停住（约 6 km/h）
 // 默认（不按停车）的车速：快到路口时慢下来，顺着弧线转
-const vGo=u=>u<uS-20?11:u<cs?Math.max(4.5,11-(u-(uS-20))*.3):4.5+3.5*ss(ce-4,ce+14,u);      // 转弯时约 16 km/h
+const vGo=u=>u<uS-20?11:u<cs?Math.max(5.2,11-(u-(uS-20))*.3):5.2+4.3*ss(cs+.4*(ce-cs),ce+6,u);      // 转弯时约 19 km/h，后半段（斜进目标车道后）边回正边加速
 const crawl=(u,uw)=>{uw=uw||uW;      // enter：开到停车线再慢慢溜进路口等候点
  return u<uS?Math.min(11,Math.sqrt(2*2.2*Math.max(0,uS-u))+1.7):u<uw?Math.min(1.7,Math.sqrt(2*1.2*Math.max(0,uw-u))+.05):0};
 // ---------- 每一帧 ----------
