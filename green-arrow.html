@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="路考练习">
+<meta name="theme-color" content="#0f6b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>左转箭头 · 3D 路考练习</title>
+<style>
+:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
+:root[data-theme="dark"]{--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}
+html,body{height:100%;margin:0;overflow:hidden;background:#111418;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!important;z-index:0}      /* 铺满整个屏幕（包括刘海两侧） */
+#hud,#bn,#fl,#vb,#hm,#fs,#btns,.b,.ov,#rot{z-index:2}      /* 按钮和提示要盖在画面上面 */
+#hud{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center}
+#hud b{font-size:26px}#lt{width:16px;height:16px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+#bn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 16px;border-radius:10px;font-size:15px;white-space:nowrap}
+#fl{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(214,45,45,.92);padding:8px 18px;border-radius:10px;font-size:18px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#fs{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#hm{position:fixed;right:calc(92px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#vb{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
+.b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
+.b small{display:block;font-size:11px;font-weight:400;opacity:.85}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bs2{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
+.pn h2{margin:0 0 8px;font-size:20px}.pn p{margin:6px 0;font-size:14px;line-height:1.55}.pn .mu{color:var(--mu);font-size:12px}
+.pn button{margin-top:10px;padding:10px 28px;font-size:17px;border:0;border-radius:10px;background:#2f6fe0;color:#fff;font-weight:700;cursor:pointer}
+.st{font-size:28px;color:#f5b301;letter-spacing:4px}
+.cards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.card{background:var(--cd);border-radius:10px;padding:8px;width:250px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.card img{width:100%;border-radius:6px}.card b{font-size:15px;color:#d62d2d}.card span{font-size:12.5px;line-height:1.5}
+
+.modes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.pn button.md{margin:0;padding:10px 14px;width:200px;display:flex;flex-direction:column;gap:4px;align-items:center;background:#2f6fe0}
+.pn button.md:nth-child(2){background:#2aa24a}.pn button.md:nth-child(3){background:#c0392b}
+.md b{font-size:17px}.md span{font-size:12px;font-weight:400;line-height:1.4;opacity:.92}
+details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-weight:700}
+.sc{font-size:44px;font-weight:800;margin:4px 0}.pass{color:#2aa24a}.fail{color:#d62d2d}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px;color:#fff;background:#d98a1f}.tag.s{background:#d62d2d}
+.back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
+#rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
+</style></head><body>
+<div id="hud"><div id="lt"></div><div><b id="sp">0</b> km/h</div><div id="exl" style="font-size:13px"></div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="bn">左转箭头</div><div id="fl"></div>
+<button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
+<div id="btns">
+<button class="b" id="bs" data-m="stopN">停车<small>Stop</small></button>
+<button class="b" id="bt" data-m="turn">行驶<small>Go</small></button></div>
+<button class="b" id="bg" data-m="sig">左转灯<small>Signal</small></button>
+<button class="b" id="bs2" data-m="stopS">S-Shift</button>
+<button class="b" id="bc" data-m="scan">观察路口<small>路口里按住看左边</small></button>
+<div class="ov" id="ov"><div class="pn">
+<a class="back" href="index.html">← 全部项目</a>
+<h2>左转箭头 · 3D</h2>
+<p>你在左转专用道，前方亮着<b>绿色左转箭头</b>。灯型随机：<b>红灯 + 左转箭头</b>（对面也一样，两边的左转车同时转），或<b>绿灯 + 左转箭头</b>（对面是红灯，你看不到）。不按任何按钮就是跟着前车直接转。</p>
+<div class="modes">
+<button class="md" data-diff="easy"><b>简单</b><span>你排第 1 或第 2 辆，箭头绿灯时跟着前车转过去</span></button>
+<button class="md" data-diff="hard"><b>困难</b><span>你排第 5 辆，快到路口时箭头变黄、熄灭，要按灯型判断停还是进，之后接绿灯左转</span></button>
+</div>
+<details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
+<p>1. 绿色左转箭头亮时，左转有保护：对面直行车是红灯。跟着前车顺畅地转过去，不要无故停车（停着不走会被后车催，算延误交通）。</p>
+<p>2. 箭头变<b>黄</b>：和黄灯一样，能安全停下就要停。箭头随后熄灭，这时要看<b>圆灯</b>：</p>
+<p>· 圆灯是<b>红灯</b>（红灯 + 箭头的路口）：停在停车线后面，不能进路口。等圆灯变绿，再按<b>绿灯左转</b>的方法开进路口等候。</p>
+<p>· 圆灯是<b>绿灯</b>（绿灯 + 箭头的路口）：不用停车，慢慢开进路口，找好位置等候（可以用 S-Shift），然后按绿灯左转的方法：对面直行车马上就会开过来，看清两条车道的空档、右转车和行人再转。</p>
+<p>3. 绿灯左转部分的规则和「绿灯左转」一样：进路口等候要车正轮正，转弯前按<b>观察路口</b>看左边，让对面直行车、右转车、自行车和行人。</p>
+<p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
+</div></details>
+<p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
+<div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);padding:12px 26px;border-radius:12px;background:#2f6fe0;color:#fff;text-decoration:none;font-size:17px;font-weight:700;white-space:nowrap">退出</a></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="lib/ixo-ltl.js?v=1025e"></script>
+<script src="lib/core.js?v=1025e"></script>
+<script src="lib/intersection.js?v=1025e"></script>
+<script src="lib/actors.js?v=1025e"></script>
+<script src="lib/cockpit.js?v=1025e"></script>
+<script src="lib/rules.js?v=1025e"></script>
+<script src="lib/ui.js?v=1025e"></script>
+<script src="lib/arrow-mode.js?v=1025e"></script>
+<script src="green-left.js?v=1025e"></script>
+</body></html>
