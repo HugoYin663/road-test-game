@@ -173,7 +173,7 @@ function cmd(m){if(!playing||R.over||R.crash||R.u>=ce+1)return;if(m==='look')ret
  if(m==='stopS'){if(R.u<uDiv-.3&&R.mode!=='enter'){usePath('S');R.PK='S';m='enter'}else return}
  if(m==='turn')m='go';      // 行驶
  if(m===R.mode)return;
- if(m==='stop'){R.stopA=Math.max(3.5,Math.min(7,R.v*R.v/12));R.stopT=R.u+R.v*R.v/(2*R.stopA)}      // 从现在的位置正常刹车停下
+ if(m==='stop'){R.stopA=Math.max(5,Math.min(7,R.v*R.v/8));R.stopT=R.u+R.v*R.v/(2*R.stopA)}      // 从现在的位置果断刹车停下（低速时不再往前溜太多）
  R.mode=m;mk()}
 function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}
 // 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 S-shift，到等候点停住（约 6 km/h）
