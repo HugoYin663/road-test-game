@@ -296,7 +296,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(view===1){const h=q[2]+R.yaw+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH+=((lk?98:110)-fovH)*.15;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*.05)+R.pit*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
- else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}if(!drag)az+=dt*.05;const r=95;cam.position.set(Math.sin(az)*Math.cos(el)*r,Math.sin(el)*r,Math.cos(az)*Math.cos(el)*r);cam.lookAt(0,0,0)}
+ else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(0,90,-12);cam.lookAt(0,0,0)}      /* 俯视：固定从本方向（南边）往前看，不能转 */
  $('sp').textContent=Math.round(R.v*3.6);if(cluster)cluster(Math.round(R.v*3.6));
  // 后视镜：把后方场景渲染到小贴图（三个镜子轮流、隔帧刷新）
  if(view===1&&((loop.fc=(loop.fc||0)+1)&1)===0){const m=MR[(loop.fc>>1)%MR.length],sa=ren.shadowMap.autoUpdate;cockpit.updateMatrixWorld(true);
