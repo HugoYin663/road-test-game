@@ -77,7 +77,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  if(AM){const A={type:Math.random()<.5?'A':'B',pos:hard?5:(Math.random()<.5?1:2)};sc=hard?{BK:1,RT:1,PW:1,BI:Math.random()<.5}:{};sc.AR=A}
  if(typeof FORCE!=='undefined'&&FORCE)sc=Object.assign({},FORCE);      // 测试用
  let Tay=null,T0=1e9;      /* 箭头变黄的时刻（第 4 辆车头刚要过停车线）；T0：箭头结束后放行（A：两边圆绿灯；B：对面绿灯） */
- if(sc.AR&&sc.AR.pos===5){const L=mkAQ(4,1);for(let t=0;t<40;t+=1/60){stepAQ(L,t,1/60);if(frontZ(L[3].u)>SL-.4){Tay=t;break}}T0=Tay+5}
+ if(sc.AR&&sc.AR.pos===5){const L=mkAQ(4,1);for(let t=0;t<40;t+=1/60){stepAQ(L,t,1/60);if(frontZ(L[3].u)>SL-.4){Tay=t;break}}T0=Tay+(sc.AR.type==='A'?3:1.5)}      /* 箭头黄灯 1.5 秒；B：箭头一灭对面就变绿起步；A：再全红 1.5 秒后两边圆灯变绿 */
  if(sc.Y){sc.Ty=23+Math.random()*3;sc.run=hard||Math.random()<.5;if(hard&&sc.rush==null)sc.rush=Math.random()<.5?2:1}
  const OP=sc.AR&&!Tay?{list:[],G:{s:1e9,e:1e9}}:makeOpp(sc),G=OP.G;
  if(sc.AR&&Tay){OP.list.forEach(s=>s.tc+=T0);G.s+=T0;G.e+=T0}
@@ -154,9 +154,11 @@ function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.e
 // ---------- 冲突判断 ----------
 // 你从现在开始一直开，车尾离开某条对面车道要多久
 function tClear(L){let u=R.u,v=R.v,t=0;while(t<12){const a=myPath(u);if(a[0]-2.35*Math.sin(a[2])<L-1.9)return t;const vt=vGo(u);v=Math.min(vt,v+2.5*.05);u+=v*.05;t+=.05}return t}
+// 对面车开到冲突点要多久：停着或刚起步的车按 2.5 m/s² 加速算（排队的车绿灯起步）
+function tReach(d,v0,vm){if(d<=0)return 0;const a=2.5,ta=Math.max(0,(vm-v0)/a),da=v0*ta+.5*a*ta*ta;return d<=da?(-v0+Math.sqrt(v0*v0+2*a*d))/a:ta+(d-da)/vm}
 function oppConf(){const tc={};let n=0;
  R.OC.forEach(s=>{if(s.gone||s.stop)return;const zc=ZC[s.lane];if(s.z+2.35<zc-1.3)return;      // 已经开过去了，或者黄灯红灯时正在停车线前停下
-  if(tc[s.lane]==null)tc[s.lane]=tClear(s.lane);const tA=(s.z-2.35-(zc+1.3))/Math.max(.5,s.cv);if(tA<tc[s.lane]+.8)n++});return n}
+  if(tc[s.lane]==null)tc[s.lane]=tClear(s.lane);const tA=tReach(s.z-2.35-(zc+1.3),s.cv,s.v);if(tA<tc[s.lane]+.8)n++});return n}
 function sdClear(){return R.SD.every(s=>s.gone||s.z>SDZ+3.5||(s.stop&&s.z<SDS+.5)||(SDZ-3.5-s.z)/Math.max(.5,s.cv)>4.5)}      // 对面左转车穿过我们这边两条直行车道：要有约 4.5 秒的空档
 const rtAct=()=>R.RT&&!R.RT.gone&&!R.RT.stop&&ORT(R.RT.u)[0]>-22&&ORT(R.RT.u)[1]<45;
 function bikeConf(){return R.peds.some(p=>{if(!p.bike||p.hit)return false;const c=pedPos(p,R.t),zc=ZC[-12.25];if(c[1]<zc-1.5)return false;return (c[1]-(zc+1.2))/p.sg[0].v<tClear(-12.25)+.8})}
@@ -300,7 +302,7 @@ function lights(){const sc=R.sc,t=R.t,f=front(R.u);
  if(sc.AR){const A=sc.AR;if(R.Tay==null)return;
   if(R.arrow==='g'&&t>=R.Tay){R.arrow='y';R.yD=SL-f[1];R.yV=R.v;setArrow('y',A.type==='A'?null:ME);banner(A.type==='A'?'左转箭头变黄':'左转箭头变黄（圆灯仍是绿灯）','#ffc21a');
    R.AQ.forEach(L=>{if(frontZ(L.u)<SL-.3&&SL-frontZ(L.u)>=L.v*L.v/7){L.hold=true;L.uH=uOfZ(SL-.6-2.35)}});R.OA.forEach(L=>{if(L.u<R.OAus-.5)L.hold=true})}
-  if(R.arrow==='y'&&t>=R.Tay+3){R.arrow='off';setArrow('off');banner(A.type==='A'?'红灯':'绿灯左转',A.type==='A'?'#ff5a5a':'')}
+  if(R.arrow==='y'&&t>=R.Tay+1.5){R.arrow='off';setArrow('off');banner(A.type==='A'?'红灯':'绿灯左转',A.type==='A'?'#ff5a5a':'')}
   if(!R.rel0&&t>=R.T0){R.rel0=true;R.OC.forEach(s=>s.stop=false);setPedSig('M','walk');
    if(A.type==='A'){setHeads(HEADS,'g');R.light='g';banner('绿灯左转','');R.SD.forEach(s=>s.stop=false)}else setHeads(dirHeads(OPP),'g')}
   return}
