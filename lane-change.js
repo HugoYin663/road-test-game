@@ -35,11 +35,13 @@ const TXT={
  noMirror:["换线前没有看后视镜","打灯后要先看中间后视镜和要换过去那一侧的外后视镜（Mirror），看清后面和旁边车道的车流。"],
  noShoulder:["没有回头看盲区","后视镜看不到车身侧后方的盲区。换线前一定要回头（Over shoulder）看一眼要换过去那一侧的盲区，确认没有车。"],
  oldShoulder:["回头看盲区后隔太久才换线","回头看盲区要在换线前的最后一刻做，看完马上换。隔了几秒，盲区里可能已经有车开进来了。"],
- unsafe:["空档不够就换线，逼得旁边车道的车让你","换线时旁边车道的车离你太近（在你旁边、盲区里，或者从后面很快开过来），换过去会挡住它，甚至相撞。要等足够的空档：换过去以后，后车不用刹车。"],
+ unsafeB:["旁边车道的车就在你旁边（盲区里）还换线","换线那一刻，要换过去的车道上有车和你并排或在你侧后方的盲区里，换过去会撞上它。看后视镜、回头看盲点，确认旁边没有车再换。"],
+ unsafeR:["后面的车开过来太近还换线，逼它刹车","要换过去的车道上，后面有车比你快、离你又不够远，你换过去它就得刹车让你。要等它过去，或者等它离你足够远（换过去以后它不用刹车）再换。"],
+ unsafeF:["换到前车后面太近","要换过去的车道上，前面的车比你慢、离你太近，换过去你就贴在它后面。要等它和你拉开距离再换。"],
  sigOn:["换完线没有关转向灯","换线完成后要马上关掉转向灯，否则别人会以为你还要换线或转弯。"],
  noChange:["一直没有完成换线","考官要求换线后，要在安全的时候尽快完成。空档不够可以等，但看到足够的空档就要果断换过去。"],
  crash:["换线时和旁边车道的车相撞","换线前一定要看后视镜和回头看盲区，确认旁边车道有足够的空档。"]};
-const SER=['unsafe','crash'];
+const SER=['unsafeB','unsafeR','unsafeF','crash'];
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
  R={t:0,x:LX.R,z:0,h:0,v:V0,lane:'R',lc:null,ph:0,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],done:{L:false,R:false},lastDone:-9};
  const add=(lane,dz,v)=>{const c=car(C[1+Math.random()*8|0]);live.push(c);R.cars.push({c,lane,x:LX[lane],z:dz,vd:v,cv:v})};
@@ -74,17 +76,18 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(m==='mir'||m==='sho'){if(R.look)return;R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk();return}
  if(m==='go'){if(R.lc)return;startChange();return}}
 function cmdUp(){}
+// 空档够不够：旁边／盲区里有车不行；后车比你快、换过去会逼它刹车不行；前车比你慢、离得太近不行（前车比你快、正在开远就没关系）
+function gapWhy(to){let w=null;R.cars.forEach(c=>{if(c.lane!==to||w)return;const dz=c.z-R.z,dv=c.cv-R.v;
+  if(Math.abs(dz)<5.6)w='unsafeB';
+  else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))w='unsafeR'}
+  else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
 // 换线前的检查：S → M → O → G
 function startChange(){const to=other(),t=R.t,X1=LX[to];
  if(!R.sig)ev('noSig');else if(R.sig!==to)ev('wrongSig');else if(t-R.sigT<2.8)ev('sigShort');
  if(!(R.mT[to]!=null&&t-R.mT[to]<10))ev('noMirror');
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  // 空档：换过去以后后车不用刹车、前车不会太近；在旁边（盲区）就一定不行
- let bad=false;R.cars.forEach(c=>{if(c.lane!==to)return;const dz=c.z-R.z,dv=c.cv-R.v;
-  if(Math.abs(dz)<5.6)bad=true;
-  else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))bad=true}
-  else{const g=dz-4.6;if(g<Math.max(4,1.5*Math.max(0,-dv)+.25*R.v))bad=true}});
- if(bad)ev('unsafe');
+ const why=gapWhy(to);if(why)ev(why);
  R.lc={from:R.lane,to,x0:R.x,x1:X1,t0:t,T:4};mk()}
 // ---------- 每一帧 ----------
 function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着这条车道
@@ -127,6 +130,7 @@ function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let 
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
 let last=0,fovH=110;
+MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);      // 外后视镜画面清楚一些（专门看后视镜时会放大）
 function placeMine(){place(mine,R.x,R.z,R.h);mine.userData.bl.forEach(m=>{m.position.x=R.sig==='R'?-.88:.88})}
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;
  R.cars.forEach(c=>{if(c.lane&&!c.crash)c.x=LX[c.lane];place(c.c,c.x,c.z,c.spin||0);c.c.visible=Math.abs(c.z-R.z)<420});
@@ -135,7 +139,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  sun.position.set(-R.x+60,90,R.z-40);sun.target.position.set(-R.x,0,R.z+20);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=[R.x,R.z,R.h];
- if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==='M'?(R.look.t<.55?75:R.look.t<1.35?(R.look.side==='L'?50:56):110):100;fovH+=(fT-fovH)*Math.min(1,dt*7);      /* 看后视镜时视线集中在镜子上：画面放大，镜子变大 */cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+R.pit*L,q[1]+Math.cos(h)*L+oz);
