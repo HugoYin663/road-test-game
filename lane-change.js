@@ -1,9 +1,9 @@
 // ============================================================
 // lane-change.js — 项目：换线（SMOG：Signal 打灯 → Mirror 看后视镜 → Over shoulder 回头看盲区 → Go 换线）
 // ============================================================
-// 同向两条车道：左车道 x=1.75（车流约 65 km/h，比你快），右车道 x=5.25；你由系统保持 60 km/h
+// 同向两条车道：左车道 x=1.75（车流约 65 km/h，比你快），右车道 x=5.25（前面的车 60，你后面跟着稍快的车）；你由系统保持 60 km/h
 // 路线坐标 (x,z)：x 向右为正，车往 +z 开；画到场景里是 (-x, z)（和其他项目一样）
-const LX={L:1.75,R:5.25},V0=16.67,VL=18.06,VRS=14.4;      // VRS：你离开右车道后，右车道车流慢下来（约 52 km/h）
+const LX={L:1.75,R:5.25},V0=16.67,VL=18.06;
 const ROAD0=-400,ROAD1=2800,RLN=ROAD1-ROAD0,RCZ=(ROAD0+ROAD1)/2;
 // ---------- 道路和路边 ----------
 box(900,.1,RLN+600,M(0xffffff,{map:noise('#7fae5a',60,160)}),0,-.012,RCZ);
@@ -52,11 +52,12 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 右车道：你前面 45 米有一辆车（和你一样 60），后面跟着一辆；你换到左车道以后，右车道慢下来，车会从前面慢慢“退”到你旁边
  d=45+Math.random()*8;add('R',d,V0);
  while(d<700){d+=Math.random()<.35?26+Math.random()*8:42+Math.random()*28;add('R',d,V0)}
- add('R',-24,V0);add('R',-58,V0);add('R',-95,V0);
+ // 你后面跟着 1～3 辆车（约 65–70 km/h，比你快，平时跟在你后面）：你换到左车道后，它们会在右车道跟上来、从你右边开过去，换回右车道时要等它们过去
+ {let b=-13;const n=1+(Math.random()*3|0);for(let k=0;k<n;k++){add('R',b,18.1+Math.random()*1.3);b-=12+Math.random()*4}add('R',b-70-Math.random()*20,V0);add('R',b-130-Math.random()*20,V0)}
  // 对面车道的车（只是背景）
  R.opp=[];for(let k=0;k<8;k++){const c=car(C[1+Math.random()*8|0]);live.push(c);R.opp.push({c,x:-(Math.random()<.5?1.75:5.25),z:40+k*45+Math.random()*20})}
  mine.visible=view===2;setSig(null);banner('保持车道，跟着车流行驶','');mk();$('sp').textContent='60'}
-function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col||''}
+function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}      // big：考官指令先在屏幕中间大字闪几下，再缩回上方
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
 function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
@@ -89,9 +90,9 @@ function startChange(){const to=other(),t=R.t,X1=LX[to];
 function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着这条车道
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 考官指令
- if(R.ph===0&&t>=3){R.ph=1;R.p1=t;banner('考官：前方安全时，换到左车道','#ffe27a')}
+ if(R.ph===0&&t>=3){R.ph=1;R.p1=t;banner('考官：前方安全时，换到左车道','#ffe27a',1)}
  if(R.ph===1&&R.done.L){R.ph=2;R.p2=t}
- if(R.ph===2&&t>=R.p2+6){R.ph=3;R.p3=t;banner('考官：换回右车道','#ffe27a')}
+ if(R.ph===2&&t>=R.p2+6){R.ph=3;R.p3=t;banner('考官：换回右车道','#ffe27a',1)}
  if(R.ph===3&&R.done.R){R.ph=4;R.p4=t;banner('换线完成','')}
  if(R.ph===1&&!R.lc&&t>R.p1+45){ev('noChange');finish();return}
  if(R.ph===3&&!R.lc&&t>R.p3+45){ev('noChange');finish();return}
@@ -110,8 +111,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.look=null;R.yaw=0;R.pit=0;mk()}}}}
  // 其他车：保持自己的速度，跟前车（你的车在它的车道上时也算前车）；你切到它前面太近时它会刹车、按喇叭
- R.cars.forEach(c=>{if(c.lane==='R'&&R.done.L&&!c.slow){c.slow=true;c.vd=VRS+(Math.random()-.5)*.6}      // 你离开右车道后，右车道车流慢下来
-  if(c.crash){c.cv=Math.max(0,c.cv-9*dt);c.z+=c.cv*dt;return}
+ R.cars.forEach(c=>{  if(c.crash){c.cv=Math.max(0,c.cv-9*dt);c.z+=c.cv*dt;return}
   let vt=c.vd;R.cars.forEach(o=>{if(o===c||o.lane!==c.lane)return;const g=o.z-c.z-4.6;if(g>-1&&g<70)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
   if(occ(c.lane)){const g=R.z-c.z-4.6;if(g>-1&&g<70){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk){c.hk=true;honk()}}}}
   const dec=occ(c.lane)&&R.z>c.z?8:5;c.cv=c.cv>vt?Math.max(vt,c.cv-dec*dt):Math.min(vt,c.cv+1.8*dt);c.z+=c.cv*dt});

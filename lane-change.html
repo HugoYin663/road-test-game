@@ -31,6 +31,9 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #bmi{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(166px + env(safe-area-inset-bottom,0px))}
 #bsh{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 #bgo{background:#2aa24a}
+#cf{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,5.2vw,40px);font-weight:800;color:#ffe27a;background:rgba(0,0,0,.6);padding:14px 28px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3}
+#cf.go{animation:cfz 2.6s ease forwards}
+@keyframes cfz{0%{opacity:0;top:40%;transform:translate(-50%,-50%) scale(.8)}8%{opacity:1;transform:translate(-50%,-50%) scale(1)}22%{opacity:.25}36%{opacity:1}50%{opacity:.25}64%{opacity:1;top:40%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;top:5%;transform:translate(-50%,-50%) scale(.45)}}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -52,7 +55,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 #rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
 </style></head><body>
 <div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
-<div id="bn">换线</div><div id="fl"></div>
+<div id="bn">换线</div><div id="cf"></div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <div id="btns"><button class="b" id="bgo" data-m="go">换线<small>Go</small></button></div>
 <button class="b" id="bsl" data-m="sigL">左转灯<small>Signal</small></button>
@@ -76,9 +79,9 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);padding:12px 26px;border-radius:12px;background:#2f6fe0;color:#fff;text-decoration:none;font-size:17px;font-weight:700;white-space:nowrap">退出</a></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="lib/core.js?v=1027a"></script>
-<script src="lib/actors.js?v=1027a"></script>
-<script src="lib/cockpit.js?v=1027a"></script>
-<script src="lib/ui.js?v=1027a"></script>
-<script src="lane-change.js?v=1027a"></script>
+<script src="lib/core.js?v=1028a"></script>
+<script src="lib/actors.js?v=1028a"></script>
+<script src="lib/cockpit.js?v=1028a"></script>
+<script src="lib/ui.js?v=1028a"></script>
+<script src="lane-change.js?v=1028a"></script>
 </body></html>
