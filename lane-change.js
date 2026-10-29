@@ -85,7 +85,7 @@ function nextAct(){const m=R.q.shift();if(m)doAct(m)}
 function cmdUp(){}
 // 空档够不够：旁边／盲区里有车不行；后车比你快、换过去会逼它刹车不行；前车比你慢、离得太近不行（前车比你快、正在开远就没关系）
 function gapWhy(to){let w=null;R.cars.forEach(c=>{if(c.lane!==to||w)return;const dz=c.z-R.z,dv=c.cv-R.v;
-  if(Math.abs(dz)<5.6)w='unsafeB';
+  if(dz<5.6&&dz>-12)w='unsafeB';      /* 并排或在侧后方盲区里 */
   else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))w='unsafeR'}
   else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
 // 换线前的检查：S → M → O → G
@@ -137,7 +137,10 @@ function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let 
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
 let last=0,fovH=110;
-MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);      // 外后视镜画面清楚一些（专门看后视镜时会放大）
+MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
+// 外后视镜的视野按真实的平面镜来：左镜水平约 16°（里侧刚好看到一点自己的车身），右镜约 24°。
+// 旁边车道的车离你侧后方很近时（车头在你后面约 1～9 米），镜子里看不到它——这就是盲区，只有回头看盲点才看得到；再往前开到你正侧面，从侧窗就能看到
+{const vf=h=>2*Math.atan(Math.tan(h/2*Math.PI/180)/2)*180/Math.PI;MRL.c.fov=vf(16);MRL.dir.set(Math.sin(7*Math.PI/180),-.03,-1).normalize();MRR.c.fov=vf(24);MRR.dir.set(-Math.sin(11*Math.PI/180),-.03,-1).normalize();[MRL,MRR].forEach(m=>m.c.updateProjectionMatrix())}      // 外后视镜画面清楚一些（专门看后视镜时会放大）
 function placeMine(){place(mine,R.x,R.z,R.h);mine.userData.bl.forEach(m=>{m.position.x=R.sig==='R'?-.88:.88})}
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;
  R.cars.forEach(c=>{if(c.lane&&!c.crash)c.x=LX[c.lane];place(c.c,c.x,c.z,c.spin||0);c.c.visible=Math.abs(c.z-R.z)<420});
