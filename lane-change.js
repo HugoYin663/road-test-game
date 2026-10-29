@@ -48,7 +48,7 @@ const TXT={
  crash:["换线时和旁边车道的车相撞","换线前一定要看后视镜和回头看盲区，确认旁边车道有足够的空档。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash'];
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
- R={t:0,x:LX.R,z:0,h:0,v:V0,lane:'R',lc:null,ph:0,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],done:{L:false,R:false},lastDone:-9};
+ R={t:0,x:LX.R,z:0,h:0,v:V0,lane:'R',lc:null,ph:0,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],done:{L:false,R:false},lastDone:-9,q:[]};
  const add=(lane,dz,v)=>{const c=car(C[1+Math.random()*8|0]);live.push(c);R.cars.push({c,lane,x:LX[lane],z:dz,vd:v,cv:v})};
  // 车流都是“一小团车（车距不够）→ 一个合适的空档 → 又一团车”：一开始不合适，过 1～3 辆车后出现空档，错过了又要等下一个
  const vl=()=>18.3+Math.random()*.9,tight=()=>19+Math.random()*4,gapL=()=>62+Math.random()*14;
@@ -79,8 +79,9 @@ function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push(
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
- if(m==='mir'||m==='sho'){if(R.look)return;R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk();return}
- if(m==='go'){if(R.lc)return;startChange();return}}
+ if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}      // 手快的玩家：前一个动作（看镜子、看盲点）还没做完就按下一个，记下来，做完一个接着做下一个
+function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
+function nextAct(){const m=R.q.shift();if(m)doAct(m)}
 function cmdUp(){}
 // 空档够不够：旁边／盲区里有车不行；后车比你快、换过去会逼它刹车不行；前车比你慢、离得太近不行（前车比你快、正在开远就没关系）
 function gapWhy(to){let w=null;R.cars.forEach(c=>{if(c.lane!==to||w)return;const dz=c.z-R.z,dv=c.cv-R.v;
@@ -116,9 +117,9 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 看后视镜／回头看盲区
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;      /* 视线落在外后视镜上，镜子完整地出现在画面偏左（或偏右）一点，不被按钮挡住 */if(L.t>1)R.mT[L.side]=t}
-   else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk()}}}
+   else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
-   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk()}}}}      /* 看盲点：从头转回前方那一刻开始计时 */
+   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}}      /* 看盲点：从头转回前方那一刻开始计时 */
  // 其他车：保持自己的速度，跟前车（你的车在它的车道上时也算前车）；你切到它前面太近时它会刹车、按喇叭
  R.cars.forEach(c=>{  if(c.crash){c.cv=Math.max(0,c.cv-9*dt);c.z+=c.cv*dt;return}
   let vt=c.vd;R.cars.forEach(o=>{if(o===c||o.lane!==c.lane)return;const g=o.z-c.z-4.6;if(g>-1&&g<70)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
