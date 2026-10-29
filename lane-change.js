@@ -89,7 +89,7 @@ function startChange(){const to=other(),t=R.t,X1=LX[to];
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  // 空档：换过去以后后车不用刹车、前车不会太近；在旁边（盲区）就一定不行
  const why=gapWhy(to);if(why)ev(why);
- R.lc={from:R.lane,to,x0:R.x,x1:X1,t0:t,T:4};mk()}
+ R.lc={from:R.lane,to,x0:R.x,x1:X1,t0:t,T:5.5};mk()}
 // ---------- 每一帧 ----------
 function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着这条车道
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
@@ -104,7 +104,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 你的车：保持 60，前面有车太近就跟车
  let vt=V0;R.cars.forEach(c=>{if(!occ(c.lane))return;const g=c.z-R.z-4.6;if(g>-2&&g<60)vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
  if(R.crash)vt=0;R.v=R.v>vt?Math.max(vt,R.v-(R.crash?9:5)*dt):Math.min(vt,R.v+1.5*dt);R.z+=R.v*dt;
- if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=(1-Math.cos(Math.PI*k))/2,dx=(L.x1-L.x0)*Math.PI/2*Math.sin(Math.PI*k)/L.T;R.x=L.x0+(L.x1-L.x0)*s;R.h=Math.atan2(dx,Math.max(1,R.v));
+ if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dx=(L.x1-L.x0)*30*k*k*(1-k)*(1-k)/L.T;      /* 平顺曲线：方向盘慢慢打、慢慢回，最大偏角约 4° */R.x=L.x0+(L.x1-L.x0)*s;R.h=Math.atan2(dx,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.h=0;R.x=L.x1;R.lane=L.to;R.done[L.to]=true;R.lastDone=t;mk()}}
  // 换完线：转向灯要关
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
