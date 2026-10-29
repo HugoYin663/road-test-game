@@ -24,7 +24,48 @@ const ROAD0=-400,ROAD1=2800,RLN=ROAD1-ROAD0,RCZ=(ROAD0+ROAD1)/2;
 {const t=cv(240,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=8;x.strokeRect(12,12,w-24,h-24);x.fillStyle='#111';x.textAlign='center';
   x.font='bold 46px Arial';x.fillText('MAXIMUM',w/2,80);x.font='bold 170px Arial';x.fillText('60',w/2,255)});
  [40,640,1240].forEach(z=>{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.05,.05,2.9,8),M(0x8a9099),0,1.45,0));const f=mesh(new T.PlaneGeometry(.75,.94),new T.MeshBasicMaterial({map:t}),0,2.35,-.05);f.rotation.y=Math.PI;g.add(f);g.position.set(-8.2,0,z);scene.add(g)})}
-scene.add(sun.target);sun.shadow.bias=-.0006;
+scene.add(sun.target);
+// ---------- 路边广告牌（G1+）：刚开始还没发指令时、两次换线都做完以后，各从旁边经过一块 ----------
+const BBT=(()=>{const W=1280,H=640,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),t=new T.CanvasTexture(c);
+ const rr=(a,b,w,h,r)=>{x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()};
+ const draw=logo=>{x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  // 右下角的蓝绿色弧带
+  x.save();x.beginPath();x.moveTo(560,H);x.quadraticCurveTo(900,560,W,330);x.lineTo(W,H);x.closePath();x.fillStyle='#7ccf2a';x.fill();
+  x.beginPath();x.moveTo(640,H);x.quadraticCurveTo(960,585,W,380);x.lineTo(W,H);x.closePath();const g=x.createLinearGradient(640,H,W,380);g.addColorStop(0,'#1f6fe0');g.addColorStop(1,'#0b3fae');x.fillStyle=g;x.fill();x.restore();
+  // logo
+  if(logo)x.drawImage(logo,46,70,260,260);else{rr(46,70,260,260,46);x.fillStyle='#1d8cf0';x.fill();x.fillStyle='#c6f23a';x.font='bold 120px Arial';x.fillText('G1+',70,240)}
+  // 标题
+  x.fillStyle='#10285a';x.font='900 92px Arial,Helvetica,sans-serif';x.fillText('Pass Your',340,150);x.fillText('G1 Test',340,245);
+  x.fillStyle='#1673e6';x.font='bold 58px Arial,Helvetica,sans-serif';x.fillText('with Confidence',340,312);
+  x.fillStyle='#1b2b45';x.font='600 36px Arial,Helvetica,sans-serif';x.fillText('Study · Practice · Succeed',340,368);
+  // 三个小图标
+  [['Real','Questions',0],['Mock','Tests',1],['Track','Progress',2]].forEach((a,i)=>{const cx=110+i*190,cy=470;x.fillStyle='#eaf2fd';x.beginPath();x.arc(cx,cy,48,0,7);x.fill();x.strokeStyle=x.fillStyle='#1665d8';x.lineWidth=6;
+   if(i===0){x.strokeRect(cx-26,cy-20,24,40);x.strokeRect(cx+2,cy-20,24,40)}
+   else if(i===1){x.strokeRect(cx-20,cy-24,40,50);x.beginPath();x.moveTo(cx-10,cy+2);x.lineTo(cx-2,cy+12);x.lineTo(cx+14,cy-10);x.stroke()}
+   else{[[-22,10,12],[-4,-6,28],[14,-22,44]].forEach(b=>x.fillRect(cx+b[0],cy+b[1]+8,12,b[2]))}
+   x.fillStyle='#1b2b45';x.font='600 30px Arial,Helvetica,sans-serif';x.textAlign='center';x.fillText(a[0],cx,cy+86);x.fillText(a[1],cx,cy+120);x.textAlign='left';
+   if(i<2){x.strokeStyle='#d6dde8';x.lineWidth=2;x.beginPath();x.moveTo(cx+95,cy-40);x.lineTo(cx+95,cy+120);x.stroke()}});
+  // 手机
+  x.save();x.translate(1010,18);x.rotate(.06);x.scale(.86,.86);rr(0,0,240,470,34);x.fillStyle='#16191f';x.fill();rr(12,12,216,446,26);x.fillStyle='#fff';x.fill();
+  x.fillStyle='#1665d8';rr(12,12,216,64,26);x.fill();x.fillRect(12,50,216,26);x.fillStyle='#fff';x.font='bold 30px Arial';x.textAlign='center';x.fillText('G1+',120,58);
+  x.fillStyle='#1b2b45';x.font='bold 21px Arial';x.fillText('What does this sign',120,112);x.fillText('mean?',120,138);
+  x.save();x.translate(120,200);x.rotate(Math.PI/4);x.fillStyle='#f6c71b';x.fillRect(-38,-38,76,76);x.strokeStyle='#111';x.lineWidth=4;x.strokeRect(-34,-34,68,68);x.restore();
+  x.strokeStyle='#111';x.lineWidth=7;x.beginPath();x.moveTo(112,228);x.lineTo(112,200);x.quadraticCurveTo(112,186,126,186);x.lineTo(132,186);x.stroke();x.fillStyle='#111';x.beginPath();x.moveTo(146,186);x.lineTo(130,174);x.lineTo(130,198);x.fill();
+  x.textAlign='left';['A. Left turn only','B. Right turn ahead','C. Merge','D. No U-turn'].forEach((o,k)=>{const y=262+k*44;rr(24,y,192,36,8);x.fillStyle=k===1?'#1665d8':'#eef2f8';x.fill();x.fillStyle=k===1?'#fff':'#1b2b45';x.font='18px Arial';x.fillText(o,34,y+24)});
+  x.restore();
+  // 口号
+  x.save();x.translate(1050,560);x.rotate(-.32);x.fillStyle='#fff';x.font='italic bold 34px Arial';x.textAlign='center';x.fillText('Your Driving Success',0,0);x.fillStyle='#f4e04a';x.fillText('Starts Here!',10,40);x.restore();
+  t.needsUpdate=true};
+ draw(null);if(typeof Image!=='undefined'){const im=new Image();im.onload=()=>draw(im);im.src='assets/g1plus.png'}return t})();
+function billboard(){const g=new T.Group(),pm=M(0x3a3f47);
+ g.add(mesh(new T.BoxGeometry(.5,3.2,.5),pm,0,1.6,0));g.add(mesh(new T.BoxGeometry(7.0,3.6,.35),pm,0,4.9,.12));      // 立柱、外框
+ const f=mesh(new T.PlaneGeometry(6.6,3.3),new T.MeshBasicMaterial({map:BBT}),0,4.9,-.06);f.rotation.y=Math.PI;g.add(f);      // 画面朝向开过来的车
+ g.children.forEach(m=>m.castShadow=true);scene.add(g);return g}
+const BB1=billboard(),BB2=billboard();
+// 放在右边人行道外的草地上，稍微斜向马路，开过来的车能看清
+function putBB(b,z,fade){b.position.set(-15,0,z);b.rotation.y=-.42;b.visible=true;b.fadeT=fade?R.t:null;b.children.forEach(m=>{m.material.transparent=!!fade;m.material.opacity=fade?0:1})}      // fade：远处慢慢显出来，不要突然冒出来
+function fadeBB(b){if(b.fadeT==null)return;const o=Math.min(1,(R.t-b.fadeT)/1.5);b.children.forEach(m=>m.material.opacity=o);if(o>=1){b.fadeT=null;b.children.forEach(m=>m.material.transparent=false)}}
+sun.shadow.bias=-.0006;
 // 太阳（阴影）跟着你走：在“阳光方向”的坐标里按阴影贴图的格子对齐，阴影贴图每一格都落在同样的地面位置，路面阴影就不会闪
 const SUNO=new T.Vector3(60,90,-60),SUNF=SUNO.clone().negate().normalize(),SUNR=new T.Vector3().crossVectors(SUNF,new T.Vector3(0,1,0)).normalize(),SUNU=new T.Vector3().crossVectors(SUNR,SUNF),SUNTS=150/1024;
 function sunFollow(z){const c=new T.Vector3(0,0,z),a=Math.round(c.dot(SUNR)/SUNTS)*SUNTS,b=Math.round(c.dot(SUNU)/SUNTS)*SUNTS,f=c.dot(SUNF);
@@ -64,7 +105,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
   while(b>-450){b-=46+Math.random()*16;for(let k=2+(Math.random()*2|0);k>0;k--){add('R',b,V0);fv();b-=18+Math.random()*4}}}
  // 对面车道的车（只是背景）
  R.opp=[];for(let k=0;k<8;k++){const c=car(C[1+Math.random()*8|0]);live.push(c);R.opp.push({c,x:-(Math.random()<.5?1.75:5.25),z:40+k*45+Math.random()*20})}
- mine.visible=view===2;setSig(null);banner('保持车道，跟着车流行驶','');mk();$('sp').textContent='60'}
+ putBB(BB1,R.z+55);BB2.visible=false;mine.visible=view===2;setSig(null);banner('保持车道，跟着车流行驶','');mk();$('sp').textContent='60'}
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}      // big：考官指令先在屏幕中间大字闪几下，再缩回上方
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
@@ -100,13 +141,13 @@ function startChange(){const to=other(),t=R.t,X1=LX[to];
 function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着这条车道
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 考官指令
- if(R.ph===0&&t>=3){R.ph=1;R.p1=t;banner('考官：当安全时，换到左车道','#ffe27a',1)}
+ if(R.ph===0&&t>=3&&R.z>BB1.position.z+2){      /* 先开过第一块广告牌，考官再发指令 */R.ph=1;R.p1=t;banner('考官：当安全时，换到左车道','#ffe27a',1)}
  if(R.ph===1&&R.done.L){R.ph=2;R.p2=t}
  if(R.ph===2&&t>=R.p2+2){R.ph=3;R.p3=t;banner('考官：当安全时，换回右车道','#ffe27a',1);R.cars.forEach(c=>{if(c.vf)c.vd=c.vf})}      /* 换好约 2 秒后发指令；这时你右后方的车才开始加速、慢慢跟上来 */
- if(R.ph===3&&R.done.R){R.ph=4;R.p4=t;banner('换线完成','')}
+ if(R.ph===3&&R.done.R){R.ph=4;R.p4=t;banner('换线完成','');putBB(BB2,R.z+150,1);R.bbz=R.z+150}      /* 两次换线都做完：前面出现第二块广告牌，开过它再出结果 */
  if(R.ph===1&&!R.lc&&t>R.p1+45){ev('noChange');finish();return}
  if(R.ph===3&&!R.lc&&t>R.p3+45){ev('noChange');finish();return}
- if(R.ph===4&&t>R.p4+4){finish();return}
+ if(R.ph===4&&(R.z>R.bbz+4&&t>R.p4+4||t>R.p4+14)){finish();return}
  // 你的车：保持 60，前面有车太近就跟车
  let vt=V0;R.cars.forEach(c=>{if(!occ(c.lane))return;const g=c.z-R.z-4.6;if(g>-2&&g<60)vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
  if(R.crash)vt=0;R.v=R.v>vt?Math.max(vt,R.v-(R.crash?9:5)*dt):Math.min(vt,R.v+1.5*dt);R.z+=R.v*dt;
@@ -145,7 +186,7 @@ function placeMine(){place(mine,R.x,R.z,R.h);mine.userData.bl.forEach(m=>{m.posi
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;
  R.cars.forEach(c=>{if(c.lane&&!c.crash)c.x=LX[c.lane];place(c.c,c.x,c.z,c.spin||0);c.c.visible=Math.abs(c.z-R.z)<420});
  R.opp.forEach(o=>place(o.c,o.x,o.z,Math.PI));
- placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
+ placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);fadeBB(BB2);
  sunFollow(R.z+20);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=[R.x,R.z,R.h];
