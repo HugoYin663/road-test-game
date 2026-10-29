@@ -16,7 +16,7 @@ const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC+.05);
 const yR=z=>0;
 const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL=BM(WH),YL=BM(0xf2c12e),CON=M(0xb5b7bb);
 // 匝道：左边黄色实线、右边白色实线
-{const YF=(x,z)=>yR(z);strip(P,UDIV,UARC1,-2.25,2.25,.07,ASP,YF);strip(P,UDIV,UARC1,2.05,2.2,.09,YL,YF);strip(P,UDIV,UARC1,-2.2,-2.05,.09,WL,YF)}
+{const YF=(x,z)=>yR(z);strip(P,UDIV,UARC1,-2.25,2.25,.07,ASP,YF);strip(P,UDIV+10,UARC1,2.05,2.2,.09,YL,YF);strip(P,UDIV,UARC1,-2.2,-2.05,.09,WL,YF)}
 // 高速（东西向，和地面同一个平面，城市道路从上面的桥跨过去）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
 {const Y=-DY,EL=u=>[u-600,0,Math.PI/2];EL.len=2200;
  const Z=z=>u=>{const q=EL(u);return[q[0],z,q[2]]},o=x=>x+600;
@@ -24,7 +24,7 @@ const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL
  band(ZA+1.875,ZA+9.375,ASP,.03);band(ZA+9.375,ZA+11.4,SHO,.025);band(ZA+12.6,ZA+14.625,SHO,.025);band(ZA+14.625,ZA+22.125,ASP,.03);band(ZA+22.125,ZA+24.6,SHO,.025);
  band(ZA-4.5,ZA+1.875,SHO,.02);
  strip(Z(ZA),o(XC),o(XEND),-1.875,1.875,Y+.031,ASP);
- {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,SHO)}
+ {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,ASP)}
  strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(60,3.6),-.08,.08,Y+.06,WL);
  for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZA+12);scene.add(w)}      // 隔离墙
  // 标线：往东左边黄线、两条车道之间虚线、右边白线；加速车道和右道之间：先实线后虚线
