@@ -70,7 +70,7 @@ function post(x,z,ry,w,hh,tex,y0){const g=new T.Group(),pm=M(0x8a9099);const n=w
 // 绿色高速入口指示牌：401 皇冠盾牌 + EAST + 箭头
 const GUIDE=d=>cv(512,320,(x,w,h)=>{x.fillStyle='#0f6b3a';x.fillRect(0,0,w,h);x.strokeStyle='#fff';x.lineWidth=7;x.strokeRect(10,10,w-20,h-20);
  x.save();x.translate(150,150);x.fillStyle='#fff';x.strokeStyle='#111';x.lineWidth=6;x.beginPath();x.moveTo(-80,-70);x.lineTo(80,-70);x.lineTo(80,10);x.quadraticCurveTo(80,80,0,110);x.quadraticCurveTo(-80,80,-80,10);x.closePath();x.fill();x.stroke();
- x.fillStyle='#111';x.beginPath();x.moveTo(-44,-86);x.lineTo(-30,-112);x.lineTo(-16,-92);x.lineTo(0,-118);x.lineTo(16,-92);x.lineTo(30,-112);x.lineTo(44,-86);x.closePath();x.fill();
+ x.fillStyle='#111';x.beginPath();x.moveTo(-50,-72);x.lineTo(-48,-100);x.lineTo(-26,-84);x.lineTo(0,-108);x.lineTo(26,-84);x.lineTo(48,-100);x.lineTo(50,-72);x.closePath();x.fill();
  x.font='bold 80px Arial';x.textAlign='center';x.fillText('401',0,40);x.restore();
  x.fillStyle='#fff';x.font='bold 74px Arial';x.textAlign='left';x.fillText('EAST',270,135);x.font='bold 40px Arial';x.fillText('Kingston',272,195);
  x.strokeStyle='#fff';x.lineWidth=14;x.beginPath();if(d==='r'){x.moveTo(330,290);x.lineTo(330,250);x.lineTo(420,250)}else{x.moveTo(380,295);x.lineTo(440,235)}x.stroke();x.fillStyle='#fff';x.beginPath();
