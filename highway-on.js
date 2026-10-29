@@ -5,7 +5,7 @@
 // 路线坐标 (x,z)：x 向右（东）为正，z 向北为正；画到场景里是 (-x, y, z)
 const VR=13.9,VF=27.8;      // 50、100 km/h
 const H=ROADOPT.hwy,ZDIV=H.ZD,ZA=H.ZA,DY=0;      // 高速、匝道和地面在同一个平面
-const ZF1=ZA+3.75,ZF2=ZA+7.5,ZW1=ZA+16.5,ZW2=ZA+20.25;      // 高速往东右道、左道；往西两条
+const ZF1=ZA+3.75,ZF2=ZA+7.5,ZF3=ZA+11.25,ZMED=ZA+15.7,ZW1=ZA+20.15,ZW2=ZA+23.9,ZW3=ZA+27.65;      // 高速往东三条车道（右、中、左），中间隔离墙，往西三条
 const XL0=8.85,RX=14,RR=55,XC=RX+RR,ZC=ZA-RR,XSOL=XC+60,XEND=XC+300,XTAP=XEND+60;      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
 // 你的路线 P：匝道车道 → 分出匝道 → 弯道（顺着坡往下）→ 加速车道 → 高速右道旁边一直往东。你从右车道出发（P 往左偏 3.6 米），系统自动换进匝道车道
 const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(i+1)/60*50;return[XL0+(RX-XL0)*ss(ZDIV,ZDIV+50,z),z]}),[RX,ZC],
@@ -16,22 +16,23 @@ const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC+.05);
 const yR=z=>0;
 const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL=BM(WH),YL=BM(0xf2c12e),CON=M(0xb5b7bb);
 // 匝道：左边黄色实线、右边白色实线
-{const YF=(x,z)=>yR(z);strip(P,UDIV,UARC1,-2.25,2.25,.07,ASP,YF);strip(P,UDIV+10,UARC1,2.05,2.2,.09,YL,YF);strip(P,UDIV,UARC1,-2.2,-2.05,.09,WL,YF)}
+{const YF=(x,z)=>yR(z),k=u=>ss(UDIV,UDIV+40,u),L=u=>1.7+.55*k(u),Rt=u=>-(1.65+.6*k(u));      /* 分岔口的匝道宽度和匝道车道一样，40 米内慢慢放宽，路面不会错开 */
+ strip(P,UDIV,UARC1,Rt,L,.07,ASP,YF);strip(P,UDIV+10,UARC1,u=>L(u)-.2,u=>L(u)-.05,.09,YL,YF);strip(P,UDIV,UARC1,u=>Rt(u)+.05,u=>Rt(u)+.2,.09,WL,YF)}
 // 高速（东西向，和地面同一个平面，城市道路从上面的桥跨过去）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
 {const Y=-DY,EL=u=>[u-600,0,Math.PI/2];EL.len=2200;
  const Z=z=>u=>{const q=EL(u);return[q[0],z,q[2]]},o=x=>x+600;
  const band=(z0,z1,mat,y)=>strip(Z((z0+z1)/2),0,2200,-(z1-z0)/2,(z1-z0)/2,Y+y,mat);
- band(ZA+1.875,ZA+9.375,ASP,.03);band(ZA+9.375,ZA+11.4,SHO,.025);band(ZA+12.6,ZA+14.625,SHO,.025);band(ZA+14.625,ZA+22.125,ASP,.03);band(ZA+22.125,ZA+24.6,SHO,.025);
+ band(ZA+1.875,ZA+13.125,ASP,.03);band(ZA+13.125,ZA+15.1,SHO,.025);band(ZA+16.3,ZA+18.275,SHO,.025);band(ZA+18.275,ZA+29.525,ASP,.03);band(ZA+29.525,ZA+32,SHO,.025);      // 往东三条、左路肩；往西左路肩、三条、右路肩
  band(ZA-4.5,ZA+1.875,SHO,.02);
  strip(Z(ZA),o(XC),o(XEND),-1.875,1.875,Y+.031,ASP);
  {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,ASP)}
  strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(60,3.6),-.08,.08,Y+.06,WL);
- for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZA+12);scene.add(w)}      // 隔离墙
- // 标线：往东左边黄线、两条车道之间虚线、右边白线；加速车道和右道之间：先实线后虚线
- strip(Z(ZA+9.3),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+5.625),0,2200,0,.2,Y+.06,WL,3,9);
- strip(Z(ZA+1.875),0,o(XC-60),-.08,.08,Y+.06,WL);strip(Z(ZA+1.875),o(XC-60),o(XSOL),-.1,.1,Y+.06,WL);dashes(Z(ZA+1.875),o(XSOL),o(XEND),0,.2,Y+.06,WL,1.5,3);
+ for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZMED);scene.add(w)}      // 隔离墙
+ // 标线：往东左边黄线、车道之间虚线；加速车道和右道之间：先实线后虚线，虚线一直画到加速车道收窄的尽头
+ strip(Z(ZA+13.05),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+5.625),0,2200,0,.2,Y+.06,WL,3,9);dashes(Z(ZA+9.375),0,2200,0,.2,Y+.06,WL,3,9);
+ strip(Z(ZA+1.875),0,o(XC-60),-.08,.08,Y+.06,WL);strip(Z(ZA+1.875),o(XC-60),o(XSOL),-.1,.1,Y+.06,WL);dashes(Z(ZA+1.875),o(XSOL),o(XTAP),0,.2,Y+.06,WL,1.5,3);
  strip(Z(ZA+1.875),o(XTAP),2200,-.08,.08,Y+.06,WL);strip(Z(ZA-1.8),o(XC),o(XEND),-.08,.08,Y+.06,WL);
- strip(Z(ZA+14.7),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+18.375),0,2200,0,.2,Y+.06,WL,3,9);strip(Z(ZA+22.05),0,2200,-.08,.08,Y+.06,WL);
+ strip(Z(ZA+18.35),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+22.025),0,2200,0,.2,Y+.06,WL,3,9);dashes(Z(ZA+25.775),0,2200,0,.2,Y+.06,WL,3,9);strip(Z(ZA+29.45),0,2200,-.08,.08,Y+.06,WL);
  for(let k=0;k<6;k++){const x=XC-6-k*7;strip(line(x,ZA+1.6,x+3,ZA-1.3),0,4.2,-.25,.25,Y+.065,WL)}}      // 分流三角（匝道和高速之间的白色斜线）
 // ---------- 标志牌 ----------
 function post(x,z,ry,w,hh,tex,y0,yb){const g=new T.Group(),pm=M(0x8a9099);const n=w>1.6?2:1;for(let i=0;i<n;i++)g.add(mesh(new T.CylinderGeometry(.06,.06,y0+hh,8),pm,n>1?(i?w*.3:-w*.3):0,(y0+hh)/2,.06));
@@ -59,9 +60,10 @@ const MRG=cv(256,370,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,126
  for(let k=0;k<3;k++)x.fillRect(128,128+k*22,12,13);      // 中间虚线
  x.fillStyle='#f6c71b';x.fillRect(52,276,152,80);x.strokeStyle='#111';x.lineWidth=5;x.strokeRect(57,281,142,70);x.fillStyle='#111';x.font='bold 48px Arial';x.textAlign='center';x.fillText('300 m',128,334)});      // 右车道到头（加速车道收窄）＋ 下面黄底黑字 300 m
 post(100,ZA-3.6,-Math.PI/2,1.2,1.7,MRG,1.2,-DY);
-// 高速限速 MAXIMUM 100
-{const t=cv(240,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=8;x.strokeRect(12,12,w-24,h-24);x.fillStyle='#111';x.textAlign='center';x.font='bold 46px Arial';x.fillText('MAXIMUM',w/2,80);x.font='bold 150px Arial';x.fillText('100',w/2,250)});
- post(470,ZA-3.6,-Math.PI/2,.9,1.12,t,1.8,-DY)}
+// 高速限速牌：白底黑字 MAXIMUM 110，下面黑底白字 km/h
+{const t=cv(200,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);
+  x.font='bold 120px Arial';x.fillText('110',w/2,190);x.fillRect(8,h-70,w-16,62);x.fillStyle='#fff';x.font='bold 46px Arial';x.fillText('km/h',w/2,h-22)});
+ [480,1000].forEach(x=>post(x,ZA-5.2,-Math.PI/2,1.0,1.5,t,1.6,-DY))}
 BB1.visible=BB2.visible=false;      // 这个场景不放广告牌
 // ---------- 状态 ----------
 const mine=car(C[0]);
@@ -94,8 +96,8 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  [55,105].forEach(d=>add('A',5.25,z0+d,V0));[-24,-62].forEach(d=>add('A',5.25,z0+d,V0));
  for(let k=0;k<12;k++)add('A',-1.75-(k%2)*3.5,z0-150+k*60,-V0);      // 对面往南的车
  // 高速往东左道、往西两条：背景车流
- for(let k=0;k<18;k++)add('F',ZF2,-550+k*110+Math.random()*30,31+Math.random()*2);
- for(let k=0;k<22;k++)add('W',k%2?ZW1:ZW2,-550+k*100+Math.random()*40,-(29+Math.random()*3));
+ for(let k=0;k<26;k++)add('F',k%2?ZF2:ZF3,-550+k*80+Math.random()*30,(k%2?30.5:32)+Math.random()*2);
+ for(let k=0;k<30;k++)add('W',[ZW1,ZW2,ZW3][k%3],-550+k*100+Math.random()*40,-(29+Math.random()*3));
  for(let k=0;k<5;k++)add('F',ZF1,700+k*140,29.5);      // 远处前方的右道车
  mine.visible=view===2;setSig(null);banner('城市道路，跟着车流行驶','');mk();$('sp').textContent='60'}
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
@@ -176,7 +178,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   R.cars.forEach(o=>{if(o===c||o.road!==c.road||o.lane!==c.lane)return;const g=(o.s-c.s)*sg-4.6;if(g>-1&&g<80)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
   if(occ(c)){const g=((c.road==='A'?p[1]:p[0])-c.s)-4.6;if(g>-1&&g<80){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}}}}
   c.cv=c.cv>vt?Math.max(vt,c.cv-7*dt):Math.min(vt,c.cv+1.8*dt);c.s+=c.cv*sg*dt;
-  if(c.road==='A'&&c.vd<0&&c.s<-300)c.s+=1000;if(c.road==='W'&&c.s<-550)c.s+=2100;if(c.road==='F'&&c.lane===ZF2&&c.s>1550)c.s-=2100});
+  if(c.road==='A'&&c.vd<0&&c.s<-300)c.s+=1000;if(c.road==='W'&&c.s<-550)c.s+=2100;if(c.road==='F'&&c.lane!==ZF1&&c.s>1550)c.s-=2100});
  // 相撞
  if(!R.crash){const mm=[p[0],p[1],p[2],2.3,.95];const H=R.cars.find(c=>{if(c.gone)return false;const q=carPos(c);if(Math.abs(q[0]-p[0])>8||Math.abs(q[1]-p[1])>8)return false;if(Math.abs(carY(c)-myY())>2)return false;return obbHit(mm,[q[0],q[1],q[2],2.3,.95])});
   if(H){H.crash=true;H.spin=.3;R.crash={t};crashSnd();ev('crash')}}
