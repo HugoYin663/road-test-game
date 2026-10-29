@@ -48,13 +48,16 @@ const GUIDE=d=>cv(512,320,(x,w,h)=>{x.fillStyle='#0f6b3a';x.fillRect(0,0,w,h);x.
 post(12.4,H.L0-60,0,3.4,2.1,GUIDE('u'),2.2);      // 匝道车道出现之前：401 东 入口
 post(15.6,ZDIV-25,0,3.4,2.1,GUIDE('r'),2.2);      // 分岔处（匝道车道右边）
 // 黄底黑字建议速度 50 km/h（匝道入口左侧）
-const ADV=cv(256,256,(x,w,h)=>{x.fillStyle='#f6c71b';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=10;x.strokeRect(12,12,w-24,h-24);x.fillStyle='#111';x.textAlign='center';x.font='bold 130px Arial';x.fillText('50',w/2,160);x.font='bold 46px Arial';x.fillText('km/h',w/2,220)});
-post(9.3,ZDIV+35,.15,.8,.8,ADV,1.6,.11);      // 在城市道路和匝道之间的三角地上（匝道左侧）
+const ADV=cv(200,300,(x,w,h)=>{const rr=(a,b,ww,hh,r)=>{x.beginPath();x.moveTo(a+r,b);x.arcTo(a+ww,b,a+ww,b+hh,r);x.arcTo(a+ww,b+hh,a,b+hh,r);x.arcTo(a,b+hh,a,b,r);x.arcTo(a,b,a+ww,b,r);x.closePath()};
+ x.clearRect(0,0,w,h);rr(2,2,w-4,h-4,14);x.fillStyle='#f6c71b';x.fill();x.lineWidth=5;x.strokeStyle='#111';rr(9,9,w-18,h-18,10);x.stroke();
+ x.fillStyle='#111';x.fillRect(9,h-76,w-18,67);x.textAlign='center';x.font='bold 140px Arial';x.fillText('50',w/2,170);x.fillStyle='#f6c71b';x.font='bold 50px Arial';x.fillText('km/h',w/2,h-24)});      // 建议速度：黄底黑字 50，下面黑底黄字 km/h
+post(9.3,ZDIV+35,.15,.6,.9,ADV,1.6,.11);      // 在城市道路和匝道之间的三角地上（匝道左侧）
 // 加速车道牌：黄色菱形（车道并入）＋“300 m”
-const MRG=cv(256,360,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,124);x.rotate(Math.PI/4);x.fillStyle='#f6c71b';x.fillRect(-84,-84,168,168);x.strokeStyle='#111';x.lineWidth=7;x.strokeRect(-76,-76,152,152);x.restore();
- x.strokeStyle='#111';x.lineWidth=12;x.beginPath();x.moveTo(108,200);x.lineTo(108,60);x.stroke();x.beginPath();x.moveTo(150,200);x.lineTo(150,150);x.quadraticCurveTo(150,118,116,96);x.stroke();
- x.fillStyle='#111';x.beginPath();x.moveTo(108,38);x.lineTo(90,68);x.lineTo(126,68);x.fill();
- x.fillStyle='#f6c71b';x.fillRect(48,262,160,84);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(52,266,152,76);x.fillStyle='#111';x.font='bold 50px Arial';x.textAlign='center';x.fillText('300 m',128,322)});
+const MRG=cv(256,370,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,126);x.rotate(Math.PI/4);x.fillStyle='#f6c71b';x.fillRect(-86,-86,172,172);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(-80,-80,160,160);x.restore();
+ x.fillStyle='#111';x.fillRect(84,64,22,124);      // 左边一条直的车道线
+ x.beginPath();x.moveTo(132,64);x.lineTo(152,64);x.lineTo(152,98);x.lineTo(172,128);x.lineTo(172,188);x.lineTo(152,188);x.lineTo(152,132);x.lineTo(132,102);x.closePath();x.fill();      // 右边那条线往左收进来（右车道到头）
+ for(let k=0;k<3;k++)x.fillRect(128,128+k*22,12,13);      // 中间虚线
+ x.fillStyle='#f6c71b';x.fillRect(52,276,152,80);x.strokeStyle='#111';x.lineWidth=5;x.strokeRect(57,281,142,70);x.fillStyle='#111';x.font='bold 48px Arial';x.textAlign='center';x.fillText('300 m',128,334)});      // 右车道到头（加速车道收窄）＋ 下面黄底黑字 300 m
 post(100,ZA-3.6,-Math.PI/2,1.2,1.7,MRG,1.2,-DY);
 // 高速限速 MAXIMUM 100
 {const t=cv(240,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=8;x.strokeRect(12,12,w-24,h-24);x.fillStyle='#111';x.textAlign='center';x.font='bold 46px Arial';x.fillText('MAXIMUM',w/2,80);x.font='bold 150px Arial';x.fillText('100',w/2,250)});
@@ -146,7 +149,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 指令和阶段
  if(R.ph===0&&t>=2){R.ph=1;banner('考官：前方上 401 高速往东','#ffe27a',1)}
  if(R.ph===1&&!R.lane1&&me()[1]>=H.L0+30){R.lane1=1;banner('右边多出的车道去 401：当安全时换进去','#ffe27a')}      /* 匝道车道出现：由你按 SMOG 换进去 */
- if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('进入匝道：建议速度 50 km/h','#ffe27a');spawnF1()}}
+ if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('匝道','');spawnF1()}}
  if(R.ph===9&&t>R.miss+3){finish();return}
  if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速，找空档并入高速','#ffe27a')}
  if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
