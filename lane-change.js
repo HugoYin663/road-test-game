@@ -6,12 +6,13 @@
 const LX={L:1.75,R:5.25},V0=16.67,VL=18.06;
 const ROAD0=-400,ROAD1=2800,RLN=ROAD1-ROAD0,RCZ=(ROAD0+ROAD1)/2;
 // ---------- 道路和路边 ----------
-box(900,.1,RLN+600,M(0xffffff,{map:noise('#7fae5a',60,160)}),0,-.012,RCZ);
-box(14.4,.1,RLN,M(0xffffff,{map:noise('#6c6c75',80,240)}),0,0,RCZ);
-[-1,1].forEach(s=>{box(.3,.18,RLN,0xb9bbc0,s*7.35,.09,RCZ);box(2.2,.12,RLN,0x9b9da3,s*9.6,.06,RCZ);
- box(.15,.02,RLN,WH,s*6.9,.06,RCZ);box(.12,.02,RLN,0xf2c12e,s*.13,.06,RCZ)});      // 路边白实线、中间双黄线
-{const dT=cv(4,64,(x,w,h)=>{x.clearRect(0,0,w,h);x.fillStyle='#f6f6f6';x.fillRect(0,0,w,Math.round(h*3/9))});dT.wrapT=T.RepeatWrapping;dT.repeat.set(1,RLN/9);
- [-3.5,3.5].forEach(x0=>{const p=mesh(new T.PlaneGeometry(.15,RLN),new T.MeshBasicMaterial({map:dT,transparent:true}),-x0,.065,RCZ);p.rotation.x=-Math.PI/2;scene.add(p)})}      // 车道虚线（3 米线、6 米空）
+// 路面分成 99 米一段：整条几公里长的大平面在手机上会因为精度不够出现“整条路闪烁”（越开越远越明显），分段后每块都不大
+{const SEG=99,gM=M(0xffffff,{map:noise('#7fae5a',60,6)}),aM=M(0xffffff,{map:noise('#6c6c75',80,8)}),cM=M(0xb9bbc0),wM=M(0x9b9da3),lM=M(WH),yM=M(0xf2c12e);
+ const dT=cv(4,64,(x,w,h)=>{x.clearRect(0,0,w,h);x.fillStyle='#f6f6f6';x.fillRect(0,0,w,Math.round(h*3/9))});dT.wrapT=T.RepeatWrapping;dT.repeat.set(1,SEG/9);const dM=new T.MeshBasicMaterial({map:dT,transparent:true});
+ for(let z0=ROAD0;z0<ROAD1;z0+=SEG){const zc=z0+SEG/2;
+  [-1,1].forEach(s=>box(140,.1,SEG,gM,s*(10.7+70),-.06,zc));box(14.4,.1,SEG,aM,0,0,zc);      // 两边草地、路面（路面顶 .05）
+  [-1,1].forEach(s=>{box(.3,.18,SEG,cM,s*7.35,.09,zc);box(3.2,.12,SEG,wM,s*9.1,.06,zc);box(.15,.03,SEG,lM,s*6.9,.07,zc);box(.12,.03,SEG,yM,s*.13,.07,zc)});      // 路缘、人行道、路边白线、中间双黄线
+  [-3.5,3.5].forEach(x0=>{const p=mesh(new T.PlaneGeometry(.15,SEG),dM,-x0,.075,zc);p.rotation.x=-Math.PI/2;scene.add(p)})}}      // 车道虚线（3 米线、6 米空）
 // 树、路灯（让你感觉到车速）
 {const tr=M(0x6b4a2e),lf=[M(0x3f8a3a),M(0x4f9a44),M(0x357a33)],pl=M(0x8a9099);
  for(let z=ROAD0;z<ROAD1;z+=22)[-1,1].forEach(s=>{const x=s*(13+Math.random()*6),g=new T.Group();
