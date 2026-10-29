@@ -109,7 +109,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>3.5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／回头看盲区
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
-  if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.72:1.0)-R.yaw)*k9;R.pit+=(-.14-R.pit)*k9;if(L.t>1)R.mT[L.side]=t}
+  if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;      /* 视线落在外后视镜上，镜子完整地出现在画面偏左（或偏右）一点，不被按钮挡住 */if(L.t>1)R.mT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk()}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.look=null;R.yaw=0;R.pit=0;mk()}}}}
@@ -139,7 +139,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  sun.position.set(-R.x+60,90,R.z-40);sun.target.position.set(-R.x,0,R.z+20);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=[R.x,R.z,R.h];
- if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==='M'?(R.look.t<.55?75:R.look.t<1.35?(R.look.side==='L'?50:56):110):100;fovH+=(fT-fovH)*Math.min(1,dt*7);      /* 看后视镜时视线集中在镜子上：画面放大，镜子变大 */cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==='M'?(R.look.t<.55?75:R.look.t<1.35?60:110):100;fovH+=(fT-fovH)*Math.min(1,dt*7);      /* 看后视镜时视线集中在镜子上：画面放大，镜子变大 */cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+R.pit*L,q[1]+Math.cos(h)*L+oz);
