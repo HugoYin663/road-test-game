@@ -23,7 +23,7 @@ box(14.4,.1,RLN,M(0xffffff,{map:noise('#6c6c75',80,240)}),0,0,RCZ);
 {const t=cv(240,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=8;x.strokeRect(12,12,w-24,h-24);x.fillStyle='#111';x.textAlign='center';
   x.font='bold 46px Arial';x.fillText('MAXIMUM',w/2,80);x.font='bold 170px Arial';x.fillText('60',w/2,255)});
  [40,640,1240].forEach(z=>{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.05,.05,2.9,8),M(0x8a9099),0,1.45,0));const f=mesh(new T.PlaneGeometry(.75,.94),new T.MeshBasicMaterial({map:t}),0,2.35,-.05);f.rotation.y=Math.PI;g.add(f);g.position.set(-8.2,0,z);scene.add(g)})}
-scene.add(sun.target);
+scene.add(sun.target);sun.shadow.bias=-.0006;
 // ---------- 状态 ----------
 const mine=car(C[0]);
 let R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=0,ly=0,DIFF='easy';
@@ -137,7 +137,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  R.cars.forEach(c=>{if(c.lane&&!c.crash)c.x=LX[c.lane];place(c.c,c.x,c.z,c.spin||0);c.c.visible=Math.abs(c.z-R.z)<420});
  R.opp.forEach(o=>place(o.c,o.x,o.z,Math.PI));
  placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
- sun.position.set(-R.x+60,90,R.z-40);sun.target.position.set(-R.x,0,R.z+20);
+ {const zs=Math.round(R.z/(150/1024*128))*(150/1024*128);sun.position.set(60,90,zs-40);sun.target.position.set(0,0,zs+20)}      /* 太阳（阴影）跟着你走，但按阴影贴图的格子整步移动，不然整条路的阴影会一直闪 */
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=[R.x,R.z,R.h];
  if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==='M'?(R.look.t<.55?75:R.look.t<1.35?60:110):100;fovH+=(fT-fovH)*Math.min(1,dt*7);      /* 看后视镜时视线集中在镜子上：画面放大，镜子变大 */cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
