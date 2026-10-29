@@ -113,7 +113,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;      /* 视线落在外后视镜上，镜子完整地出现在画面偏左（或偏右）一点，不被按钮挡住 */if(L.t>1)R.mT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk()}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
-   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.look=null;R.yaw=0;R.pit=0;mk()}}}}
+   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk()}}}}      /* 看盲点：从头转回前方那一刻开始计时 */
  // 其他车：保持自己的速度，跟前车（你的车在它的车道上时也算前车）；你切到它前面太近时它会刹车、按喇叭
  R.cars.forEach(c=>{  if(c.crash){c.cv=Math.max(0,c.cv-9*dt);c.z+=c.cv*dt;return}
   let vt=c.vd;R.cars.forEach(o=>{if(o===c||o.lane!==c.lane)return;const g=o.z-c.z-4.6;if(g>-1&&g<70)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
