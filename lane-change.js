@@ -13,11 +13,12 @@ const ROAD0=-400,ROAD1=2800,RLN=ROAD1-ROAD0,RCZ=(ROAD0+ROAD1)/2;
   [-1,1].forEach(s=>box(140,.1,SEG,gM,s*(10.7+70),-.06,zc));box(14.4,.1,SEG,aM,0,0,zc);      // 两边草地、路面（路面顶 .05）
   [-1,1].forEach(s=>{box(.3,.18,SEG,cM,s*7.35,.09,zc);box(3.2,.12,SEG,wM,s*9.1,.06,zc);box(.15,.03,SEG,lM,s*6.9,.07,zc);box(.12,.03,SEG,yM,s*.13,.07,zc)});      // 路缘、人行道、路边白线、中间双黄线
   [-3.5,3.5].forEach(x0=>{const p=mesh(new T.PlaneGeometry(.15,SEG),dM,-x0,.075,zc);p.rotation.x=-Math.PI/2;scene.add(p)})}}      // 车道虚线（3 米线、6 米空）
+const TREES=[];      // 右边的树：广告牌前面一段要清空，不然挡住看不见
 // 树、路灯（让你感觉到车速）
 {const tr=M(0x6b4a2e),lf=[M(0x3f8a3a),M(0x4f9a44),M(0x357a33)],pl=M(0x8a9099);
  for(let z=ROAD0;z<ROAD1;z+=22)[-1,1].forEach(s=>{const x=s*(13+Math.random()*6),g=new T.Group();
   g.add(mesh(new T.CylinderGeometry(.18,.25,2.2,6),tr,0,1.1,0));const c=mesh(new T.SphereGeometry(1.6+Math.random()*.8,8,6),lf[Math.random()*3|0],0,3.2,0);c.castShadow=true;g.add(c);
-  g.position.set(-x,0,z+Math.random()*10);scene.add(g)});
+  g.position.set(-x,0,z+Math.random()*10);scene.add(g);TREES.push({s,g})});
  for(let z=ROAD0;z<ROAD1;z+=55)[-1,1].forEach(s=>{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.08,.11,8,6),pl,0,4,0));
   const a=mesh(new T.BoxGeometry(1.8,.1,.12),pl,s*.9,7.9,0);g.add(a);g.add(mesh(new T.BoxGeometry(.5,.12,.25),BM(0xf4f1dc),s*1.7,7.82,0));g.position.set(-s*8.3,0,z);scene.add(g)})}
 // 限速牌 MAXIMUM 60
@@ -63,7 +64,8 @@ function billboard(){const g=new T.Group(),pm=M(0x3a3f47);
  g.children.forEach(m=>m.castShadow=true);scene.add(g);return g}
 const BB1=billboard(),BB2=billboard();
 // 放在右边人行道外的草地上，稍微斜向马路，开过来的车能看清
-function putBB(b,z,fade){b.position.set(-15,0,z);b.rotation.y=-.42;b.visible=true;b.fadeT=fade?R.t:null;b.children.forEach(m=>{m.material.transparent=!!fade;m.material.opacity=fade?0:1})}      // fade：远处慢慢显出来，不要突然冒出来
+function putBB(b,z,fade){TREES.forEach(t=>{if(t.s>0&&t.g.position.z>z-90&&t.g.position.z<z+8)t.g.visible=false});      /* 广告牌前方 90 米内（和它旁边）不种树 */
+ b.position.set(-15,0,z);b.rotation.y=-.42;b.visible=true;b.fadeT=fade?R.t:null;b.children.forEach(m=>{m.material.transparent=!!fade;m.material.opacity=fade?0:1})}      // fade：远处慢慢显出来，不要突然冒出来
 function fadeBB(b){if(b.fadeT==null)return;const o=Math.min(1,(R.t-b.fadeT)/1.5);b.children.forEach(m=>m.material.opacity=o);if(o>=1){b.fadeT=null;b.children.forEach(m=>m.material.transparent=false)}}
 sun.shadow.bias=-.0006;
 // 太阳（阴影）跟着你走：在“阳光方向”的坐标里按阴影贴图的格子对齐，阴影贴图每一格都落在同样的地面位置，路面阴影就不会闪
