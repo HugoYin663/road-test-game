@@ -38,24 +38,25 @@ const TXT={
  unsafeB:["旁边车道的车就在你旁边（盲区里）还换线","换线那一刻，要换过去的车道上有车和你并排或在你侧后方的盲区里，换过去会撞上它。看后视镜、回头看盲点，确认旁边没有车再换。"],
  unsafeR:["后面的车开过来太近还换线，逼它刹车","要换过去的车道上，后面有车比你快、离你又不够远，你换过去它就得刹车让你。要等它过去，或者等它离你足够远（换过去以后它不用刹车）再换。"],
  unsafeF:["换到前车后面太近","要换过去的车道上，前面的车比你慢、离你太近，换过去你就贴在它后面。要等它和你拉开距离再换。"],
- sigOn:["换完线没有关转向灯","换线完成后要马上关掉转向灯，否则别人会以为你还要换线或转弯。"],
+ sigOn:["换完线没有关转向灯","换线完成后要马上关掉转向灯（最晚 5 秒内），否则别人会以为你还要换线或转弯。"],
  noChange:["一直没有完成换线","考官要求换线后，要在安全的时候尽快完成。空档不够可以等，但看到足够的空档就要果断换过去。"],
  crash:["换线时和旁边车道的车相撞","换线前一定要看后视镜和回头看盲区，确认旁边车道有足够的空档。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash'];
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
  R={t:0,x:LX.R,z:0,h:0,v:V0,lane:'R',lc:null,ph:0,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],done:{L:false,R:false},lastDone:-9};
  const add=(lane,dz,v)=>{const c=car(C[1+Math.random()*8|0]);live.push(c);R.cars.push({c,lane,x:LX[lane],z:dz,vd:v,cv:v})};
- // 左车道：开头有一辆车在你左后方的盲区附近慢慢超过你，之后才有空档；再往后是一团一团的车流
- const vl=()=>Math.random()<.15?19.44:VL;
- [18,52,90,135].forEach(d=>add('L',d+Math.random()*6,VL));
- let d=-(9+Math.random()*3);add('L',d,VL);
- d-=58+Math.random()*25;add('L',d,Math.random()<.5?19.44:VL);
- while(d>-650){const n=2+(Math.random()*2|0);for(let k=0;k<n;k++){d-=24+Math.random()*10;add('L',d,vl())}d-=50+Math.random()*30;add('L',d,vl())}
- // 右车道：你前面 45 米有一辆车（和你一样 60），后面跟着一辆；你换到左车道以后，右车道慢下来，车会从前面慢慢“退”到你旁边
+ // 车流都是“一小团车（车距不够）→ 一个合适的空档 → 又一团车”：一开始不合适，过 1～3 辆车后出现空档，错过了又要等下一个
+ const vl=()=>18.3+Math.random()*.9,tight=()=>19+Math.random()*4,gapL=()=>62+Math.random()*14;
+ // 左车道（约 66–70 km/h）：开头有一辆车在你左后方的盲区附近，后面还跟着 0～2 辆，过去以后才有空档
+ [18,45,80,120].forEach(d=>add('L',d+Math.random()*6,VL));
+ let d=-(9+Math.random()*3);add('L',d,vl());for(let k=Math.random()*3|0;k>0;k--){d-=tight();add('L',d,vl())}
+ while(d>-700){d-=gapL();add('L',d,vl());for(let k=1+(Math.random()*3|0);k>0;k--){d-=tight();add('L',d,vl())}}
+ // 右车道：你前面 45 米起是一样 60 的车流
  d=45+Math.random()*8;add('R',d,V0);
  while(d<700){d+=Math.random()<.35?26+Math.random()*8:42+Math.random()*28;add('R',d,V0)}
- // 你后面跟着 1～3 辆车（约 65–70 km/h，比你快，平时跟在你后面）：你换到左车道后，它们会在右车道跟上来、从你右边开过去，换回右车道时要等它们过去
- {let b=-13;const n=1+(Math.random()*3|0);for(let k=0;k<n;k++){add('R',b,V0);R.cars[R.cars.length-1].vf=18.1+Math.random()*1.3;b-=12+Math.random()*4}add('R',b-70-Math.random()*20,V0);add('R',b-130-Math.random()*20,V0)}
+ // 你后面：先是紧跟着你的 1～3 辆，再往后一团一团的车，平时都和你一样 60；考官说“换回右车道”后它们才加速到 65–70，从右后方跟上来、从你右边开过去
+ {const fv=()=>{R.cars[R.cars.length-1].vf=18.1+Math.random()*1.3};let b=-13;for(let k=1+(Math.random()*3|0);k>0;k--){add('R',b,V0);fv();b-=12+Math.random()*4}
+  while(b>-450){b-=46+Math.random()*16;for(let k=2+(Math.random()*2|0);k>0;k--){add('R',b,V0);fv();b-=18+Math.random()*4}}}
  // 对面车道的车（只是背景）
  R.opp=[];for(let k=0;k<8;k++){const c=car(C[1+Math.random()*8|0]);live.push(c);R.opp.push({c,x:-(Math.random()<.5?1.75:5.25),z:40+k*45+Math.random()*20})}
  mine.visible=view===2;setSig(null);banner('保持车道，跟着车流行驶','');mk();$('sp').textContent='60'}
@@ -83,7 +84,7 @@ function gapWhy(to){let w=null;R.cars.forEach(c=>{if(c.lane!==to||w)return;const
   else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
 // 换线前的检查：S → M → O → G
 function startChange(){const to=other(),t=R.t,X1=LX[to];
- if(!R.sig)ev('noSig');else if(R.sig!==to)ev('wrongSig');else if(t-R.sigT<2.8)ev('sigShort');
+ if(!R.sig)ev('noSig');else if(R.sig!==to)ev('wrongSig');else if(t-R.sigT<3)ev('sigShort');      /* 转向灯至少闪 3 秒（约 3 下以上）再开始换线 */
  if(!(R.mT[to]!=null&&t-R.mT[to]<10))ev('noMirror');
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  // 空档：换过去以后后车不用刹车、前车不会太近；在旁边（盲区）就一定不行
@@ -93,9 +94,9 @@ function startChange(){const to=other(),t=R.t,X1=LX[to];
 function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着这条车道
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 考官指令
- if(R.ph===0&&t>=3){R.ph=1;R.p1=t;banner('考官：前方安全时，换到左车道','#ffe27a',1)}
+ if(R.ph===0&&t>=3){R.ph=1;R.p1=t;banner('考官：当安全时，换到左车道','#ffe27a',1)}
  if(R.ph===1&&R.done.L){R.ph=2;R.p2=t}
- if(R.ph===2&&t>=R.p2+2){R.ph=3;R.p3=t;banner('考官：换回右车道','#ffe27a',1);R.cars.forEach(c=>{if(c.vf)c.vd=c.vf})}      /* 换好约 2 秒后发指令；这时你右后方的车才开始加速、慢慢跟上来 */
+ if(R.ph===2&&t>=R.p2+2){R.ph=3;R.p3=t;banner('考官：当安全时，换回右车道','#ffe27a',1);R.cars.forEach(c=>{if(c.vf)c.vd=c.vf})}      /* 换好约 2 秒后发指令；这时你右后方的车才开始加速、慢慢跟上来 */
  if(R.ph===3&&R.done.R){R.ph=4;R.p4=t;banner('换线完成','')}
  if(R.ph===1&&!R.lc&&t>R.p1+45){ev('noChange');finish();return}
  if(R.ph===3&&!R.lc&&t>R.p3+45){ev('noChange');finish();return}
@@ -106,7 +107,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=(1-Math.cos(Math.PI*k))/2,dx=(L.x1-L.x0)*Math.PI/2*Math.sin(Math.PI*k)/L.T;R.x=L.x0+(L.x1-L.x0)*s;R.h=Math.atan2(dx,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.h=0;R.x=L.x1;R.lane=L.to;R.done[L.to]=true;R.lastDone=t;mk()}}
  // 换完线：转向灯要关
- if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>3.5&&R.sigT<R.lastDone)ev('sigOn');
+ if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／回头看盲区
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;      /* 视线落在外后视镜上，镜子完整地出现在画面偏左（或偏右）一点，不被按钮挡住 */if(L.t>1)R.mT[L.side]=t}
