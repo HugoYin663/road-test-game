@@ -32,8 +32,8 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #bsh{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 #bgo{background:#2aa24a}
 #cf{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,5.2vw,40px);font-weight:800;color:#ffe27a;background:rgba(0,0,0,.6);padding:14px 28px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3}
-#cf.go{animation:cfz 2.6s ease forwards}
-@keyframes cfz{0%{opacity:0;top:40%;transform:translate(-50%,-50%) scale(.8)}8%{opacity:1;transform:translate(-50%,-50%) scale(1)}22%{opacity:.25}36%{opacity:1}50%{opacity:.25}64%{opacity:1;top:40%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;top:5%;transform:translate(-50%,-50%) scale(.45)}}
+#cf.go{animation:cfz 3.2s ease forwards}
+@keyframes cfz{0%{opacity:0;top:40%;transform:translate(-50%,-50%) scale(.85)}6%{opacity:1;transform:translate(-50%,-50%) scale(1)}16%{opacity:1}22%{opacity:.1}30%{opacity:1}40%{opacity:1}46%{opacity:.1}54%{opacity:1}68%{opacity:1;top:40%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;top:5%;transform:translate(-50%,-50%) scale(.45)}}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -79,9 +79,9 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="lib/core.js?v=1028d"></script>
-<script src="lib/actors.js?v=1028d"></script>
-<script src="lib/cockpit.js?v=1028d"></script>
-<script src="lib/ui.js?v=1028d"></script>
-<script src="lane-change.js?v=1028d"></script>
+<script src="lib/core.js?v=1028e"></script>
+<script src="lib/actors.js?v=1028e"></script>
+<script src="lib/cockpit.js?v=1028e"></script>
+<script src="lib/ui.js?v=1028e"></script>
+<script src="lane-change.js?v=1028e"></script>
 </body></html>

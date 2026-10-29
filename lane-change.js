@@ -55,7 +55,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  d=45+Math.random()*8;add('R',d,V0);
  while(d<700){d+=Math.random()<.35?26+Math.random()*8:42+Math.random()*28;add('R',d,V0)}
  // 你后面跟着 1～3 辆车（约 65–70 km/h，比你快，平时跟在你后面）：你换到左车道后，它们会在右车道跟上来、从你右边开过去，换回右车道时要等它们过去
- {let b=-13;const n=1+(Math.random()*3|0);for(let k=0;k<n;k++){add('R',b,18.1+Math.random()*1.3);b-=12+Math.random()*4}add('R',b-70-Math.random()*20,V0);add('R',b-130-Math.random()*20,V0)}
+ {let b=-13;const n=1+(Math.random()*3|0);for(let k=0;k<n;k++){add('R',b,V0);R.cars[R.cars.length-1].vf=18.1+Math.random()*1.3;b-=12+Math.random()*4}add('R',b-70-Math.random()*20,V0);add('R',b-130-Math.random()*20,V0)}
  // 对面车道的车（只是背景）
  R.opp=[];for(let k=0;k<8;k++){const c=car(C[1+Math.random()*8|0]);live.push(c);R.opp.push({c,x:-(Math.random()<.5?1.75:5.25),z:40+k*45+Math.random()*20})}
  mine.visible=view===2;setSig(null);banner('保持车道，跟着车流行驶','');mk();$('sp').textContent='60'}
@@ -95,7 +95,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 考官指令
  if(R.ph===0&&t>=3){R.ph=1;R.p1=t;banner('考官：前方安全时，换到左车道','#ffe27a',1)}
  if(R.ph===1&&R.done.L){R.ph=2;R.p2=t}
- if(R.ph===2&&t>=R.p2+6){R.ph=3;R.p3=t;banner('考官：换回右车道','#ffe27a',1)}
+ if(R.ph===2&&t>=R.p2+2){R.ph=3;R.p3=t;banner('考官：换回右车道','#ffe27a',1);R.cars.forEach(c=>{if(c.vf)c.vd=c.vf})}      /* 换好约 2 秒后发指令；这时你右后方的车才开始加速、慢慢跟上来 */
  if(R.ph===3&&R.done.R){R.ph=4;R.p4=t;banner('换线完成','')}
  if(R.ph===1&&!R.lc&&t>R.p1+45){ev('noChange');finish();return}
  if(R.ph===3&&!R.lc&&t>R.p3+45){ev('noChange');finish();return}
@@ -116,7 +116,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 其他车：保持自己的速度，跟前车（你的车在它的车道上时也算前车）；你切到它前面太近时它会刹车、按喇叭
  R.cars.forEach(c=>{  if(c.crash){c.cv=Math.max(0,c.cv-9*dt);c.z+=c.cv*dt;return}
   let vt=c.vd;R.cars.forEach(o=>{if(o===c||o.lane!==c.lane)return;const g=o.z-c.z-4.6;if(g>-1&&g<70)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
-  if(occ(c.lane)){const g=R.z-c.z-4.6;if(g>-1&&g<70){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk){c.hk=true;honk()}}}}
+  if(occ(c.lane)){const g=R.z-c.z-4.6;if(g>-1&&g<70){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}      /* 只有你切到它前面时它才按喇叭 */}}}
   const dec=occ(c.lane)&&R.z>c.z?8:5;c.cv=c.cv>vt?Math.max(vt,c.cv-dec*dt):Math.min(vt,c.cv+1.8*dt);c.z+=c.cv*dt});
  R.opp.forEach(o=>{o.z-=V0*dt;if(o.z<R.z-160)o.z=R.z+260+Math.random()*80});
  // 相撞
