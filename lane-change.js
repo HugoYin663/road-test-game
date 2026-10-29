@@ -16,7 +16,7 @@ const ROAD0=-400,ROAD1=2800,RLN=ROAD1-ROAD0,RCZ=(ROAD0+ROAD1)/2;
 const TREES=[];      // 右边的树：广告牌前面一段要清空，不然挡住看不见
 // 树、路灯（让你感觉到车速）
 {const tr=M(0x6b4a2e),lf=[M(0x3f8a3a),M(0x4f9a44),M(0x357a33)],pl=M(0x8a9099);
- for(let z=ROAD0;z<ROAD1;z+=22)[-1,1].forEach(s=>{const x=s*(13+Math.random()*6),g=new T.Group();
+ for(let z=ROAD0;z<ROAD1;z+=22)[-1,1].forEach(s=>{const x=s>0?22+Math.random()*8:-(13+Math.random()*6),g=new T.Group();      /* 右边的树种得靠后一些，不挡广告牌 */
   g.add(mesh(new T.CylinderGeometry(.18,.25,2.2,6),tr,0,1.1,0));const c=mesh(new T.SphereGeometry(1.6+Math.random()*.8,8,6),lf[Math.random()*3|0],0,3.2,0);c.castShadow=true;g.add(c);
   g.position.set(-x,0,z+Math.random()*10);scene.add(g);TREES.push({s,g})});
  for(let z=ROAD0;z<ROAD1;z+=55)[-1,1].forEach(s=>{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.08,.11,8,6),pl,0,4,0));
