@@ -4,7 +4,7 @@
 // 道路、标线、路边都来自 lib/road2.js（和换线同一条路）；lib/hwy-opt.js 在路的右边加出匝道车道，并在前方挖出高速路堑，城市道路平着从上面跨过去
 // 路线坐标 (x,z)：x 向右（东）为正，z 向北为正；画到场景里是 (-x, y, z)
 const VR=13.9,VF=27.8;      // 50、100 km/h
-const H=ROADOPT.hwy,ZDIV=H.ZD,ZA=H.ZA,DY=H.D;
+const H=ROADOPT.hwy,ZDIV=H.ZD,ZA=H.ZA,DY=0;      // 高速、匝道和地面在同一个平面
 const ZF1=ZA+3.75,ZF2=ZA+7.5,ZW1=ZA+16.5,ZW2=ZA+20.25;      // 高速往东右道、左道；往西两条
 const XL0=8.85,RX=14,RR=55,XC=RX+RR,ZC=ZA-RR,XSOL=XC+60,XEND=XC+300,XTAP=XEND+60;      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
 // 你的路线 P：匝道车道 → 分出匝道 → 弯道（顺着坡往下）→ 加速车道 → 高速右道旁边一直往东。你从右车道出发（P 往左偏 3.6 米），系统自动换进匝道车道
@@ -13,11 +13,11 @@ const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(
 const P0=path(PP),P=u=>{const a=P0(u),b=P0(Math.max(0,u-1.5)),c=P0(Math.min(P0.len-.01,u+1.5));return[a[0],a[1],Math.atan2(c[0]-b[0],c[1]-b[1])]};P.len=P0.len;      // 车头方向用前后 1.5 米的平均：转弯时方向盘平稳
 const uAtZ=z=>{for(let u=0;u<P.len;u+=.1)if(P(u)[1]>=z)return u;return P.len},uAtX=x=>{for(let u=0;u<P.len;u+=.1){const q=P(u);if(q[1]>ZA-.5&&q[0]>=x)return u}return P.len};
 const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC+.05);
-const yR=z=>-DY*Math.min(1,Math.max(0,(z-H.T0)/(H.F0-H.T0)));      // 匝道顺着路堑的坡往下（和坡面一样的斜度）
+const yR=z=>0;
 const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL=BM(WH),YL=BM(0xf2c12e),CON=M(0xb5b7bb);
 // 匝道：左边黄色实线、右边白色实线
 {const YF=(x,z)=>yR(z);strip(P,UDIV,UARC1,-2.25,2.25,.07,ASP,YF);strip(P,UDIV,UARC1,2.05,2.2,.09,YL,YF);strip(P,UDIV,UARC1,-2.2,-2.05,.09,WL,YF)}
-// 高速（东西向，在路堑底，比路面低 DY 米）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
+// 高速（东西向，和地面同一个平面，城市道路从上面的桥跨过去）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
 {const Y=-DY,EL=u=>[u-600,0,Math.PI/2];EL.len=2200;
  const Z=z=>u=>{const q=EL(u);return[q[0],z,q[2]]},o=x=>x+600;
  const band=(z0,z1,mat,y)=>strip(Z((z0+z1)/2),0,2200,-(z1-z0)/2,(z1-z0)/2,Y+y,mat);
@@ -75,7 +75,7 @@ const TXT={
  unsafeR:["后面的车开过来太近还过去，逼它刹车","要过去的车道上，后面有车比你快、离你又不够远，你过去它就得刹车让你。要等它过去，或者等它离你足够远再动。"],
  unsafeF:["插到前车后面太近","要过去的车道上，前面的车比你慢、离你太近。要等它和你拉开距离再过去。"],
  sigOn:["换线（并线）后没有关转向灯","完成换线、并入高速后要马上关掉转向灯（最晚 5 秒内）。"],
- missRamp:["没有及时换到右车道，错过了高速入口","去高速的匝道从右车道分出去。听到指令后要尽早找空档换到右车道，到了分岔口还在左车道，就错过了入口。"],
+ missRamp:["没有换进匝道车道，错过了高速入口","去高速的匝道车道是右边多出来的那条车道。看到它出现后，要按 SMOG 尽早换进去；到了分岔口还在原来的车道，就错过了入口。"],
  solidX:["在实线处就并入高速","加速车道开头一段和高速之间是实线，不能并线。要开到虚线的地方，一边提速一边找空档再并入。"],
  slowMerge:["车速没提上来就并入高速","加速车道就是用来提速的：要把车速提到和高速车流差不多（约 100）再并入。速度太慢就并进去，后面的车要急刹。"],
  noMerge:["加速车道走完了还没并入","加速车道只有约 300 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
@@ -108,11 +108,11 @@ function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
 function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 // 你的位置：沿路线 P 的 u，再往左偏 d 米
-function me(){const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
-const myY=()=>R.u>UDIV?yR(P(R.u)[1]):0;      // 你的车的高度（下坡到高速）
-const carY=c=>c.road==='A'?0:-DY;
+function me(){if(R.mz!=null)return[R.mx,R.mz,0];const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
+const myY=()=>R.mz!=null?Yart(R.mz):0;
+const carY=c=>c.road==='A'?Yart(c.s):0;      // 城市道路过了匝道以后升高（立交桥）
 const onArt=()=>R.u<UDIV+2,onAcc=()=>R.u>=UARC1;
-const other=()=>onArt()?(R.d>1.75?'R':'L'):'L';
+const other=()=>onArt()?'R':'L';
 let SNC=null;
 function snap(){try{const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,500);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
  const p=me();SNC.position.set(-p[0],55+myY(),p[1]);SNC.up.set(Math.sin(p[2])*-1,0,Math.cos(p[2]));SNC.lookAt(-p[0],myY(),p[1]);const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;
@@ -130,8 +130,8 @@ function gapWhy(L,S){let w=null;L.forEach(c=>{if(w)return;const dz=c.s-S,dv=c.cv
   if(dz<5.6&&dz>-12)w='unsafeB';
   else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))w='unsafeR'}
   else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
-function targetCars(to){const p=me();if(onArt())return{L:R.cars.filter(c=>c.road==='A'&&c.lane===(to==='R'?5.25:1.75)),S:p[1]};return{L:R.cars.filter(c=>c.road==='F'&&c.lane===ZF1),S:p[0]}}
-function startChange(){if(!onAcc())return;      // 只有在加速车道上由你操作并入（进匝道车道由系统完成）
+function targetCars(to){const p=me();if(onArt())return{L:R.cars.filter(c=>c.road==='Q'),S:p[1]};return{L:R.cars.filter(c=>c.road==='F'&&c.lane===ZF1),S:p[0]}}
+function startChange(){if(onArt()&&(me()[1]<H.L0+30||R.d<1.8))return;if(!onArt()&&!onAcc())return;      // 城市道路上：匝道车道出现以后，从右车道换进去；匝道弯道上不能换；加速车道上并入高速
  if(onAcc()&&R.d>1)return;      // 已经并进高速了
  const to=other(),t=R.t;
  if(!R.sig)ev('noSig');else if(R.sig!==to)ev('wrongSig');else if(t-R.sigT<3)ev('sigShort');
@@ -139,15 +139,15 @@ function startChange(){if(!onAcc())return;      // 只有在加速车道上由�
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  const T2=targetCars(to),why=gapWhy(T2.L,T2.S);if(why)ev(why);
  if(onAcc()){if(me()[0]<XSOL)ev('solidX');if(R.v<22.2)ev('slowMerge')}
- const d1=onArt()?(to==='R'?0:3.5):3.75;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}
+ const d1=onArt()?0:3.75;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}
 // ---------- 每一帧 ----------
 function occ(c){const p=me();if(c.road==='A')return onArt()||R.u<UDIV+30?Math.abs(p[0]-c.lane)<2.7&&c.lane>0:false;if(c.road==='F')return onAcc()&&Math.abs(p[1]-c.lane)<2.7;return false}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 指令和阶段
  if(R.ph===0&&t>=2){R.ph=1;banner('考官：前方上 401 高速往东','#ffe27a',1)}
- if(R.ph===1&&me()[1]>=H.L0+3&&!R.sig&&R.d>1){setSig('R')}      /* 匝道车道出现：系统打右转灯，3 秒后自动换进匝道车道（必须进匝道才能上高速） */
- if(R.ph===1&&!R.lc&&R.d>1&&R.sig==='R'&&t-R.sigT>3){R.lc={to:'R',d0:R.d,d1:0,t0:t,T:4.5,auto:1}}
- if(R.ph<=1&&R.u>=UDIV){{R.ph=2;banner('进入匝道：建议速度 50 km/h','#ffe27a');spawnF1()}}
+ if(R.ph===1&&!R.lane1&&me()[1]>=H.L0+30){R.lane1=1;banner('右边多出的车道去 401：当安全时换进去','#ffe27a')}      /* 匝道车道出现：由你按 SMOG 换进去 */
+ if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('进入匝道：建议速度 50 km/h','#ffe27a');spawnF1()}}
+ if(R.ph===9&&t>R.miss+3){finish();return}
  if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速，找空档并入高速','#ffe27a')}
  if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
  if(R.ph===4&&t>R.p4+7){finish();return}
@@ -157,7 +157,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  R.cars.forEach(c=>{if(!occ(c))return;const q=carPos(c),g=(c.road==='A'?q[1]-p[1]:q[0]-p[0])-4.6;if(g>-2&&g<60)vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
  if(onAcc()&&!R.merged&&!(R.lc&&R.lc.merge))vt=Math.min(vt,Math.sqrt(2*7*Math.max(0,XTAP-9-p[0])));      /* 加速车道快到头还没并进去：只能刹车停下 */
  if(R.crash)vt=0;R.v=R.v>vt?Math.max(vt,R.v-(R.crash?9:7)*dt):Math.min(vt,R.v+(onAcc()?2.2:1.5)*dt);
- R.u+=R.v*dt;
+ if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge)R.merged=true;mk()}}
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
