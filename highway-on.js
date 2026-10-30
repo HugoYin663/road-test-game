@@ -107,11 +107,12 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  mine.visible=view===2;setSig(null);banner('城市道路，跟着车流行驶','');mk();$('sp').textContent='60';document.querySelectorAll('.pd').forEach(b=>b.style.display='none')}
 const MODEQ=((typeof location!=='undefined'?location.search:'').match(/mode=([AB])/)||[])[1];
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
+const accN=v=>Math.max(.8,2.7-.045*v);      /* 正常踩油门的加速度：低速约 2 m/s²，越快越小（50→110 约 10 秒、220 米） */
 function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++){const dt=.05;let vt=u<UARC0?Math.max(VR,V0-(u-UDIV)*.08):u<UARC1?VR:VF;v=v>vt?Math.max(vt,v-3*dt):Math.min(vt,v+(u>=UARC1?2.2:1.5)*dt);u+=v*dt;t+=dt;
   if(tA==null&&u>=UARC1)tA=t;if(tA!=null&&i%2===0)xs.push([t-tA,P(u)[0]])}
  const xA=P(UARC1)[0],at=(xr,vc)=>add('F',ZF1,xA+xr-vc*tA,vc);      /* xr：你刚到加速车道起点时，这辆车在你前面（＋）／后面（－）多少米 */
  if(R.mode==='A'){at(-5-Math.random()*20,31.5);at(-650,30.6);at(650,30.6)}      /* 情况 1：右道车很少（约 110）：先有一辆从旁边过去，后面空空 */
- else{const c0=-19+(Math.random()-.5)*16,hw=36+Math.random()*4,sp=()=>21+Math.random()*5,gp=()=>60+Math.random()*12;      /* 情况 2：右道车多、约 85：一串车，每 3～5 辆一个空档；按时加速到 85 时，正好有一个空档在你旁边 */
+ else{let v=VR,a=0,xp=0,tt=0;while(v<23.6&&tt<30){a+=(accN(v)-a)*.2;v+=a*.05;xp+=v*.05;tt+=.05}const c0=-(23.6*tt-xp)+4+(Math.random()-.5)*16,hw=36+Math.random()*4,sp=()=>21+Math.random()*5,gp=()=>60+Math.random()*12;      /* 情况 2：右道车多、约 85：一串车，每 3～5 辆一个空档；按时加速到 85 时，正好有一个空档在你旁边 */
   let x=c0+hw,k=0,n=3+(Math.random()*3|0);while(x<560){at(x,23.6);if(++k===n){x+=gp();k=0;n=3+(Math.random()*3|0)}else x+=sp()}
   x=c0-hw;k=0;n=3+(Math.random()*3|0);while(x>-460){at(x,23.6);if(++k===n){x-=gp();k=0;n=3+(Math.random()*3|0)}else x-=sp()}}}
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
@@ -173,7 +174,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.crash)vt=0;
  const v0=R.v;
  if(!onAcc()){const vs=R.mz!=null||R.u<UDIV?V0:R.u<UARC0?Math.max(VR,V0-(R.u-UDIV)*.08):VR;R.v=R.v>vs?Math.max(vs,R.v-3*dt):Math.min(vs,R.v+1.5*dt)}      /* 匝道结束前：系统控制车速（城市 60 → 匝道 50） */
- else if(R.acc)R.v=Math.min(36,R.v+2.5*dt);else if(R.dec)R.v=Math.max(0,R.v-3*dt);      /* 加速车道起：你用加速／减速按钮控制 */
+ else{const aT=R.acc?accN(R.v):R.dec?-3:0;R.a=(R.a||0)+(aT-(R.a||0))*Math.min(1,dt*4);R.v=Math.max(0,Math.min(36,R.v+R.a*dt))}      /* 加速车道起：你用加速／减速按钮控制 */
  if(R.v>vt)R.v=Math.max(vt,Math.min(R.v,v0)-(R.crash?9:8)*dt);      /* 前面车太近、加速车道到头：系统帮你刹车（防止追尾） */
  // 车速判断：城市道路限速 60、匝道建议 50、高速限速 110
  const kmh=R.v*3.6;
