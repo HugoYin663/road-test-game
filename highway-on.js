@@ -82,39 +82,42 @@ const TXT={
  sigOn:["换线（并线）后没有关转向灯","完成换线、并入高速后要马上关掉转向灯（最晚 5 秒内）。"],
  missRamp:["没有换进匝道车道，错过了高速入口","去高速的匝道车道是右边多出来的那条车道。看到它出现后，要按 SMOG 尽早换进去；到了分岔口还在原来的车道，就错过了入口。"],
  solidX:["在实线处就并入高速","加速车道开头一段和高速之间是实线，不能并线。要开到虚线的地方，一边提速一边找空档再并入。"],
- slowMerge:["车速没提上来就并入高速","加速车道就是用来提速的：要把车速提到和高速车流差不多（约 100）再并入。速度太慢就并进去，后面的车要急刹。"],
+ slowA:["高速车很少，却没加到限速就并入","右车道车很少、空档很大，也不能一到虚线就慢慢并进去。要在加速车道里先把车速加到限速 110 左右，再并入。"],
+ slowB:["车速比车流慢太多就并入","右车道车多、车流约 85 时，要加速到 85 左右再并入。比车流慢很多就并进去，后面的车只能急刹。"],
+ fastB:["车流只有 85，还一直往 110 加","右车道车多、车流没到限速（约 85）时，要把车速控制在车流速度左右找空档，不能再往 110 加：比车流快太多就找不到空档，并进去也会冲到前车后面。"],
+ slowF:["并入后车速太低","高速车流约 110，并入后要保持在限速附近，跟上车流。"],
+ tooClose:["并入后跟前车太近","并入后要和前车保持安全距离（至少 2 秒左右），太快就点减速。"],
  noMerge:["加速车道走完了还没并入","加速车道只有约 300 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
  crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
- speedA:["城市道路上超速","这段城市道路限速 60。看着车速表，松开油门或轻踩刹车，把车速保持在限速以内。"],
- rampFast:["匝道转弯太快","匝道入口的黄牌是建议速度 50 km/h。进匝道前就要松油门、轻踩刹车把车速降下来，转弯中保持稳定的速度。"],
  speedF:["高速上超速","这段高速限速 110。并入以后跟上车流就可以，不要超过限速。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash','missRamp','noMerge'];
 // 其他车：road A＝城市道路（往北，s＝z，lane＝x），F＝高速往东（s＝x，lane＝z），W＝高速往西
 function carPos(c){if(c.road==='A')return[c.lane,c.s,c.lane<0?Math.PI:0];if(c.road==='F')return[c.s,c.lane,Math.PI/2];return[c.s,c.lane,-Math.PI/2]}
 function add(road,lane,s,v,o){const c=car(C[1+Math.random()*8|0]);live.push(c);const k=Object.assign({c,road,lane,s,vd:v,cv:Math.abs(v)},o||{});R.cars.push(k);return k}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
- const Z0=120,u0=uAtZ(Z0);R={t:0,u:u0,d:XL0-LX.R,v:V0,ph:0,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],lc:null,lastDone:-9,q:[],on:'A',hd:0};
+ const Z0=120,u0=uAtZ(Z0),mode=MODEQ||(Math.random()<.5?'A':'B');R={mode,t:0,u:u0,d:XL0-LX.R,v:V0,ph:0,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],lc:null,lastDone:-9,q:[],on:'A',hd:0};
  // 城市道路（和换线一样的两条车道）：你在右车道；左车道的车稍快，右车道前后有车，速度和你一样
  const z0=Z0;[12,48,90,140].forEach(d=>add('A',1.75,z0+d+Math.random()*6,18.06));[-20,-55].forEach(d=>add('A',1.75,z0+d,18.06));
  [55,105].forEach(d=>add('A',5.25,z0+d,V0));[-24,-62].forEach(d=>add('A',5.25,z0+d,V0));
  for(let k=0;k<12;k++)add('A',-1.75-(k%2)*3.5,z0-150+k*60,-V0);      // 对面往南的车
  // 高速往东左道、往西两条：背景车流
- for(let k=0;k<26;k++)add('F',k%2?ZF2:ZF3,-550+k*80+Math.random()*30,(k%2?30.5:32)+Math.random()*2);
+ for(let k=0;k<26;k++)add('F',k%2?ZF2:ZF3,-550+k*80+Math.random()*30,(mode==='A'?(k%2?30.5:32):(k%2?26:28))+Math.random()*2);
  for(let k=0;k<30;k++)add('W',[ZW1,ZW2,ZW3][k%3],-550+k*100+Math.random()*40,-(29+Math.random()*3));
  for(let k=0;k<5;k++)add('F',ZF1,700+k*140,29.5);      // 远处前方的右道车
- mine.visible=view===2;setSig(null);banner('城市道路，跟着车流行驶','');mk();$('sp').textContent='60'}
+ mine.visible=view===2;setSig(null);banner('城市道路，跟着车流行驶','');mk();$('sp').textContent='60';document.querySelectorAll('.pd').forEach(b=>b.style.display='none')}
+const MODEQ=((typeof location!=='undefined'?location.search:'').match(/mode=([AB])/)||[])[1];
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
 function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++){const dt=.05;let vt=u<UARC0?Math.max(VR,V0-(u-UDIV)*.08):u<UARC1?VR:VF;v=v>vt?Math.max(vt,v-3*dt):Math.min(vt,v+(u>=UARC1?2.2:1.5)*dt);u+=v*dt;t+=dt;
   if(tA==null&&u>=UARC1)tA=t;if(tA!=null&&i%2===0)xs.push([t-tA,P(u)[0]])}
- const X=tau=>{for(const a of xs)if(a[0]>=tau)return a[1];return xs[xs.length-1][1]};
- const put=(tau,rel,vc)=>{const x0=X(tau)+rel-vc*(tau+tA);add('F',ZF1,x0,vc)};
- const n=1+(Math.random()*3|0);for(let k=0;k<n;k++){const vc=30+Math.random()*1.2;put(2.4+k*1.2+Math.random()*.4,0,vc)}      /* 先过去的 1～3 辆（约 108–112 km/h） */
- let rel=-58-Math.random()*8,vc=29.8+Math.random();put(11,rel,vc);      /* 空档后面的下一团车 */for(let k=0;k<2+(Math.random()*2|0);k++){rel-=30+Math.random()*8;put(11,rel,vc)}
- rel-=70;for(let k=0;k<4;k++){rel-=32;put(11,rel,29)}}
+ const xA=P(UARC1)[0],at=(xr,vc)=>add('F',ZF1,xA+xr-vc*tA,vc);      /* xr：你刚到加速车道起点时，这辆车在你前面（＋）／后面（－）多少米 */
+ if(R.mode==='A'){at(-5-Math.random()*20,31.5);at(-650,30.6);at(650,30.6)}      /* 情况 1：右道车很少（约 110）：先有一辆从旁边过去，后面空空 */
+ else{const c0=-19+(Math.random()-.5)*16,hw=36+Math.random()*4,sp=()=>21+Math.random()*5,gp=()=>60+Math.random()*12;      /* 情况 2：右道车多、约 85：一串车，每 3～5 辆一个空档；按时加速到 85 时，正好有一个空档在你旁边 */
+  let x=c0+hw,k=0,n=3+(Math.random()*3|0);while(x<560){at(x,23.6);if(++k===n){x+=gp();k=0;n=3+(Math.random()*3|0)}else x+=sp()}
+  x=c0-hw;k=0;n=3+(Math.random()*3|0);while(x>-460){at(x,23.6);if(++k===n){x-=gp();k=0;n=3+(Math.random()*3|0)}else x-=sp()}}}
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={gas:!!R.gas,brake:!!R.brake,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const on={acc:!!R.acc,dec:!!R.dec,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 // 你的位置：沿路线 P 的 u，再往左偏 d 米
 function me(){if(R.mz!=null)return[R.mx,R.mz,0];const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
 const myY=()=>R.mz!=null?Yart(R.mz):0;
@@ -128,13 +131,13 @@ function snap(){try{const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return nu
 function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1],img:snap()});flash(t[0])}
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
- if(m==='gas'||m==='brake'){R[m]=true;if(m==='gas')R.brake=false;else R.gas=false;mk();return}      // 踏板：按住才起作用
+ if(m==='acc'||m==='dec'){if(!onAcc())return;R[m]=true;R[m==='acc'?'dec':'acc']=false;mk();return}      // 加速／减速：按住才起作用，松开保持车速
  if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
  if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}
 function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
 function nextAct(){const m=R.q.shift();if(m)doAct(m)}
-function cmdUp(m){if(!R)return;if(m==='gas'||m==='brake'){R[m]=false;mk()}}
-addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('gas');if(e.key==='ArrowDown')cmd('brake')});addEventListener('keyup',e=>{if(e.key==='ArrowUp')cmdUp('gas');if(e.key==='ArrowDown')cmdUp('brake')});
+function cmdUp(m){if(!R)return;if(m==='acc'||m==='dec'){R[m]=false;mk()}}
+addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc');if(e.key==='ArrowDown')cmd('dec')});addEventListener('keyup',e=>{if(e.key==='ArrowUp')cmdUp('acc');if(e.key==='ArrowDown')cmdUp('dec')});
 // 空档：L＝目标车道上其他车 [{s,cv}]，s 是沿车道的位置；S＝你的位置
 function gapWhy(L,S){let w=null;L.forEach(c=>{if(w)return;const dz=c.s-S,dv=c.cv-R.v;
   if(dz<5.6&&dz>-12)w='unsafeB';
@@ -148,8 +151,8 @@ function startChange(){if(onArt()&&(me()[1]<H.L0+30||R.d<1.8))return;if(!onArt()
  if(!(R.mT[to]!=null&&t-R.mT[to]<10))ev('noMirror');
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  const T2=targetCars(to),why=gapWhy(T2.L,T2.S);if(why)ev(why);
- if(onAcc()){if(me()[0]<XSOL)ev('solidX');if(R.v<22.2)ev('slowMerge')}
- const d1=onArt()?0:3.75;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}
+ if(onAcc()){if(me()[0]<XSOL)ev('solidX');const kh=R.v*3.6;if(R.mode==='A'){if(kh<100)ev('slowA')}else if(kh<77)ev('slowB');else if(kh>95)ev('fastB')}
+ const d1=onArt()?0:3.75;R.vM=R.v*3.6;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}
 // ---------- 每一帧 ----------
 function occ(c){const p=me();if(c.road==='A')return onArt()||R.u<UDIV+30?Math.abs(p[0]-c.lane)<2.7&&c.lane>0:false;if(c.road==='F')return onAcc()&&Math.abs(p[1]-c.lane)<2.7;return false}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
@@ -158,7 +161,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph===1&&!R.lane1&&me()[1]>=H.L0+30){R.lane1=1;banner('右边多出的车道去 401：当安全时换进去','#ffe27a')}      /* 匝道车道出现：由你按 SMOG 换进去 */
  if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('匝道','');spawnF1()}}
  if(R.ph===9&&t>R.miss+3){finish();return}
- if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速，找空档并入高速','#ffe27a')}
+ if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：看清车流速度，加速、找空档并入','#ffe27a');document.querySelectorAll('.pd').forEach(b=>b.style.display='flex')}
  if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
  if(R.ph===4&&t>R.p4+7){finish();return}
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
@@ -168,15 +171,19 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  R.cars.forEach(c=>{if(!occ(c))return;const q=carPos(c),g=(c.road==='A'?q[1]-p[1]:q[0]-p[0])-4.6;if(g>-2&&g<60)vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
  if(onAcc()&&!R.merged&&!(R.lc&&R.lc.merge))vt=Math.min(vt,Math.sqrt(2*7*Math.max(0,XTAP-9-p[0])));      /* 加速车道快到头还没并进去：只能刹车停下 */
  if(R.crash)vt=0;
- const v0=R.v;if(R.gas)R.v=Math.min(34,R.v+2.6*dt);else if(R.brake)R.v=Math.max(0,R.v-5.5*dt);
+ const v0=R.v;
+ if(!onAcc()){const vs=R.mz!=null||R.u<UDIV?V0:R.u<UARC0?Math.max(VR,V0-(R.u-UDIV)*.08):VR;R.v=R.v>vs?Math.max(vs,R.v-3*dt):Math.min(vs,R.v+1.5*dt)}      /* 匝道结束前：系统控制车速（城市 60 → 匝道 50） */
+ else if(R.acc)R.v=Math.min(36,R.v+2.5*dt);else if(R.dec)R.v=Math.max(0,R.v-3*dt);      /* 加速车道起：你用加速／减速按钮控制 */
  if(R.v>vt)R.v=Math.max(vt,Math.min(R.v,v0)-(R.crash?9:8)*dt);      /* 前面车太近、加速车道到头：系统帮你刹车（防止追尾） */
  // 车速判断：城市道路限速 60、匝道建议 50、高速限速 110
- const kmh=R.v*3.6;R.spA=R.u<UDIV&&kmh>70?(R.spA||0)+dt:0;if(R.spA>2)ev('speedA');
- if(R.u>UARC0-5&&R.u<UARC1-20&&kmh>58)ev('rampFast');
- R.spF=R.merged&&kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
+ const kmh=R.v*3.6;
+ if(onAcc()&&!R.merged&&R.mode==='B'){R.fB=kmh>97?(R.fB||0)+dt:0;if(R.fB>1.5)ev('fastB')}
+ if(R.merged){R.spF=kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
+  if(R.mode==='A'){R.sF=kmh<95?(R.sF||0)+dt:0;if(R.sF>5)ev('slowF')}
+  let g=1e9;R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0])g=Math.min(g,c.s-p[0]-4.6)});R.tc=R.v>8&&g/R.v<.9?(R.tc||0)+dt:0;if(R.tc>1.5){ev('tooClose')}}
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
-  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge)R.merged=true;mk()}}
+  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true}mk()}}
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／看盲点
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
