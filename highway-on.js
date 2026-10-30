@@ -16,8 +16,8 @@ const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC+.05);
 const yR=z=>0;
 const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL=BM(WH),YL=BM(0xf2c12e),CON=M(0xb5b7bb);
 // 匝道：左边黄色实线、右边白色实线
-{const YF=(x,z)=>yR(z),k=u=>ss(UDIV,UDIV+40,u),L=u=>1.7+.55*k(u),Rt=u=>-(1.65+.6*k(u));      /* 分岔口的匝道宽度和匝道车道一样，40 米内慢慢放宽，路面不会错开 */
- strip(P,UDIV,UARC1,Rt,L,.07,ASP,YF);strip(P,UDIV+10,UARC1,u=>L(u)-.2,u=>L(u)-.05,.09,YL,YF);strip(P,UDIV,UARC1,u=>Rt(u)+.05,u=>Rt(u)+.2,.09,WL,YF)}
+{const YF=(x,z)=>yR(z),k=u=>ss(UDIV,UDIV+40,u),k2=u=>ss(UARC1-40,UARC1,u),L=u=>1.7+.55*k(u)-.375*k2(u),Rt=u=>-(1.65+.6*k(u)-.375*k2(u));      /* 弯道结束前 40 米再慢慢收到加速车道的宽度（3.75 米） */      /* 分岔口的匝道宽度和匝道车道一样，40 米内慢慢放宽，路面不会错开 */
+ strip(P,UDIV,UARC1,Rt,L,.07,ASP,YF);strip(P,UDIV+10,UARC1,u=>L(u)-.2,u=>L(u)-.05,.09,YL,YF);strip(P,UDIV,UARC1,u=>Rt(u)+.05,u=>Rt(u)+.2,.09,WL,YF);strip(P,UDIV,UARC1,u=>Rt(u)-.3,Rt,.17,M(0xb9bbc0,{side:T.DoubleSide}),YF)}      // 匝道右边接着有路缘
 // 高速（东西向，和地面同一个平面，城市道路从上面的桥跨过去）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
 {const Y=-DY,EL=u=>[u-600,0,Math.PI/2];EL.len=2200;
  const Z=z=>u=>{const q=EL(u);return[q[0],z,q[2]]},o=x=>x+600;
