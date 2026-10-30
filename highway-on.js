@@ -84,7 +84,10 @@ const TXT={
  solidX:["在实线处就并入高速","加速车道开头一段和高速之间是实线，不能并线。要开到虚线的地方，一边提速一边找空档再并入。"],
  slowMerge:["车速没提上来就并入高速","加速车道就是用来提速的：要把车速提到和高速车流差不多（约 100）再并入。速度太慢就并进去，后面的车要急刹。"],
  noMerge:["加速车道走完了还没并入","加速车道只有约 300 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
- crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"]};
+ crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
+ speedA:["城市道路上超速","这段城市道路限速 60。看着车速表，松开油门或轻踩刹车，把车速保持在限速以内。"],
+ rampFast:["匝道转弯太快","匝道入口的黄牌是建议速度 50 km/h。进匝道前就要松油门、轻踩刹车把车速降下来，转弯中保持稳定的速度。"],
+ speedF:["高速上超速","这段高速限速 110。并入以后跟上车流就可以，不要超过限速。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash','missRamp','noMerge'];
 // 其他车：road A＝城市道路（往北，s＝z，lane＝x），F＝高速往东（s＝x，lane＝z），W＝高速往西
 function carPos(c){if(c.road==='A')return[c.lane,c.s,c.lane<0?Math.PI:0];if(c.road==='F')return[c.s,c.lane,Math.PI/2];return[c.s,c.lane,-Math.PI/2]}
@@ -111,7 +114,7 @@ function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const on={gas:!!R.gas,brake:!!R.brake,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 // 你的位置：沿路线 P 的 u，再往左偏 d 米
 function me(){if(R.mz!=null)return[R.mx,R.mz,0];const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
 const myY=()=>R.mz!=null?Yart(R.mz):0;
@@ -125,11 +128,13 @@ function snap(){try{const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return nu
 function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1],img:snap()});flash(t[0])}
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
+ if(m==='gas'||m==='brake'){R[m]=true;if(m==='gas')R.brake=false;else R.gas=false;mk();return}      // 踏板：按住才起作用
  if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
  if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}
 function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
 function nextAct(){const m=R.q.shift();if(m)doAct(m)}
-function cmdUp(){}
+function cmdUp(m){if(!R)return;if(m==='gas'||m==='brake'){R[m]=false;mk()}}
+addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('gas');if(e.key==='ArrowDown')cmd('brake')});addEventListener('keyup',e=>{if(e.key==='ArrowUp')cmdUp('gas');if(e.key==='ArrowDown')cmdUp('brake')});
 // 空档：L＝目标车道上其他车 [{s,cv}]，s 是沿车道的位置；S＝你的位置
 function gapWhy(L,S){let w=null;L.forEach(c=>{if(w)return;const dz=c.s-S,dv=c.cv-R.v;
   if(dz<5.6&&dz>-12)w='unsafeB';
@@ -158,10 +163,17 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph===4&&t>R.p4+7){finish();return}
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
  // 你的车速：城市道路 60（前面有车跟车）；匝道减到 50；加速车道提速到 100；没并进去就在加速车道尽头停下
- const p=me();let vt=R.ph===9?V0:R.u<UDIV?V0:R.u<UARC0?Math.max(VR,V0-(R.u-UDIV)*.08):R.u<UARC1?VR:VF;
+ // 车速由你用踏板控制：按住油门加速，按住刹车减速，都不按就保持现在的车速
+ const p=me();let vt=99;
  R.cars.forEach(c=>{if(!occ(c))return;const q=carPos(c),g=(c.road==='A'?q[1]-p[1]:q[0]-p[0])-4.6;if(g>-2&&g<60)vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
  if(onAcc()&&!R.merged&&!(R.lc&&R.lc.merge))vt=Math.min(vt,Math.sqrt(2*7*Math.max(0,XTAP-9-p[0])));      /* 加速车道快到头还没并进去：只能刹车停下 */
- if(R.crash)vt=0;R.v=R.v>vt?Math.max(vt,R.v-(R.crash?9:7)*dt):Math.min(vt,R.v+(onAcc()?2.2:1.5)*dt);
+ if(R.crash)vt=0;
+ const v0=R.v;if(R.gas)R.v=Math.min(34,R.v+2.6*dt);else if(R.brake)R.v=Math.max(0,R.v-5.5*dt);
+ if(R.v>vt)R.v=Math.max(vt,Math.min(R.v,v0)-(R.crash?9:8)*dt);      /* 前面车太近、加速车道到头：系统帮你刹车（防止追尾） */
+ // 车速判断：城市道路限速 60、匝道建议 50、高速限速 110
+ const kmh=R.v*3.6;R.spA=R.u<UDIV&&kmh>70?(R.spA||0)+dt:0;if(R.spA>2)ev('speedA');
+ if(R.u>UARC0-5&&R.u<UARC1-20&&kmh>58)ev('rampFast');
+ R.spF=R.merged&&kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge)R.merged=true;mk()}}

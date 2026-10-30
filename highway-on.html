@@ -34,6 +34,12 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #cf{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,5.2vw,40px);font-weight:800;color:#ffe27a;background:rgba(0,0,0,.6);padding:14px 28px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3}
 #cf.go{animation:cfz 3.2s ease forwards}
 @keyframes cfz{0%{opacity:0;top:40%;transform:translate(-50%,-50%) scale(.85)}6%{opacity:1;transform:translate(-50%,-50%) scale(1)}16%{opacity:1}22%{opacity:.1}30%{opacity:1}40%{opacity:1}46%{opacity:.1}54%{opacity:1}68%{opacity:1;top:40%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;top:5%;transform:translate(-50%,-50%) scale(.45)}}
+.pd{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:3px solid rgba(255,255,255,.35);color:#fff;font-weight:700;font-size:17px;cursor:pointer;z-index:2;
+ background:repeating-linear-gradient(0deg,rgba(20,22,26,.72) 0 9px,rgba(60,64,72,.72) 9px 12px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10px;-webkit-user-select:none;user-select:none;touch-action:none}
+.pd small{font-size:11px;font-weight:400;opacity:.8}
+#bbr{left:calc(50% - 250px);width:104px;height:92px;border-radius:16px 16px 22px 22px}      /* 刹车：宽一点 */
+#bga{left:calc(50% + 160px);width:70px;height:124px;border-radius:14px 14px 20px 20px}      /* 油门：窄长 */
+.pd.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35);filter:brightness(1.4)}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -58,6 +64,8 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div id="bn">上高速</div><div id="cf"></div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <div id="btns"><button class="b" id="bgo" data-m="go">换线 / 并线<small>Go</small></button></div>
+<button class="b pd" id="bbr" data-m="brake">刹车<small>Brake</small></button>
+<button class="b pd" id="bga" data-m="gas">油门<small>Gas</small></button>
 <button class="b" id="bsl" data-m="sigL">左转灯<small>Signal</small></button>
 <button class="b" id="bsr" data-m="sigR">右转灯<small>Signal</small></button>
 <button class="b" id="bmi" data-m="mir">后视镜<small>Mirror</small></button>
@@ -65,23 +73,23 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html">← 全部项目</a>
 <h2>上高速 · 3D</h2>
-<p>你在城市道路（限速 60）的右车道（和「换线」同一条路）。考官会让你上 401 高速往东：右边多出一条匝道车道，你要按 SMOG 换进去；进入匝道后，在加速车道里提速、找空档并入高速。车速由系统控制。</p>
+<p>你在城市道路（限速 60）的右车道（和「换线」同一条路）。考官会让你上 401 高速往东：右边多出一条匝道车道，你要按 SMOG 换进去；进入匝道后，在加速车道里提速、找空档并入高速。车速由你用<b>油门</b>和<b>刹车</b>踏板控制（按住起作用，都不按就保持当前车速）。</p>
 <div class="modes"><button class="md" data-diff="easy"><b>开始练习</b><span>换进匝道车道 → 匝道 → 加速车道 → 找空档并入高速</span></button></div>
 <details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
 <p>1. <b>匝道车道</b>：路边先有绿色的 401 东入口牌，然后右边多出一条车道（匝道车道，和你的车道之间是虚线）。按 SMOG 换进去：打<b>右转灯</b> → <b>后视镜</b> → <b>看盲点</b> → <b>换线</b>，换完关灯。到了分岔口还没换进去，就错过了入口。</p>
-<p>2. <b>匝道</b>：匝道左边是黄色实线、右边是白色实线；入口左侧有建议速度 50 km/h 的黄色牌子，系统会减速转弯。</p>
-<p>3. <b>加速车道</b>：转完弯后右边有“300 m”的并道牌，加速车道大约 300 米。系统会把车速提到约 100。开头一段和高速之间是<b>实线，不能并</b>；到虚线的地方，打<b>左转灯</b>，看<b>后视镜</b>、<b>看盲点</b>，找到合适的空档按<b>并线</b>，并进高速右车道后关灯。</p>
+<p>2. <b>匝道</b>：匝道左边是黄色实线、右边是白色实线；入口左侧有建议速度 50 km/h 的黄色牌子。进匝道前就要<b>踩刹车</b>把车速降到 50 左右，转弯时太快会扣分。</p>
+<p>3. <b>加速车道</b>：转完弯后右边有“300 m”的并道牌，加速车道大约 300 米。要<b>踩油门</b>把车速提到和高速车流差不多（约 100）。开头一段和高速之间是<b>实线，不能并</b>；到虚线的地方，打<b>左转灯</b>，看<b>后视镜</b>、<b>看盲点</b>，找到合适的空档按<b>并线</b>，并进高速右车道后关灯。</p>
 <p>4. 空档要足够：并进去以后，后面的车不用刹车。高速是三条车道（限速 110），右车道的车约 100–110，通常先有一两辆从你旁边开过去，后面才有空档。不要在加速车道里停下来等；走到尽头还没并进去，是严重错误。</p>
 <p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
 </div></details>
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="lib/core.js?v=1029o"></script>
-<script src="lib/actors.js?v=1029o"></script>
-<script src="lib/cockpit.js?v=1029o"></script>
-<script src="lib/ui.js?v=1029o"></script>
-<script src="lib/hwy-opt.js?v=1029o"></script>
-<script src="lib/road2.js?v=1029o"></script>
-<script src="highway-on.js?v=1029o"></script>
+<script src="lib/core.js?v=1029p"></script>
+<script src="lib/actors.js?v=1029p"></script>
+<script src="lib/cockpit.js?v=1029p"></script>
+<script src="lib/ui.js?v=1029p"></script>
+<script src="lib/hwy-opt.js?v=1029p"></script>
+<script src="lib/road2.js?v=1029p"></script>
+<script src="highway-on.js?v=1029p"></script>
 </body></html>
