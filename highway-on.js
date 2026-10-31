@@ -84,9 +84,9 @@ const TXT={
  solidX:["在实线处就并入高速","加速车道开头一段和高速之间是实线，不能并线。要开到虚线的地方，一边提速一边找空档再并入。"],
  slowA:["高速车很少，却没加到限速就并入","右车道车很少、空档很大，也不能一到虚线就慢慢并进去。要在加速车道里先把车速加到限速 110 左右，再并入。"],
  slowB:["车速比车流慢太多就并入","右车道车多、车流约 85 时，要加速到 85 左右再并入。比车流慢很多就并进去，后面的车只能急刹。"],
- fastB:["车流只有 85，还一直往 110 加","右车道车多、车流没到限速（约 85）时，要把车速控制在车流速度左右找空档，不能再往 110 加：比车流快太多就找不到空档，并进去也会冲到前车后面。"],
  slowF:["并入后车速太低","高速车流约 110，并入后要保持在限速附近，跟上车流。"],
- tooClose:["并入后跟前车太近","并入后要和前车保持安全距离（至少 2 秒左右），太快就点减速。"],
+ tooClose:["并入后跟前车太近","并入后要和前车拉开安全距离（理想是 2 秒左右）。刚并进去时近一点可以，但几秒内要松开加速或点减速，把距离拉开；一直贴得很近（不到 1 秒）就扣分。"],
+ hardBrake:["并入后冲到前车后面，只能急刹","比车流快很多并入不是问题，前提是前面的空档够大。如果并进去以后要急刹才不撞前车，说明速度太快或空档太小。"],
  noMerge:["加速车道走完了还没并入","加速车道只有约 300 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
  crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
  speedF:["高速上超速","这段高速限速 110。并入以后跟上车流就可以，不要超过限速。"]};
@@ -112,7 +112,7 @@ function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++
   if(tA==null&&u>=UARC1)tA=t;if(tA!=null&&i%2===0)xs.push([t-tA,P(u)[0]])}
  const xA=P(UARC1)[0],at=(xr,vc)=>add('F',ZF1,xA+xr-vc*tA,vc);      /* xr：你刚到加速车道起点时，这辆车在你前面（＋）／后面（－）多少米 */
  if(R.mode==='A'){at(-5-Math.random()*20,31.5);at(-650,30.6);at(650,30.6)}      /* 情况 1：右道车很少（约 110）：先有一辆从旁边过去，后面空空 */
- else{let v=VR,a=0,xp=0,tt=0;while(v<23.6&&tt<30){a+=(accN(v)-a)*.2;v+=a*.05;xp+=v*.05;tt+=.05}const c0=-(23.6*tt-xp)+4+(Math.random()-.5)*16,hw=36+Math.random()*4,sp=()=>21+Math.random()*5,gp=()=>60+Math.random()*12;      /* 情况 2：右道车多、约 85：一串车，每 3～5 辆一个空档；按时加速到 85 时，正好有一个空档在你旁边 */
+ else{let v=VR,a=0,xp=0,tt=0;while(v<23.6&&tt<30){a+=(accN(v)-a)*.2;v+=a*.05;xp+=v*.05;tt+=.05}const c0=-(23.6*tt-xp)+4+(Math.random()-.5)*16,hw=44+Math.random()*6,sp=()=>21+Math.random()*5,gp=()=>80+Math.random()*15;      /* 情况 2：右道车多、约 85：一串车，每 3～5 辆一个空档；按时加速到 85 时，正好有一个空档在你旁边 */
   let x=c0+hw,k=0,n=3+(Math.random()*3|0);while(x<560){at(x,23.6);if(++k===n){x+=gp();k=0;n=3+(Math.random()*3|0)}else x+=sp()}
   x=c0-hw;k=0;n=3+(Math.random()*3|0);while(x>-460){at(x,23.6);if(++k===n){x-=gp();k=0;n=3+(Math.random()*3|0)}else x-=sp()}}}
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
@@ -152,7 +152,7 @@ function startChange(){if(onArt()&&(me()[1]<H.L0+30||R.d<1.8))return;if(!onArt()
  if(!(R.mT[to]!=null&&t-R.mT[to]<10))ev('noMirror');
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  const T2=targetCars(to),why=gapWhy(T2.L,T2.S);if(why)ev(why);
- if(onAcc()){if(me()[0]<XSOL)ev('solidX');const kh=R.v*3.6;if(R.mode==='A'){if(kh<100)ev('slowA')}else if(kh<77)ev('slowB');else if(kh>95)ev('fastB')}
+ if(onAcc()){if(me()[0]<XSOL)ev('solidX');const kh=R.v*3.6;if(R.mode==='A'){if(kh<100)ev('slowA')}else if(kh<77)ev('slowB')}
  const d1=onArt()?0:3.75;R.vM=R.v*3.6;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}
 // ---------- 每一帧 ----------
 function occ(c){const p=me();if(c.road==='A')return onArt()||R.u<UDIV+30?Math.abs(p[0]-c.lane)<2.7&&c.lane>0:false;if(c.road==='F')return onAcc()&&Math.abs(p[1]-c.lane)<2.7;return false}
@@ -178,13 +178,15 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.v>vt)R.v=Math.max(vt,Math.min(R.v,v0)-(R.crash?9:8)*dt);      /* 前面车太近、加速车道到头：系统帮你刹车（防止追尾） */
  // 车速判断：城市道路限速 60、匝道建议 50、高速限速 110
  const kmh=R.v*3.6;
- if(onAcc()&&!R.merged&&R.mode==='B'){R.fB=kmh>97?(R.fB||0)+dt:0;if(R.fB>1.5)ev('fastB')}
  if(R.merged){R.spF=kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
   if(R.mode==='A'){R.sF=kmh<95?(R.sF||0)+dt:0;if(R.sF>5)ev('slowF')}
-  let g=1e9;R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0])g=Math.min(g,c.s-p[0]-4.6)});R.tc=R.v>8&&g/R.v<.9?(R.tc||0)+dt:0;if(R.tc>1.5){ev('tooClose')}}
+  }
+ if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5)){let g=1e9,lv=0;R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0]&&c.s-p[0]-4.6<g){g=c.s-p[0]-4.6;lv=c.cv}});      /* 前车：g＝车距（米），车距÷你的车速＝几秒 */
+  if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>3.5)ev('hardBrake');      /* 要比 3.5 m/s² 更猛地刹车才不撞：算急刹 */
+  const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<1?(R.tc||0)+dt:0;R.tc2=h<.6?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose')}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
-  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true}mk()}}
+  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t}mk()}}
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／看盲点
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
