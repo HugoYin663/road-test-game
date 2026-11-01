@@ -6,14 +6,13 @@
 const VR=13.9,VF=27.8;      // 50、100 km/h
 const H=ROADOPT.hwy,ZDIV=H.ZD,ZA=H.ZA,HY=3.2;      // 高速在 HY 米高的路堤上；匝道在地面，后半程（弯道后半到加速车道开头）上坡到高速的高度
 const ZF1=ZA+3.75,ZF2=ZA+7.5,ZF3=ZA+11.25,ZMED=ZA+15.7,ZW1=ZA+20.15,ZW2=ZA+23.9,ZW3=ZA+27.65;      // 高速往东三条车道（右、中、左），中间隔离墙，往西三条
-const XL0=8.85,RX=14,RR=55,GP=3.2,XC=RX+RR,ZC=ZA-GP-RR,XJ=XC+70,XSOL=XJ+40,XEND=XC+330,XTAP=XEND+60;      /* 出弯时匝道还在高速右边 GP 米外、比高速低；往前 70 米（XJ）一边上坡一边靠过去，和高速连成一片 */      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
+const XL0=8.85,RX=14,RR=55,GP=1.6,AL=1.2*Math.PI/180,XC=RX+RR,ZC=ZA-GP-RR*Math.cos(AL),XE=XC-RR*Math.sin(AL),XJ=XE+GP/Math.tan(AL),XSOL=XJ+40,XEND=XC+330,XTAP=XEND+60;      /* 出弯时匝道还在高速右边 GP 米外、比高速低；往前 70 米（XJ）一边上坡一边靠过去，和高速连成一片 */      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
 // 你的路线 P：匝道车道 → 分出匝道 → 弯道（顺着坡往下）→ 加速车道 → 高速右道旁边一直往东。你从右车道出发（P 往左偏 3.6 米），系统自动换进匝道车道
 const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(i+1)/60*50;return[XL0+(RX-XL0)*ss(ZDIV,ZDIV+50,z),z]}),[RX,ZC],
- ...Array.from({length:180},(_,i)=>{const f=(i+1)/180*Math.PI/2;return[XC-RR*Math.cos(f),ZC+RR*Math.sin(f)]}),
- ...Array.from({length:35},(_,i)=>{const x=XC+(i+1)*2;return[x,ZA-GP+GP*ss(XC+30,XJ,x)]}),[1800,ZA]];
+ ...Array.from({length:180},(_,i)=>{const f=(i+1)/180*(Math.PI/2-AL);return[XC-RR*Math.cos(f),ZC+RR*Math.sin(f)]}),[XJ,ZA],[1800,ZA]];      /* 弯道少转 1.2°，出弯后一条直线以很小的角度（1.2°）靠向高速：前方是直的，不会弯来弯去 */
 const P0=path(PP),P=u=>{const a=P0(u),b=P0(Math.max(0,u-1.5)),c=P0(Math.min(P0.len-.01,u+1.5));return[a[0],a[1],Math.atan2(c[0]-b[0],c[1]-b[1])]};P.len=P0.len;      // 车头方向用前后 1.5 米的平均：转弯时方向盘平稳
 const uAtZ=z=>{for(let u=0;u<P.len;u+=.1)if(P(u)[1]>=z)return u;return P.len},uAtX=x=>{for(let u=0;u<P.len;u+=.1){const q=P(u);if(q[1]>ZC&&q[0]>=x)return u}return P.len};
-const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC-.05),UJ=uAtX(XJ);
+const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XE-.05),UJ=uAtX(XJ);
 const yP=u=>u<UDIV?Yart(P(u)[1]):HY*ss(UARC0-40,UARC1,u);      // 你这条路线的高度：匝道前半在地面，弯道前 40 米开始上坡，出弯时已经和高速一样高（出弯后和高速之间只有画线，没有草地）
 const ZT=x=>ZA+.3-4.8*ss(XJ,XJ+20,x);      /* 高速路堤顶面右边缘的 z：加速车道之前离右道近，之后让出加速车道和路肩 */
 const RS=[],TX0=11.6,TX1=XJ+40;      // 匝道的采样点：地形要贴着匝道两边
@@ -42,7 +41,7 @@ const zt=ZT;
  for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const x=x0+i*dx,z=Math.min(z1,z0+j*dz);pos.push(-x,hgt(x,z),z);if(i&&j){const k=j*(nx+1)+i;idx.push(k-nx-2,k-1,k,k-nx-2,k,k-nx-1)}}
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)}
  strip(Z(ZA),o(XJ),o(XEND),-1.875,1.875,Y+.031,ASP);
- strip(Z(ZA),o(XC-1),o(XJ),u=>{const x=u-600;return-GP+GP*ss(XC+30,XJ,x)+2.25-.375*ss(XJ-40,XJ,x)-.1},1.9,Y+.028,ASP);      // 出弯后匝道和高速之间：铺满路面（两条白线中间），不是草地
+ strip(Z(ZA),o(XE-1),o(XJ),u=>{const x=u-600;return-GP*(1-Math.min(1,Math.max(0,(x-XE)/(XJ-XE))))+2.25-.375*ss(XJ-40,XJ,x)-.1},1.9,Y+.028,ASP);      // 出弯后匝道和高速之间：铺满路面（两条白线中间），不是草地
  {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,ASP)}
  strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(60,3.6),-.08,.08,Y+.06,WL);
  for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZMED);scene.add(w)}      // 隔离墙
@@ -104,7 +103,7 @@ const TXT={
  slowA:["高速车很少，却没加到限速就并入","右车道车很少、空档很大，也不能一到虚线就慢慢并进去。要在加速车道里先把车速加到限速 110 左右，再并入。"],
  slowB:["车速比车流慢太多就并入","右车道车多、车流约 85 时，要加速到 85 左右再并入。比车流慢很多就并进去，后面的车只能急刹。"],
  slowF:["并入后车速太低","高速车流约 110，并入后要保持在限速附近，跟上车流。"],
- tooClose:["并入后跟前车太近","并入后要和前车拉开安全距离（理想是 2 秒左右）。刚并进去时近一点可以，但几秒内要松开加速或点减速，把距离拉开；一直贴得很近（不到 1 秒）就扣分。"],
+ tooClose:["并入后跟前车太近","并入后要和前车拉开安全距离（理想是 2 秒左右）。刚并进去时近一点可以，但几秒内要松开加速或点减速，把距离拉开；一直贴得很近（不到 0.7 秒，比如 100 km/h 时不到 20 米）就扣分。"],
  hardBrake:["并入后冲到前车后面，只能急刹","比车流快很多并入不是问题，前提是前面的空档够大。如果并进去以后要急刹才不撞前车，说明速度太快或空档太小。"],
  noMerge:["加速车道走完了还没并入","加速车道只有约 300 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
  crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
@@ -202,8 +201,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   if(R.mode==='A'){R.sF=kmh<95?(R.sF||0)+dt:0;if(R.sF>5)ev('slowF')}
   }
  if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5)){let g=1e9,lv=0;R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0]&&c.s-p[0]-4.6<g){g=c.s-p[0]-4.6;lv=c.cv}});      /* 前车：g＝车距（米），车距÷你的车速＝几秒 */
-  if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>3.5)ev('hardBrake',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，前车 ${Math.round(lv*3.6)} km/h，车距约 ${Math.max(0,Math.round(g))} 米）`});      /* 要比 3.5 m/s² 更猛地刹车才不撞：算急刹 */
-  const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<1?(R.tc||0)+dt:0;R.tc2=h<.6?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
+  if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>4.5)ev('hardBrake',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，前车 ${Math.round(lv*3.6)} km/h，车距约 ${Math.max(0,Math.round(g))} 米）`});      /* 要比 3.5 m/s² 更猛地刹车才不撞：算急刹 */
+  const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t}mk()}}
