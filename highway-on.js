@@ -10,32 +10,37 @@ const XL0=8.85,RX=14,RR=55,GP=3.2,XC=RX+RR,ZC=ZA-GP-RR,XJ=XC+70,XSOL=XJ+40,XEND=
 // 你的路线 P：匝道车道 → 分出匝道 → 弯道（顺着坡往下）→ 加速车道 → 高速右道旁边一直往东。你从右车道出发（P 往左偏 3.6 米），系统自动换进匝道车道
 const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(i+1)/60*50;return[XL0+(RX-XL0)*ss(ZDIV,ZDIV+50,z),z]}),[RX,ZC],
  ...Array.from({length:180},(_,i)=>{const f=(i+1)/180*Math.PI/2;return[XC-RR*Math.cos(f),ZC+RR*Math.sin(f)]}),
- ...Array.from({length:35},(_,i)=>{const x=XC+(i+1)*2;return[x,ZA-GP+GP*ss(XC,XJ,x)]}),[1800,ZA]];
+ ...Array.from({length:35},(_,i)=>{const x=XC+(i+1)*2;return[x,ZA-GP+GP*ss(XC+30,XJ,x)]}),[1800,ZA]];
 const P0=path(PP),P=u=>{const a=P0(u),b=P0(Math.max(0,u-1.5)),c=P0(Math.min(P0.len-.01,u+1.5));return[a[0],a[1],Math.atan2(c[0]-b[0],c[1]-b[1])]};P.len=P0.len;      // 车头方向用前后 1.5 米的平均：转弯时方向盘平稳
 const uAtZ=z=>{for(let u=0;u<P.len;u+=.1)if(P(u)[1]>=z)return u;return P.len},uAtX=x=>{for(let u=0;u<P.len;u+=.1){const q=P(u);if(q[1]>ZC&&q[0]>=x)return u}return P.len};
 const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC-.05),UJ=uAtX(XJ);
-const yP=u=>u<UDIV?Yart(P(u)[1]):HY*ss(UARC0+15,UJ,u);      // 你这条路线的高度：匝道前半在地面，弯道后半到 XJ 上坡
+const yP=u=>u<UDIV?Yart(P(u)[1]):HY*ss(UARC0+15,UARC1+45,u);      // 你这条路线的高度：匝道前半在地面，弯道后半到出弯后 45 米上坡（先爬到高速的高度，再往左靠过去）
+const ZT=x=>ZA+.3-4.8*ss(XJ,XJ+20,x);      /* 高速路堤顶面右边缘的 z：加速车道之前离右道近，之后让出加速车道和路肩 */
+const RS=[],TX0=11.6,TX1=XJ+40;      // 匝道的采样点：地形要贴着匝道两边
 const grade=u=>(yP(u+1)-yP(u-1))/2;
 const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL=BM(WH),YL=BM(0xf2c12e),CON=M(0xb5b7bb);
 // 匝道：左边黄色实线、右边白色实线
 {const YF=(x,z,u)=>yP(u),k=u=>ss(UDIV,UDIV+40,u),k2=u=>ss(UJ-40,UJ,u),L=u=>1.7+.55*k(u)-.375*k2(u),Rt=u=>-(1.65+.6*k(u)-.375*k2(u));      /* 弯道结束前 40 米再慢慢收到加速车道的宽度（3.75 米） */      /* 分岔口的匝道宽度和匝道车道一样，40 米内慢慢放宽，路面不会错开 */
  strip(P,UDIV,UJ,Rt,L,.07,ASP,YF);strip(P,UDIV,UJ-8,u=>L(u)-.15*k(u)-.05,u=>L(u)+.15*(1-k(u))-.05,.09,YL,YF);strip(P,UDIV,UJ,u=>Rt(u)+.05,u=>Rt(u)+.2,.09,WL,YF);strip(P,UDIV,UJ,u=>Rt(u)-.3,Rt,.17,M(0xb9bbc0,{side:T.DoubleSide}),YF);
- // 匝道两边的填土坡（匝道比地面高的那一段）：从路边往外 1:2.4 斜下去到地面
- const rib=(u0,u1,a,b,ya,yb,mat)=>{const pos=[],idx=[];let k=0;for(let u=u0;u<=u1+.01;u+=2){const q=P(u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]),A=a(u),B=b(u);pos.push(-(q[0]+lx*A),ya(u),q[1]+lz*A,-(q[0]+lx*B),yb(u),q[1]+lz*B);if(k){idx.push(k-2,k-1,k,k-1,k+1,k)}k+=2}
-  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;scene.add(m)};
- const GR=M(0x7fae5a,{side:T.DoubleSide}),u0=UARC0+10;rib(u0,UJ,u=>Rt(u)-.3,u=>Rt(u)-.3-2.4*yP(u)-.3,u=>yP(u)+.1,()=>-.05,GR);rib(u0,UJ-6,L,u=>L(u)+2.4*yP(u)+.3,u=>yP(u)+.06,()=>-.05,GR)}      // 匝道右边接着有路缘
+ for(let u=UDIV+20;u<UJ+40;u+=1){const q=P(u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]),l=u<UJ?L(u):1.875,r=u<UJ?Rt(u):-1.875,c=(l+r)/2;RS.push([q[0]+lx*c,q[1]+lz*c,yP(u),(l-r)/2+.35])}}
 // 高速（东西向，和地面同一个平面，城市道路从上面的桥跨过去）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
 {const Y=HY,EL=u=>[u-600,0,Math.PI/2];EL.len=2200;
  const Z=z=>u=>{const q=EL(u);return[q[0],z,q[2]]},o=x=>x+600;
  const band=(z0,z1,mat,y)=>strip(Z((z0+z1)/2),0,2200,-(z1-z0)/2,(z1-z0)/2,Y+y,mat);
  band(ZA+1.875,ZA+13.125,ASP,.03);band(ZA+13.125,ZA+15.1,SHO,.025);band(ZA+16.3,ZA+18.275,SHO,.025);band(ZA+18.275,ZA+29.525,ASP,.03);band(ZA+29.525,ZA+32,SHO,.025);      // 往东三条、左路肩；往西左路肩、三条、右路肩
- const zt=x=>ZA+.3-4.8*ss(XJ,XJ+20,x);      /* 高速右边路堤的边：加速车道之前离右道近，之后让出加速车道和路肩 */
+const zt=ZT;
  strip(EL,0,2200,u=>zt(u-600)-ZA,1.875,Y+.02,SHO);
  // 路堤：顶面（铺在车道下面）＋两边斜坡到地面
  {const GM=M(0x7fae5a,{side:T.DoubleSide});strip(EL,0,2200,u=>zt(u-600)-ZA-.6,34,Y-.03,GM);
-  const sl=(e,s)=>{const pos=[],idx=[];let k=0;for(let x=-600;x<=1600;x+=x>XJ-40&&x<XJ+40?4:20){const z=e(x);pos.push(-x,Y-.03,z,-x,-.05,z+s*2.4*HY);if(k)idx.push(k-2,k-1,k,k-1,k+1,k);k+=2}
+  const sl=(e,s)=>{const pos=[],idx=[];let k=0;for(let x=-600;x<=1600;x+=x>XJ-40&&x<XJ+40?4:20){if(s<0&&x>TX0&&x<TX1){if(k){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)}pos.length=0;idx.length=0;k=0;continue}const z=e(x);pos.push(-x,Y-.03,z,-x,-.05,z+s*2.4*HY);if(k)idx.push(k-2,k-1,k,k-1,k+1,k);k+=2}
    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)};
   sl(x=>zt(x)-.6,-1);sl(()=>ZA+34,1)}
+// 匝道旁边的地形（高度场）：远处是高速路堤的斜坡（往南 1:2.4 斜到地面），靠近匝道的地方贴着匝道的高度，离开路边再按 1:2.4 往上或往下接回去
+{const GM=M(0x7fae5a,{side:T.DoubleSide}),S=2.4,x0=TX0,x1=TX1+2,z0=ZC-20,z1=ZA+.4,dx=1.5,dz=1.5,nx=Math.ceil((x1-x0)/dx),nz=Math.ceil((z1-z0)/dz),pos=[],idx=[];
+ const emb=(x,z)=>{const e=ZT(x)-.6;return z>=e?HY-.03:Math.max(-.05,HY-.03-(e-z)/S)};
+ const hgt=(x,z)=>{let h=emb(x,z),bd=1e9,b=null;for(const r of RS){const d=(r[0]-x)*(r[0]-x)+(r[1]-z)*(r[1]-z);if(d<bd){bd=d;b=r}}if(!b)return h;const e=Math.max(0,Math.sqrt(bd)-b[3]),yr=b[2]-.04;return Math.min(Math.max(h,yr-e/S),yr+e/S)};
+ for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const x=x0+i*dx,z=Math.min(z1,z0+j*dz);pos.push(-x,hgt(x,z),z);if(i&&j){const k=j*(nx+1)+i;idx.push(k-nx-2,k-1,k,k-nx-2,k,k-nx-1)}}
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)}
  strip(Z(ZA),o(XJ),o(XEND),-1.875,1.875,Y+.031,ASP);
  {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,ASP)}
  strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(60,3.6),-.08,.08,Y+.06,WL);
