@@ -14,14 +14,14 @@ const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(
 const P0=path(PP),P=u=>{const a=P0(u),b=P0(Math.max(0,u-1.5)),c=P0(Math.min(P0.len-.01,u+1.5));return[a[0],a[1],Math.atan2(c[0]-b[0],c[1]-b[1])]};P.len=P0.len;      // 车头方向用前后 1.5 米的平均：转弯时方向盘平稳
 const uAtZ=z=>{for(let u=0;u<P.len;u+=.1)if(P(u)[1]>=z)return u;return P.len},uAtX=x=>{for(let u=0;u<P.len;u+=.1){const q=P(u);if(q[1]>ZC&&q[0]>=x)return u}return P.len};
 const UDIV=uAtZ(ZDIV),UARC0=uAtZ(ZC),UARC1=uAtX(XC-.05),UJ=uAtX(XJ);
-const yP=u=>u<UDIV?Yart(P(u)[1]):HY*ss(UARC0+15,UARC1+45,u);      // 你这条路线的高度：匝道前半在地面，弯道后半到出弯后 45 米上坡（先爬到高速的高度，再往左靠过去）
+const yP=u=>u<UDIV?Yart(P(u)[1]):HY*ss(UARC0-40,UARC1,u);      // 你这条路线的高度：匝道前半在地面，弯道前 40 米开始上坡，出弯时已经和高速一样高（出弯后和高速之间只有画线，没有草地）
 const ZT=x=>ZA+.3-4.8*ss(XJ,XJ+20,x);      /* 高速路堤顶面右边缘的 z：加速车道之前离右道近，之后让出加速车道和路肩 */
 const RS=[],TX0=11.6,TX1=XJ+40;      // 匝道的采样点：地形要贴着匝道两边
 const grade=u=>(yP(u+1)-yP(u-1))/2;
 const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL=BM(WH),YL=BM(0xf2c12e),CON=M(0xb5b7bb);
 // 匝道：左边黄色实线、右边白色实线
 {const YF=(x,z,u)=>yP(u),k=u=>ss(UDIV,UDIV+40,u),k2=u=>ss(UJ-40,UJ,u),L=u=>1.7+.55*k(u)-.375*k2(u),Rt=u=>-(1.65+.6*k(u)-.375*k2(u));      /* 弯道结束前 40 米再慢慢收到加速车道的宽度（3.75 米） */      /* 分岔口的匝道宽度和匝道车道一样，40 米内慢慢放宽，路面不会错开 */
- strip(P,UDIV,UJ,Rt,L,.07,ASP,YF);strip(P,UDIV,UJ-8,u=>L(u)-.15*k(u)-.05,u=>L(u)+.15*(1-k(u))-.05,.09,YL,YF);strip(P,UDIV,UJ,u=>Rt(u)+.05,u=>Rt(u)+.2,.09,WL,YF);strip(P,UDIV,UJ,u=>Rt(u)-.3,Rt,.17,M(0xb9bbc0,{side:T.DoubleSide}),YF);
+ strip(P,UDIV,UJ,Rt,L,.07,ASP,YF);strip(P,UDIV,UARC1,u=>L(u)-.15*k(u)-.05,u=>L(u)+.15*(1-k(u))-.05,.09,YL,YF);strip(P,UARC1,UJ,u=>L(u)-.2,u=>L(u)-.05,.09,WL,YF);      /* 出弯后匝道左边线变成白色实线，和高速右边线慢慢合到一起 */strip(P,UDIV,UJ,u=>Rt(u)+.05,u=>Rt(u)+.2,.09,WL,YF);strip(P,UDIV,UJ,u=>Rt(u)-.3,Rt,.17,M(0xb9bbc0,{side:T.DoubleSide}),YF);
  for(let u=UDIV+20;u<UJ+40;u+=1){const q=P(u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]),l=u<UJ?L(u):1.875,r=u<UJ?Rt(u):-1.875,c=(l+r)/2;RS.push([q[0]+lx*c,q[1]+lz*c,yP(u),(l-r)/2+.35])}}
 // 高速（东西向，和地面同一个平面，城市道路从上面的桥跨过去）：往东两条车道 + 加速车道，往西两条车道，路肩，中间隔离墙
 {const Y=HY,EL=u=>[u-600,0,Math.PI/2];EL.len=2200;
@@ -29,9 +29,9 @@ const ASP=M(0x6e6e76,{side:T.DoubleSide}),SHO=M(0x8d8d92,{side:T.DoubleSide}),WL
  const band=(z0,z1,mat,y)=>strip(Z((z0+z1)/2),0,2200,-(z1-z0)/2,(z1-z0)/2,Y+y,mat);
  band(ZA+1.875,ZA+13.125,ASP,.03);band(ZA+13.125,ZA+15.1,SHO,.025);band(ZA+16.3,ZA+18.275,SHO,.025);band(ZA+18.275,ZA+29.525,ASP,.03);band(ZA+29.525,ZA+32,SHO,.025);      // 往东三条、左路肩；往西左路肩、三条、右路肩
 const zt=ZT;
- strip(EL,0,2200,u=>zt(u-600)-ZA,1.875,Y+.02,SHO);
+ strip(Z(ZA),0,2200,u=>zt(u-600)-ZA,1.875,Y+.02,SHO);
  // 路堤：顶面（铺在车道下面）＋两边斜坡到地面
- {const GM=M(0x7fae5a,{side:T.DoubleSide});strip(EL,0,2200,u=>zt(u-600)-ZA-.6,34,Y-.03,GM);
+ {const GM=M(0x7fae5a,{side:T.DoubleSide});strip(Z(ZA),0,2200,u=>zt(u-600)-ZA-.6,34,Y-.03,GM);
   const sl=(e,s)=>{const pos=[],idx=[];let k=0;for(let x=-600;x<=1600;x+=x>XJ-40&&x<XJ+40?4:20){if(s<0&&x>TX0&&x<TX1){if(k){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)}pos.length=0;idx.length=0;k=0;continue}const z=e(x);pos.push(-x,Y-.03,z,-x,-.05,z+s*2.4*HY);if(k)idx.push(k-2,k-1,k,k-1,k+1,k);k+=2}
    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)};
   sl(x=>zt(x)-.6,-1);sl(()=>ZA+34,1)}
@@ -42,6 +42,7 @@ const zt=ZT;
  for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const x=x0+i*dx,z=Math.min(z1,z0+j*dz);pos.push(-x,hgt(x,z),z);if(i&&j){const k=j*(nx+1)+i;idx.push(k-nx-2,k-1,k,k-nx-2,k,k-nx-1)}}
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,GM);m.receiveShadow=true;scene.add(m)}
  strip(Z(ZA),o(XJ),o(XEND),-1.875,1.875,Y+.031,ASP);
+ strip(Z(ZA),o(XC-1),o(XJ),u=>{const x=u-600;return-GP+GP*ss(XC+30,XJ,x)+2.25-.375*ss(XJ-40,XJ,x)-.1},1.9,Y+.028,ASP);      // 出弯后匝道和高速之间：铺满路面（两条白线中间），不是草地
  {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,ASP)}
  strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(60,3.6),-.08,.08,Y+.06,WL);
  for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZMED);scene.add(w)}      // 隔离墙
@@ -144,10 +145,10 @@ const carY=c=>c.road==='A'?Yart(c.s):HY;      // 城市道路过了匝道以后�
 const onArt=()=>R.u<UDIV+2,onAcc=()=>R.u>=UARC1;
 const other=()=>onArt()?'R':'L';
 let SNC=null;
-function snap(){try{const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,500);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
- const p=me();SNC.position.set(-p[0],55+myY(),p[1]);SNC.up.set(Math.sin(p[2])*-1,0,Math.cos(p[2]));SNC.lookAt(-p[0],myY(),p[1]);const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;
+function snap(ah){try{ah=ah||0;const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,500);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
+ const p0=me(),cx=p0[0]+Math.sin(p0[2])*ah/2,cz=p0[1]+Math.cos(p0[2])*ah/2,hh=Math.max(55,(ah/2+9)/.414),p=[cx,cz,p0[2]];SNC.position.set(-p[0],hh+myY(),p[1]);SNC.up.set(Math.sin(p[2])*-1,0,Math.cos(p[2]));SNC.lookAt(-p[0],myY(),p[1]);const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;
  const c2=document.createElement('canvas');c2.width=W;c2.height=H;const sw=Math.min(cvs.width,cvs.height*W/H),sh=sw*H/W;c2.getContext('2d').drawImage(cvs,(cvs.width-sw)/2,(cvs.height-sh)/2,sw,sh,0,0,W,H);return c2.toDataURL('image/jpeg',.82)}catch(e){return null}}
-function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1],img:snap()});flash(t[0])}
+function ev(key,o){o=o||{};if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1]+(o.add||''),img:snap(o.ah)});flash(t[0])}
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='acc'||m==='dec'){if(R.ph<2||R.ph===9)return;R[m]=true;R[m==='acc'?'dec':'acc']=false;mk();return}      // 加速／减速：按住才起作用，松开保持车速
@@ -201,8 +202,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   if(R.mode==='A'){R.sF=kmh<95?(R.sF||0)+dt:0;if(R.sF>5)ev('slowF')}
   }
  if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5)){let g=1e9,lv=0;R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0]&&c.s-p[0]-4.6<g){g=c.s-p[0]-4.6;lv=c.cv}});      /* 前车：g＝车距（米），车距÷你的车速＝几秒 */
-  if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>3.5)ev('hardBrake');      /* 要比 3.5 m/s² 更猛地刹车才不撞：算急刹 */
-  const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<1?(R.tc||0)+dt:0;R.tc2=h<.6?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose')}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
+  if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>3.5)ev('hardBrake',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，前车 ${Math.round(lv*3.6)} km/h，车距约 ${Math.max(0,Math.round(g))} 米）`});      /* 要比 3.5 m/s² 更猛地刹车才不撞：算急刹 */
+  const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<1?(R.tc||0)+dt:0;R.tc2=h<.6?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t}mk()}}
