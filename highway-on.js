@@ -122,7 +122,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  for(let k=0;k<26;k++)add('F',k%2?ZF2:ZF3,-550+k*80+Math.random()*30,(mode==='A'?(k%2?30.5:32):(k%2?26:28))+Math.random()*2);
  for(let k=0;k<30;k++)add('W',[ZW1,ZW2,ZW3][k%3],-550+k*100+Math.random()*40,-(29+Math.random()*3));
  for(let k=0;k<5;k++)add('F',ZF1,700+k*140,29.5);      // 远处前方的右道车
- mine.visible=view===2;setSig(null);banner('匝道','');mk();$('sp').textContent='50';document.querySelectorAll('.pd').forEach(b=>b.style.display='flex');spawnF1()}      /* 从匝道弯道里开始：弯道由系统转，车速由你控制 */
+ mine.visible=view===2;setSig(null);banner('匝道','');mk();$('sp').textContent='50';$('hw').style.display='none';document.querySelectorAll('.pd').forEach(b=>b.style.display='flex');spawnF1()}      /* 从匝道弯道里开始：弯道由系统转，车速由你控制 */
 const MODEQ=((typeof location!=='undefined'?location.search:'').match(/mode=([AB])/)||[])[1];
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
 const accN=v=>Math.max(.8,2.7-.045*v);      /* 正常踩油门的加速度：低速约 2 m/s²，越快越小（50→110 约 10 秒、220 米） */
@@ -195,12 +195,17 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph<2||R.ph===9){const vs=R.mz!=null||R.u<UDIV?V0:R.u<UARC0?Math.max(VR,V0-(R.u-UDIV)*.08):VR;R.v=R.v>vs?Math.max(vs,R.v-3*dt):Math.min(vs,R.v+1.5*dt)}      /* 匝道结束前：系统控制车速（城市 60 → 匝道 50） */
  else{const aT=R.acc?accN(R.v)-9.8*grade(R.u)*.6:R.dec?-3:0;      /* 上坡时同样踩油门加得慢一点 */R.a=(R.a||0)+(aT-(R.a||0))*Math.min(1,dt*4);R.v=Math.max(0,Math.min(36,R.v+R.a*dt))}      /* 加速车道起：你用加速／减速按钮控制 */
  if(R.v>vt)R.v=Math.max(vt,Math.min(R.v,v0)-(R.crash?9:8)*dt);      /* 前面车太近、加速车道到头：系统帮你刹车（防止追尾） */
+ // 并入后（或并线后半段）的前车：车距 FG 米、前车速度 FV
+ let FG=1e9,FV=0;if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5))R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0]&&c.s-p[0]-4.6<FG){FG=c.s-p[0]-4.6;FV=c.cv}});
+ // 像真人开车一样：两个键都没按、正在追近前车时，自动松油门／轻点刹车（最多 1.5 m/s²），把车距保持在约 2 秒；一直按着加速往前冲，就不帮你
+ if(FG<200&&!R.acc&&!R.dec&&!R.crash){const want=Math.max(FV-2.5,FV+(FG-2*R.v)/4);if(R.v>want)R.v=Math.max(want,R.v-1.5*dt)}
+ {const e=$('hw');if(FG<150){const h=FG/Math.max(1,R.v);e.style.display='';e.textContent='车距 '+h.toFixed(1)+' 秒';e.style.color=h<.7?'#ff6b6b':h<1.5?'#ffd166':'#7ee787'}else e.style.display='none'}      /* 车速表旁边显示和前车的距离（秒） */
  // 车速判断：城市道路限速 60、匝道建议 50、高速限速 110
  const kmh=R.v*3.6;R.rf=R.u<UARC1-8&&kmh>65?(R.rf||0)+dt:0;if(R.rf>1)ev('rampFast');      /* 弯道上太快 */
  if(R.merged){R.spF=kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
   if(R.mode==='A'){R.sF=kmh<95?(R.sF||0)+dt:0;if(R.sF>5)ev('slowF')}
   }
- if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5)){let g=1e9,lv=0;R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0]&&c.s-p[0]-4.6<g){g=c.s-p[0]-4.6;lv=c.cv}});      /* 前车：g＝车距（米），车距÷你的车速＝几秒 */
+ if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5)){const g=FG,lv=FV;      /* 前车：g＝车距（米），车距÷你的车速＝几秒 */
   if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>4.5)ev('hardBrake',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，前车 ${Math.round(lv*3.6)} km/h，车距约 ${Math.max(0,Math.round(g))} 米）`});      /* 要比 3.5 m/s² 更猛地刹车才不撞：算急刹 */
   const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;

@@ -61,7 +61,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 .back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
 #rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
 </style></head><body>
-<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="hw" style="display:none;font-size:15px;font-weight:700"></div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
 <div id="bn">上高速</div><div id="cf"></div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <div id="btns"><button class="b" id="bgo" data-m="go">换线 / 并线<small>Go</small></button></div>
@@ -81,7 +81,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p>2. 匝道在弯道里上坡，出弯时已经和高速一样高。出弯后匝道是直的，以很小的角度靠向高速，中间只有两条慢慢合拢的白线；约 75 米后和高速连在一起，这里有“300 m”的并道牌，之后才是加速车道（之前不能并线）。</p>
 <p>3. <b>加速车道</b>：从出弯算起大约 300 米。按住<b>加速</b>提速，车速要看高速右车道的车流（见第 4 条）。开头一段和高速之间是<b>实线，不能并</b>；到虚线的地方，打<b>左转灯</b>，看<b>后视镜</b>、<b>看盲点</b>，找到合适的空档按<b>并线</b>，并进高速右车道后关灯。</p>
 <p>4. 两种情况（每次随机）：<br>① <b>右车道车很少</b>：空档很大，但也不能一到虚线就慢慢并进去，要<b>先加到限速 110 左右再并入</b>（低于 100 并入扣分），并入后保持在限速附近。<br>② <b>右车道车多，车流没到限速（约 85）</b>：加速到 <b>85 左右</b>找空档并入，不能比车流慢太多（低于约 77 并入扣分）。空档够大时比车流快一些并入也可以，关键是并入后不要冲到前车后面急刹。空档要足够：并进去以后，后面的车不用刹车。</p>
-<p>5. 不要在加速车道里停下来等；走到尽头还没并进去，是严重错误。并入后和前车保持安全距离（理想 2 秒左右）：刚并进去近一点可以，几秒内要拉开；4 秒后还不到 0.7 秒（100 km/h 时约 20 米）并持续 3 秒，或任何时候不到 0.45 秒，算跟车太近。</p>
+<p>5. 不要在加速车道里停下来等；走到尽头还没并进去，是严重错误。并入后和前车保持安全距离（理想 2 秒左右，车速旁边会显示和前车相隔几秒）。两个键都不按时，追近前车会自动松油门、保持约 2 秒；一直按着加速往前冲就不会。刚并进去近一点可以，几秒内要拉开；4 秒后还不到 0.7 秒（100 km/h 时约 20 米）并持续 3 秒，或任何时候不到 0.45 秒，算跟车太近。</p>
 <p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
 </div></details>
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
@@ -93,5 +93,5 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/hwy-opt.js?v=1031a"></script>
 <script src="lib/road2.js?v=1031a"></script>
-<script src="highway-on.js?v=1101c"></script>
+<script src="highway-on.js?v=1102a"></script>
 </body></html>
