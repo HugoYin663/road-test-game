@@ -6,7 +6,7 @@
 const VR=13.9,VF=27.8;      // 50、100 km/h
 const H=ROADOPT.hwy,ZDIV=H.ZD,ZA=H.ZA,HY=3.2;      // 高速在 HY 米高的路堤上；匝道在地面，后半程（弯道后半到加速车道开头）上坡到高速的高度
 const ZF1=ZA+3.75,ZF2=ZA+7.5,ZF3=ZA+11.25,ZMED=ZA+15.7,ZW1=ZA+20.15,ZW2=ZA+23.9,ZW3=ZA+27.65;      // 高速往东三条车道（右、中、左），中间隔离墙，往西三条
-const XL0=8.85,RX=14,RR=55,GP=1.6,AL=1.2*Math.PI/180,XC=RX+RR,ZC=ZA-GP-RR*Math.cos(AL),XE=XC-RR*Math.sin(AL),XJ=XE+GP/Math.tan(AL),XSOL=XJ+40,XEND=XC+330,XTAP=XEND+60;      /* 出弯时匝道还在高速右边 GP 米外、比高速低；往前 70 米（XJ）一边上坡一边靠过去，和高速连成一片 */      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
+const XL0=8.85,RX=14,RR=55,GP=1.6,AL=1.2*Math.PI/180,XC=RX+RR,ZC=ZA-GP-RR*Math.cos(AL),XE=XC-RR*Math.sin(AL),XJ=XE+GP/Math.tan(AL),XSOL=XJ+30,XEND=XJ+330,XTAP=XEND+80;      /* 出弯时匝道还在高速右边 GP 米外、比高速低；往前 70 米（XJ）一边上坡一边靠过去，和高速连成一片 */      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
 // 你的路线 P：匝道车道 → 分出匝道 → 弯道（顺着坡往下）→ 加速车道 → 高速右道旁边一直往东。你从右车道出发（P 往左偏 3.6 米），系统自动换进匝道车道
 const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(i+1)/60*50;return[XL0+(RX-XL0)*ss(ZDIV,ZDIV+50,z),z]}),[RX,ZC],
  ...Array.from({length:180},(_,i)=>{const f=(i+1)/180*(Math.PI/2-AL);return[XC-RR*Math.cos(f),ZC+RR*Math.sin(f)]}),[XJ,ZA],[1800,ZA]];      /* 弯道少转 1.2°，出弯后一条直线以很小的角度（1.2°）靠向高速：前方是直的，不会弯来弯去 */
@@ -43,7 +43,7 @@ const zt=ZT;
  strip(Z(ZA),o(XJ),o(XEND),-1.875,1.875,Y+.031,ASP);
  strip(Z(ZA),o(XE-1),o(XJ),u=>{const x=u-600;return-GP*(1-Math.min(1,Math.max(0,(x-XE)/(XJ-XE))))+2.25-.375*ss(XJ-40,XJ,x)-.1},1.9,Y+.028,ASP);      // 出弯后匝道和高速之间：铺满路面（两条白线中间），不是草地
  {const T0=o(XEND),T1=o(XTAP);strip(Z(ZA),T0,T1,u=>-1.875+3.75*(u-T0)/(T1-T0),1.875,Y+.032,ASP)}
- strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(60,3.6),-.08,.08,Y+.06,WL);
+ strip(line(XEND,ZA-1.8,XTAP,ZA+1.8),0,Math.hypot(XTAP-XEND,3.6),-.08,.08,Y+.06,WL);
  for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZMED);scene.add(w)}      // 隔离墙
  // 标线：往东左边黄线、车道之间虚线；加速车道和右道之间：先实线后虚线，虚线一直画到加速车道收窄的尽头
  strip(Z(ZA+13.05),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+5.625),0,2200,0,.2,Y+.06,WL,3,9);dashes(Z(ZA+9.375),0,2200,0,.2,Y+.06,WL,3,9);
@@ -76,7 +76,7 @@ const MRG=cv(256,370,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,126
  x.beginPath();x.moveTo(132,64);x.lineTo(152,64);x.lineTo(152,98);x.lineTo(172,128);x.lineTo(172,188);x.lineTo(152,188);x.lineTo(152,132);x.lineTo(132,102);x.closePath();x.fill();      // 右边那条线往左收进来（右车道到头）
  for(let k=0;k<3;k++)x.fillRect(128,128+k*22,12,13);      // 中间虚线
  x.fillStyle='#f6c71b';x.fillRect(52,276,152,80);x.strokeStyle='#111';x.lineWidth=5;x.strokeRect(57,281,142,70);x.fillStyle='#111';x.font='bold 48px Arial';x.textAlign='center';x.fillText('300 m',128,334)});      // 右车道到头（加速车道收窄）＋ 下面黄底黑字 300 m
-post(XJ+12,ZA-5.4,-Math.PI/2,1.2,1.7,MRG,1.2,HY);
+post(XEND-300,ZA-5.4,-Math.PI/2,1.2,1.7,MRG,1.2,HY);
 // 高速限速牌：白底黑字 MAXIMUM 110，下面黑底白字 km/h
 {const t=cv(200,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);
   x.font='bold 120px Arial';x.fillText('110',w/2,190);x.fillRect(8,h-70,w-16,62);x.fillStyle='#fff';x.font='bold 46px Arial';x.fillText('km/h',w/2,h-22)});
@@ -105,7 +105,7 @@ const TXT={
  slowF:["并入后车速太低","高速车流约 110，并入后要保持在限速附近，跟上车流。"],
  tooClose:["并入后跟前车太近","并入后要和前车拉开安全距离（理想是 2 秒左右）。刚并进去时近一点可以，但几秒内要松开加速或点减速，把距离拉开；一直贴得很近（不到 0.7 秒，比如 100 km/h 时不到 20 米）就扣分。"],
  hardBrake:["并入后冲到前车后面，只能急刹","比车流快很多并入不是问题，前提是前面的空档够大。如果并进去以后要急刹才不撞前车，说明速度太快或空档太小。"],
- noMerge:["加速车道走完了还没并入","加速车道只有约 300 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
+ noMerge:["加速车道走完了还没并入","加速车道约 330 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
  crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
  speedF:["高速上超速","这段高速限速 110。并入以后跟上车流就可以，不要超过限速。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash','missRamp','noMerge'];
