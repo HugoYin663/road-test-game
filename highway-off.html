@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="路考练习">
+<meta name="theme-color" content="#0f6b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>下高速 · 3D 路考练习</title>
+<style>
+:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
+:root[data-theme="dark"]{--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}
+html,body{height:100%;margin:0;overflow:hidden;background:#111418;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!important;z-index:0}      /* 铺满整个屏幕（包括刘海两侧） */
+#hud,#bn,#fl,#vb,#hm,#fs,#btns,.b,.ov,#rot{z-index:2}      /* 按钮和提示要盖在画面上面 */
+#hud{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center}
+#hud b{font-size:26px}#lt{width:16px;height:16px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+#bn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 16px;border-radius:10px;font-size:15px;white-space:nowrap}
+#fl{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(214,45,45,.92);padding:8px 18px;border-radius:10px;font-size:18px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#fs{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#hm{position:fixed;right:calc(92px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#vb{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
+.b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
+.b small{display:block;font-size:11px;font-weight:400;opacity:.85}
+#bsl{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#bsr{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bmi{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#bsh{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bgo{background:#2aa24a}
+#cf{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,5.2vw,40px);font-weight:800;color:#ffe27a;background:rgba(0,0,0,.6);padding:14px 28px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3}
+#cf.go{animation:cfz 3.2s ease forwards}
+@keyframes cfz{0%{opacity:0;top:40%;transform:translate(-50%,-50%) scale(.85)}6%{opacity:1;transform:translate(-50%,-50%) scale(1)}16%{opacity:1}22%{opacity:.1}30%{opacity:1}40%{opacity:1}46%{opacity:.1}54%{opacity:1}68%{opacity:1;top:40%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;top:5%;transform:translate(-50%,-50%) scale(.45)}}
+.pd{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:3px solid rgba(255,255,255,.35);color:#fff;font-weight:700;font-size:17px;cursor:pointer;z-index:2;
+ background:repeating-linear-gradient(0deg,rgba(20,22,26,.72) 0 9px,rgba(60,64,72,.72) 9px 12px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10px;-webkit-user-select:none;user-select:none;touch-action:none}
+.pd small{font-size:11px;font-weight:400;opacity:.8}
+#bga{left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}      /* 加速：转向灯上面 */
+#bbr{left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}      /* 减速：加速下面、左转灯上面 */
+.pd small{font-size:15px;font-weight:700;opacity:1;display:inline}
+.pd.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35);filter:brightness(1.4)}
+.b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
+.pn h2{margin:0 0 8px;font-size:20px}.pn p{margin:6px 0;font-size:14px;line-height:1.55}.pn .mu{color:var(--mu);font-size:12px}
+.pn button{margin-top:10px;padding:10px 28px;font-size:17px;border:0;border-radius:10px;background:#2f6fe0;color:#fff;font-weight:700;cursor:pointer}
+.st{font-size:28px;color:#f5b301;letter-spacing:4px}
+.cards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.card{background:var(--cd);border-radius:10px;padding:8px;width:250px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.card img{width:100%;border-radius:6px}.card b{font-size:15px;color:#d62d2d}.card span{font-size:12.5px;line-height:1.5}
+
+.modes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.pn button.md{margin:0;padding:10px 14px;width:200px;display:flex;flex-direction:column;gap:4px;align-items:center;background:#2f6fe0}
+.pn button.md:nth-child(2){background:#2aa24a}.pn button.md:nth-child(3){background:#c0392b}
+.md b{font-size:17px}.md span{font-size:12px;font-weight:400;line-height:1.4;opacity:.92}
+details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-weight:700}
+.sc{font-size:44px;font-weight:800;margin:4px 0}.pass{color:#2aa24a}.fail{color:#d62d2d}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px;color:#fff;background:#d98a1f}.tag.s{background:#d62d2d}
+.back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
+#rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
+#bn{font-size:14px!important;left:50%!important;top:calc(10px + env(safe-area-inset-top,0px))!important;max-width:60vw;z-index:3;white-space:normal!important;text-align:center}#fl{left:50%!important;top:calc(120px + env(safe-area-inset-top,0px))!important;max-width:46vw;white-space:normal!important;text-align:center}#cf{left:50%!important;font-size:clamp(20px,3.6vw,32px)!important;white-space:normal!important;max-width:46vw}
+#hud{left:calc(50% + 14px)!important;top:calc(56px + env(safe-area-inset-top,0px))!important}      /* 车速表在考官指令下面 */
+#bmi{right:auto!important;left:calc(14px + env(safe-area-inset-left,0px))!important;bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}#bsh{right:auto!important;left:calc(14px + env(safe-area-inset-left,0px))!important;bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}      /* 俯视（左）左边：后视镜、看盲点 */
+#bga,#bbr{left:auto!important;right:calc(14px + env(safe-area-inset-right,0px))!important;width:104px!important}#bga{bottom:calc(166px + env(safe-area-inset-bottom,0px))!important}#bbr{bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}      /* 驾驶视角（右）右边：加速、减速、换线 */
+#bsl,#bsr,#vb{display:none!important}      /* 分屏：转向灯由系统打，右边一直是驾驶视角、左边一直是俯视 */
+#split{position:fixed;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(0,0,0,.55);z-index:1;pointer-events:none}
+</style></head><body>
+<div id="split"></div><div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="bn">下高速</div><div id="cf"></div><div id="fl"></div>
+<button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
+<div id="btns"><button class="b" id="bgo" data-m="go">换线<small>Go</small></button></div>
+<button class="b pd" id="bbr" data-m="dec" >▼<small>减速</small></button>
+<button class="b pd" id="bga" data-m="acc" >▲<small>加速</small></button>
+<button class="b" id="bsl" data-m="sigL">左转灯<small>Signal</small></button>
+<button class="b" id="bsr" data-m="sigR">右转灯<small>Signal</small></button>
+<button class="b" id="bmi" data-m="mir">后视镜<small>Mirror</small></button>
+<button class="b" id="bsh" data-m="sho">看盲点<small>Shoulder check</small></button>
+<div class="ov" id="ov"><div class="pn">
+<a class="back" href="index.html">← 全部项目</a>
+<h2>下高速 · 3D</h2>
+<p>你在 401 高速往东的<b>中间车道</b>，车速 100。考官会让你从下一个出口（EXIT 342 Maple Rd）下高速。屏幕分两半：<b>左边是俯视，右边是驾驶视角</b>。方向由系统控制；你负责<b>车速</b>（右边的加速／减速，按住起作用，松开保持车速）、<b>观察</b>（左边的后视镜、看盲点）和<b>换线</b>（右下角）。转向灯由系统打：你开始看后视镜准备往右换线时，右转灯自动打开，换完自动关。</p>
+<div class="modes"><button class="md" data-diff="easy"><b>开始练习</b><span>换到最右车道 → 进出口减速车道 → 匝道减速 → 停车线前停稳</span></button></div>
+<details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
+<p>1. <b>提早换到最右车道</b>：看到“EXIT 342 · 1 km”预告牌后，按 SMOG 换到最右车道：先按<b>后视镜</b>（右转灯自动打开），再按<b>看盲点</b>，空档合适马上按<b>换线</b>。右车道的车一团一团的，要等空档，可以稍微加速或减速去对准空档。拖到出口车道开始了还在中间车道，会扣分。</p>
+<p>2. <b>进出口车道</b>：右边多出一条出口减速车道（先渐宽，和右车道之间是短虚线）。出口车道出现以后，同样按 后视镜 → 看盲点 → 换线 换进去。出口车道还没出现时右边是路肩，不能往右；过了分岔口还没换进去，就错过了出口（严重错误）。</p>
+<p>3. <b>在主路上不要减速</b>：要保持和车流差不多的车速，换进出口车道以后再按<b>减速</b>。还在主路上就减到 85 以下，后面的车会被你逼得急刹，扣分。</p>
+<p>4. <b>匝道</b>：分岔后匝道往右转，再往左转，一路下坡。黄牌建议速度 50 km/h，两个弯里超过约 65 会扣分。</p>
+<p>5. <b>停车标志</b>：匝道尽头接城市道路，有停车标志和停车线。要在停车线前<b>完全停住</b>（车头接近停车线，不要停得太远）。冲过停车线是严重错误。</p>
+<p>6. 在高速上和前车保持约 2 秒的距离。两个键都不按时，追近前车会自动松油门；一直按着加速往前冲就不会。</p>
+<p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
+</div></details>
+<p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
+<div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="lib/core.js?v=1029q"></script>
+<script src="lib/actors.js?v=1029q"></script>
+<script src="lib/cockpit.js?v=1029q"></script>
+<script src="lib/ui.js?v=1030c"></script>
+<script src="lib/hwy-opt.js?v=1031a"></script>
+<script>ROADOPT.hwy.noRamp=true</script>
+<script src="lib/road2.js?v=1103h"></script>
+<script src="highway-off.js?v=1103i"></script>
+</body></html>
