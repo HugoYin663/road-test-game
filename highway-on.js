@@ -126,7 +126,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  mine.visible=view===2;setSig(null);banner('匝道','');mk();$('sp').textContent='50';document.querySelectorAll('.pd').forEach(b=>b.style.display='flex');spawnF1()}      /* 从匝道弯道里开始：弯道由系统转，车速由你控制 */
 const MODEQ=((typeof location!=='undefined'?location.search:'').match(/mode=([AB])/)||[])[1];
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
-const accN=v=>Math.max(.6,2.2-.045*v);      /* 普通汽油车正常（不是一脚到底）踩油门的加速度：50 km/h 时约 1.6 m/s²，越快越小；50→100 约 11 秒、240 米，50→110 约 14.5 秒、330 米 */
+const accN=v=>Math.max(.6,2.37-.045*v);      /* 普通汽油车正常（不是一脚到底）踩油门的加速度：50 km/h 时约 1.7 m/s²，越快越小；50→100 约 10 秒、210 米，50→110 约 12.6 秒、290 米 */
 function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++){const dt=.05;let vt=u<UARC0?Math.max(VR,V0-(u-UDIV)*.08):u<UARC1?VR:VF;v=v>vt?Math.max(vt,v-3*dt):Math.min(vt,v+(u>=UARC1?2.2:1.5)*dt);u+=v*dt;t+=dt;
   if(tA==null&&u>=UARC1)tA=t;if(tA!=null&&i%2===0)xs.push([t-tA,P(u)[0]])}
  const xA=P(UARC1)[0],at=(xr,vc)=>add('F',ZF1,xA+xr-vc*tA,vc);      /* xr：你刚到加速车道起点时，这辆车在你前面（＋）／后面（－）多少米 */
