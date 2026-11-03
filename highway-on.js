@@ -184,7 +184,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph===1&&!R.lane1&&me()[1]>=H.L0+30){R.lane1=1;banner('右边多出的车道去 401：当安全时换进去','#ffe27a')}      /* 匝道车道出现：由你按 SMOG 换进去 */
  if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('匝道','');spawnF1()}}
  if(R.ph===9&&t>R.miss+3){finish();return}
- if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速找空档，看后视镜 → 看盲点就并线','#ffe27a');setSig('L')}      /* 转向灯由系统打 */
+ if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速找空档，看后视镜 → 看盲点 → 换线','#ffe27a');setSig('L')}      /* 转向灯由系统打 */
  if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
  if(R.ph===4&&t>R.p4+7){finish();return}
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
@@ -219,7 +219,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
-   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();afterShoulder();nextAct()}}}}
+   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}}
  // 其他车：保持速度、跟前车；你在它车道上时把你当前车；你切到它前面太近时它刹车、按喇叭
  R.cars.forEach(c=>{if(c.crash){c.cv*=Math.max(0,1-3*dt);c.s+=c.cv*dt;return}
   const sg=Math.sign(c.vd)||1;let vt=Math.abs(c.vd);
@@ -258,12 +258,12 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(view===1&&((loop.fc=(loop.fc||0)+1)&1)===0){const m=MR[(loop.fc>>1)%MR.length],sa=ren.shadowMap.autoUpdate;cockpit.updateMatrixWorld(true);
   m.c.position.copy(cockpit.localToWorld(m.pos.clone()));m.c.lookAt(m.c.position.clone().add(m.dir.clone().transformDirection(cockpit.matrixWorld)));
   cockpit.visible=false;ren.shadowMap.autoUpdate=false;ren.setRenderTarget(m.rt);ren.render(scene,m.c);ren.setRenderTarget(null);ren.shadowMap.autoUpdate=sa;cockpit.visible=true}
- // 分屏：左边驾驶视角，右边俯视（跟着你的车，车头朝上）
+ // 分屏：左边俯视，右边驾驶视角（跟着你的车，车头朝上）
  {const sz=ren.getSize(new T.Vector2()),w=sz.x,hh=sz.y,w2=Math.floor(w/2);ren.setScissorTest(true);
-  ren.setViewport(0,0,w2,hh);ren.setScissor(0,0,w2,hh);mine.visible=false;cockpit.visible=true;ren.render(scene,cam);
-  if(!TOPC)TOPC=new T.PerspectiveCamera(40,1,1,800);TOPC.aspect=(w-w2)/hh;TOPC.updateProjectionMatrix();
+  ren.setViewport(w-w2,0,w2,hh);ren.setScissor(w-w2,0,w2,hh);mine.visible=false;cockpit.visible=true;ren.render(scene,cam);
+  if(!TOPC)TOPC=new T.PerspectiveCamera(40,1,1,800);TOPC.aspect=(w-w2)/hh;      /* 左边俯视，右边驾驶视角 */TOPC.updateProjectionMatrix();
   const h=q[2],Y=myY(),cx=-q[0]-Math.sin(h)*6,cz=q[1]+Math.cos(h)*6;TOPC.position.set(cx,Y+95,cz);TOPC.up.set(-Math.sin(h),0,Math.cos(h));TOPC.lookAt(cx,Y,cz);
-  mine.visible=true;cockpit.visible=false;ren.setViewport(w2,0,w-w2,hh);ren.setScissor(w2,0,w-w2,hh);ren.render(scene,TOPC);
+  mine.visible=true;cockpit.visible=false;ren.setViewport(0,0,w-w2,hh);ren.setScissor(0,0,w-w2,hh);ren.render(scene,TOPC);
   mine.visible=false;cockpit.visible=true;ren.setScissorTest(false);ren.setViewport(0,0,w,hh)}
  requestAnimationFrame(loop)}
 let TOPC=null;
