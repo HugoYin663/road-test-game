@@ -28,8 +28,8 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 .b small{display:block;font-size:11px;font-weight:400;opacity:.85}
 #bsl{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 #bsr{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
-#bmi{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(166px + env(safe-area-inset-bottom,0px))}
-#bsh{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#bmi{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#bsh{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #bgo{background:#2aa24a}
 #cf{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,5.2vw,40px);font-weight:800;color:#ffe27a;background:rgba(0,0,0,.6);padding:14px 28px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3}
 #cf.go{animation:cfz 3.2s ease forwards}
@@ -37,8 +37,8 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 .pd{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:3px solid rgba(255,255,255,.35);color:#fff;font-weight:700;font-size:17px;cursor:pointer;z-index:2;
  background:repeating-linear-gradient(0deg,rgba(20,22,26,.72) 0 9px,rgba(60,64,72,.72) 9px 12px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10px;-webkit-user-select:none;user-select:none;touch-action:none}
 .pd small{font-size:11px;font-weight:400;opacity:.8}
-#bga{left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(242px + env(safe-area-inset-bottom,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}      /* 加速：转向灯上面 */
-#bbr{left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(166px + env(safe-area-inset-bottom,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}      /* 减速：加速下面、左转灯上面 */
+#bga{left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}      /* 加速：转向灯上面 */
+#bbr{left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}      /* 减速：加速下面、左转灯上面 */
 .pd small{font-size:15px;font-weight:700;opacity:1;display:inline}
 .pd.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35);filter:brightness(1.4)}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
@@ -60,8 +60,12 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 .tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px;color:#fff;background:#d98a1f}.tag.s{background:#d62d2d}
 .back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
 #rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
+#bn{font-size:14px!important;left:25%!important;top:calc(64px + env(safe-area-inset-top,0px))!important;max-width:46vw;white-space:normal!important;text-align:center}#fl{left:25%!important;top:calc(120px + env(safe-area-inset-top,0px))!important;max-width:46vw;white-space:normal!important;text-align:center}
+#bga,#bbr{left:calc(50% - 118px)!important}      /* 加速／减速放在左半屏靠中间的地方，不挡左后视镜 */#cf{left:25%!important;font-size:clamp(20px,3.6vw,32px)!important;white-space:normal!important;max-width:46vw}
+#bsl,#bsr,#btns,#vb{display:none!important}      /* 分屏：转向灯由系统打、看完盲点自动并线，不需要这几个按钮；右边一直是俯视 */
+#split{position:fixed;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(0,0,0,.55);z-index:1;pointer-events:none}
 </style></head><body>
-<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="hw" style="display:none;font-size:15px;font-weight:700"></div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="split"></div><div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
 <div id="bn">上高速</div><div id="cf"></div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <div id="btns"><button class="b" id="bgo" data-m="go">换线 / 并线<small>Go</small></button></div>
@@ -74,14 +78,14 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html">← 全部项目</a>
 <h2>上高速 · 3D</h2>
-<p>你已经在去 401 高速往东的匝道弯道里（建议速度 50）。弯道由系统转，<b>车速一开始就由你控制</b>：按住<b>加速</b>／<b>减速</b>起作用，松开保持当前车速；可以一边按住加速，一边打灯、看后视镜、看盲点、并线。匝道后半程是上坡，出弯后爬上去和高速连在一起。</p>
+<p>你已经在去 401 高速往东的匝道弯道里（建议速度 50）。屏幕分两半：<b>左边是驾驶视角，右边是俯视</b>。弯道由系统转，转向灯由系统打；你负责<b>车速</b>（左边的加速／减速，按住起作用，松开保持车速）和<b>观察</b>（右边的后视镜、看盲点）。<b>看完盲点，车就会马上并线</b>，所以要在空档合适的时候再看盲点。</p>
 <div class="modes"><button class="md" data-diff="easy"><b>开始练习</b><span>匝道弯道 → 上坡出弯 → 加速车道提速 → 找空档并入高速</span></button></div>
 <details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
 <p>1. <b>匝道弯道</b>：弯道里保持 50 左右，可以慢慢提速，太快（超过约 65）会扣分。出弯后是上坡，同样的加速，上坡时会慢一点。</p>
 <p>2. 匝道在弯道里上坡，出弯时已经和高速一样高。出弯后匝道是直的，以很小的角度靠向高速，中间只有两条慢慢合拢的白线；约 75 米后和高速连在一起，这里有“300 m”的并道牌，之后才是加速车道（之前不能并线）。</p>
-<p>3. <b>加速车道</b>：从出弯算起大约 300 米。按住<b>加速</b>提速，车速要看高速右车道的车流（见第 4 条）。开头一段和高速之间是<b>实线，不能并</b>；到虚线的地方，打<b>左转灯</b>，看<b>后视镜</b>、<b>看盲点</b>，找到合适的空档按<b>并线</b>，并进高速右车道后关灯。</p>
+<p>3. <b>加速车道</b>：从出弯算起大约 300 米，系统会打好左转灯。按住<b>加速</b>提速，车速要看高速右车道的车流（见第 4 条）。开头一段和高速之间是<b>实线，不能并</b>；到了虚线，先按<b>后视镜</b>看清后面和旁边的车，空档合适时按<b>看盲点</b>，看完车就并进高速右车道。看后视镜要在看盲点之前 10 秒内。</p>
 <p>4. 两种情况（每次随机）：<br>① <b>右车道车很少</b>：空档很大，但也不能一到虚线就慢慢并进去，要<b>先加到限速 110 左右再并入</b>（低于 100 并入扣分），并入后保持在限速附近。<br>② <b>右车道车多，车流没到限速（约 85）</b>：加速到 <b>85 左右</b>找空档并入，不能比车流慢太多（低于约 77 并入扣分）。空档够大时比车流快一些并入也可以，关键是并入后不要冲到前车后面急刹。空档要足够：并进去以后，后面的车不用刹车。</p>
-<p>5. 不要在加速车道里停下来等；走到尽头还没并进去，是严重错误。并入后和前车保持安全距离（理想 2 秒左右，车速旁边会显示和前车相隔几秒）。两个键都不按时，追近前车会自动松油门、保持约 2 秒；一直按着加速往前冲就不会。刚并进去近一点可以，几秒内要拉开；4 秒后还不到 0.7 秒（100 km/h 时约 20 米）并持续 3 秒，或任何时候不到 0.45 秒，算跟车太近。</p>
+<p>5. 不要在加速车道里停下来等；走到尽头还没并进去，是严重错误。并入后和前车保持安全距离（理想 2 秒左右）。两个键都不按时，追近前车会自动松油门、保持约 2 秒；一直按着加速往前冲就不会。刚并进去近一点可以，几秒内要拉开；4 秒后还不到 0.7 秒（100 km/h 时约 20 米）并持续 3 秒，或任何时候不到 0.45 秒，算跟车太近。</p>
 <p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
 </div></details>
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
@@ -93,5 +97,5 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/hwy-opt.js?v=1031a"></script>
 <script src="lib/road2.js?v=1031a"></script>
-<script src="highway-on.js?v=1102a"></script>
+<script src="highway-on.js?v=1103a"></script>
 </body></html>

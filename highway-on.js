@@ -122,7 +122,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  for(let k=0;k<26;k++)add('F',k%2?ZF2:ZF3,-550+k*80+Math.random()*30,(mode==='A'?(k%2?30.5:32):(k%2?26:28))+Math.random()*2);
  for(let k=0;k<30;k++)add('W',[ZW1,ZW2,ZW3][k%3],-550+k*100+Math.random()*40,-(29+Math.random()*3));
  for(let k=0;k<5;k++)add('F',ZF1,700+k*140,29.5);      // 远处前方的右道车
- mine.visible=view===2;setSig(null);banner('匝道','');mk();$('sp').textContent='50';$('hw').style.display='none';document.querySelectorAll('.pd').forEach(b=>b.style.display='flex');spawnF1()}      /* 从匝道弯道里开始：弯道由系统转，车速由你控制 */
+ mine.visible=view===2;setSig(null);banner('匝道','');mk();$('sp').textContent='50';document.querySelectorAll('.pd').forEach(b=>b.style.display='flex');spawnF1()}      /* 从匝道弯道里开始：弯道由系统转，车速由你控制 */
 const MODEQ=((typeof location!=='undefined'?location.search:'').match(/mode=([AB])/)||[])[1];
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
 const accN=v=>Math.max(.8,2.7-.045*v);      /* 正常踩油门的加速度：低速约 2 m/s²，越快越小（50→110 约 10 秒、220 米） */
@@ -144,15 +144,18 @@ const carY=c=>c.road==='A'?Yart(c.s):HY;      // 城市道路过了匝道以后�
 const onArt=()=>R.u<UDIV+2,onAcc=()=>R.u>=UARC1;
 const other=()=>onArt()?'R':'L';
 let SNC=null;
-function snap(ah){try{ah=ah||0;const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,500);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
+function snap(ah){try{ah=ah||0;{const sz=ren.getSize(new T.Vector2());ren.setScissorTest(false);ren.setViewport(0,0,sz.x,sz.y)}const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,500);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
  const p0=me(),cx=p0[0]+Math.sin(p0[2])*ah/2,cz=p0[1]+Math.cos(p0[2])*ah/2,hh=Math.max(55,(ah/2+9)/.414),p=[cx,cz,p0[2]];SNC.position.set(-p[0],hh+myY(),p[1]);SNC.up.set(Math.sin(p[2])*-1,0,Math.cos(p[2]));SNC.lookAt(-p[0],myY(),p[1]);const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;
  const c2=document.createElement('canvas');c2.width=W;c2.height=H;const sw=Math.min(cvs.width,cvs.height*W/H),sh=sw*H/W;c2.getContext('2d').drawImage(cvs,(cvs.width-sw)/2,(cvs.height-sh)/2,sw,sh,0,0,W,H);return c2.toDataURL('image/jpeg',.82)}catch(e){return null}}
 function ev(key,o){o=o||{};if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1]+(o.add||''),img:snap(o.ah)});flash(t[0])}
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='acc'||m==='dec'){if(R.ph<2||R.ph===9)return;R[m]=true;R[m==='acc'?'dec':'acc']=false;mk();return}      // 加速／减速：按住才起作用，松开保持车速
- if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
+ if(m==='sigL'||m==='sigR')return;      // 转向灯由系统打
+ if(false){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
  if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}
+// 看完盲点：在加速车道的虚线段，系统马上并线（SMOG 的 G）；还在实线段只是看一眼
+function afterShoulder(){if(!onAcc()||R.merged||R.lc||R.over)return;const x=me()[0];if(x<XJ-5)return;if(x<XSOL){flash('这里还是实线，到虚线再并');return}startChange()}
 function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
 function nextAct(){const m=R.q.shift();if(m)doAct(m)}
 function cmdUp(m){if(!R)return;if(m==='acc'||m==='dec'){R[m]=false;mk()}}
@@ -181,7 +184,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph===1&&!R.lane1&&me()[1]>=H.L0+30){R.lane1=1;banner('右边多出的车道去 401：当安全时换进去','#ffe27a')}      /* 匝道车道出现：由你按 SMOG 换进去 */
  if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('匝道','');spawnF1()}}
  if(R.ph===9&&t>R.miss+3){finish();return}
- if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：看清车流速度，加速、找空档并入','#ffe27a')}
+ if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速找空档，看后视镜 → 看盲点就并线','#ffe27a');setSig('L')}      /* 转向灯由系统打 */
  if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
  if(R.ph===4&&t>R.p4+7){finish();return}
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
@@ -199,7 +202,6 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  let FG=1e9,FV=0;if(R.merged||(R.lc&&R.lc.merge&&t-R.lc.t0>1.5))R.cars.forEach(c=>{if(c.road==='F'&&c.lane===ZF1&&c.s>p[0]&&c.s-p[0]-4.6<FG){FG=c.s-p[0]-4.6;FV=c.cv}});
  // 像真人开车一样：两个键都没按、正在追近前车时，自动松油门／轻点刹车（最多 1.5 m/s²），把车距保持在约 2 秒；一直按着加速往前冲，就不帮你
  if(FG<200&&!R.acc&&!R.dec&&!R.crash){const want=Math.max(FV-2.5,FV+(FG-2*R.v)/4);if(R.v>want)R.v=Math.max(want,R.v-1.5*dt)}
- {const e=$('hw');if(FG<150){const h=FG/Math.max(1,R.v);e.style.display='';e.textContent='车距 '+h.toFixed(1)+' 秒';e.style.color=h<.7?'#ff6b6b':h<1.5?'#ffd166':'#7ee787'}else e.style.display='none'}      /* 车速表旁边显示和前车的距离（秒） */
  // 车速判断：城市道路限速 60、匝道建议 50、高速限速 110
  const kmh=R.v*3.6;R.rf=R.u<UARC1-8&&kmh>65?(R.rf||0)+dt:0;if(R.rf>1)ev('rampFast');      /* 弯道上太快 */
  if(R.merged){R.spF=kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
@@ -210,14 +212,14 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
-  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t}mk()}}
+  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t;setSig(null)}mk()}}
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／看盲点
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
-   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}}
+   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();afterShoulder();nextAct()}}}}
  // 其他车：保持速度、跟前车；你在它车道上时把你当前车；你切到它前面太近时它刹车、按喇叭
  R.cars.forEach(c=>{if(c.crash){c.cv*=Math.max(0,1-3*dt);c.s+=c.cv*dt;return}
   const sg=Math.sign(c.vd)||1;let vt=Math.abs(c.vd);
@@ -245,7 +247,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  sunFollow(p[1]+10,-p[0]);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;
- if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==='M'?(R.look.t<.55?75:R.look.t<1.35?60:110):100;fovH+=(fT-fovH)*Math.min(1,dt*7);cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ if(view===1){const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?96:R.look.k==='M'?(R.look.t<.55?70:R.look.t<1.35?56:96):90;fovH+=(fT-fovH)*Math.min(1,dt*7);{const sz=ren.getSize(new T.Vector2());cam.aspect=Math.floor(sz.x/2)/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   const Y=myY();cam.position.set(bx0+ox+(Math.random()-.5)*sk,Y+1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*.05+R.pit*L+gr*L*Math.cos(R.yaw),q[1]+Math.cos(h)*L+oz);      /* 上坡时视线跟着往上 */
@@ -256,7 +258,15 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(view===1&&((loop.fc=(loop.fc||0)+1)&1)===0){const m=MR[(loop.fc>>1)%MR.length],sa=ren.shadowMap.autoUpdate;cockpit.updateMatrixWorld(true);
   m.c.position.copy(cockpit.localToWorld(m.pos.clone()));m.c.lookAt(m.c.position.clone().add(m.dir.clone().transformDirection(cockpit.matrixWorld)));
   cockpit.visible=false;ren.shadowMap.autoUpdate=false;ren.setRenderTarget(m.rt);ren.render(scene,m.c);ren.setRenderTarget(null);ren.shadowMap.autoUpdate=sa;cockpit.visible=true}
- ren.render(scene,cam);requestAnimationFrame(loop)}
+ // 分屏：左边驾驶视角，右边俯视（跟着你的车，车头朝上）
+ {const sz=ren.getSize(new T.Vector2()),w=sz.x,hh=sz.y,w2=Math.floor(w/2);ren.setScissorTest(true);
+  ren.setViewport(0,0,w2,hh);ren.setScissor(0,0,w2,hh);mine.visible=false;cockpit.visible=true;ren.render(scene,cam);
+  if(!TOPC)TOPC=new T.PerspectiveCamera(40,1,1,800);TOPC.aspect=(w-w2)/hh;TOPC.updateProjectionMatrix();
+  const h=q[2],Y=myY(),cx=-q[0]-Math.sin(h)*6,cz=q[1]+Math.cos(h)*6;TOPC.position.set(cx,Y+95,cz);TOPC.up.set(-Math.sin(h),0,Math.cos(h));TOPC.lookAt(cx,Y,cz);
+  mine.visible=true;cockpit.visible=false;ren.setViewport(w2,0,w-w2,hh);ren.setScissor(w2,0,w-w2,hh);ren.render(scene,TOPC);
+  mine.visible=false;cockpit.visible=true;ren.setScissorTest(false);ren.setViewport(0,0,w,hh)}
+ requestAnimationFrame(loop)}
+let TOPC=null;
 rs();newRun(false);setView(1);requestAnimationFrame(loop);
 const HOME=$('ov').innerHTML;
 function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{DIFF=b.dataset.diff||'easy';$('ov').style.display='none';newRun(true);playing=true})}
