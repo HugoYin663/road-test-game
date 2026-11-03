@@ -6,7 +6,7 @@
 const VR=13.9,VF=27.8;      // 50、100 km/h
 const H=ROADOPT.hwy,ZDIV=H.ZD,ZA=H.ZA,HY=3.2;      // 高速在 HY 米高的路堤上；匝道在地面，后半程（弯道后半到加速车道开头）上坡到高速的高度
 const ZF1=ZA+3.75,ZF2=ZA+7.5,ZF3=ZA+11.25,ZMED=ZA+15.7,ZW1=ZA+20.15,ZW2=ZA+23.9,ZW3=ZA+27.65;      // 高速往东三条车道（右、中、左），中间隔离墙，往西三条
-const XL0=8.85,RX=14,RR=55,GP=1.6,AL=1.2*Math.PI/180,XC=RX+RR,ZC=ZA-GP-RR*Math.cos(AL),XE=XC-RR*Math.sin(AL),XJ=XE+GP/Math.tan(AL),XSOL=XJ+30,XEND=XJ+330,XTAP=XEND+80;      /* 出弯时匝道还在高速右边 GP 米外、比高速低；往前 70 米（XJ）一边上坡一边靠过去，和高速连成一片 */      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
+const XL0=8.85,RX=14,RR=55,GP=1.6,AL=1.2*Math.PI/180,XC=RX+RR,ZC=ZA-GP-RR*Math.cos(AL),XE=XC-RR*Math.sin(AL),XJ=XE+GP/Math.tan(AL),XSOL=XJ+30,XEND=XJ+380,XTAP=XEND+80;      /* 出弯时匝道还在高速右边 GP 米外、比高速低；往前 70 米（XJ）一边上坡一边靠过去，和高速连成一片 */      // 匝道车道中心 x=8.85；分出后到 x=14 往北，再右转（半径 55）；加速车道：实线到 XSOL，虚线到 XEND，再 60 米收窄
 // 你的路线 P：匝道车道 → 分出匝道 → 弯道（顺着坡往下）→ 加速车道 → 高速右道旁边一直往东。你从右车道出发（P 往左偏 3.6 米），系统自动换进匝道车道
 const PP=[[XL0,-700],[XL0,ZDIV],...Array.from({length:60},(_,i)=>{const z=ZDIV+(i+1)/60*50;return[XL0+(RX-XL0)*ss(ZDIV,ZDIV+50,z),z]}),[RX,ZC],
  ...Array.from({length:180},(_,i)=>{const f=(i+1)/180*(Math.PI/2-AL);return[XC-RR*Math.cos(f),ZC+RR*Math.sin(f)]}),[XJ,ZA],[1800,ZA]];      /* 弯道少转 1.2°，出弯后一条直线以很小的角度（1.2°）靠向高速：前方是直的，不会弯来弯去 */
@@ -106,7 +106,7 @@ const TXT={
  slowF:["并入后车速太低","高速车流约 110，并入后要保持在限速附近，跟上车流。"],
  tooClose:["并入后跟前车太近","并入后要和前车拉开安全距离（理想是 2 秒左右）。刚并进去时近一点可以，但几秒内要松开加速或点减速，把距离拉开；一直贴得很近（不到 0.7 秒，比如 100 km/h 时不到 20 米）就扣分。"],
  hardBrake:["并入后冲到前车后面，只能急刹","比车流快很多并入不是问题，前提是前面的空档够大。如果并进去以后要急刹才不撞前车，说明速度太快或空档太小。"],
- noMerge:["加速车道走完了还没并入","加速车道约 330 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
+ noMerge:["加速车道走完了还没并入","加速车道约 380 米，要一边提速一边看后视镜和盲点，看到合适的空档就果断并入。走到尽头只能停车，非常危险。"],
  crash:["和旁边的车相撞","换线、并线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
  speedF:["高速上超速","这段高速限速 110。并入以后跟上车流就可以，不要超过限速。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash','missRamp','noMerge'];
@@ -126,7 +126,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  mine.visible=view===2;setSig(null);banner('匝道','');mk();$('sp').textContent='50';document.querySelectorAll('.pd').forEach(b=>b.style.display='flex');spawnF1()}      /* 从匝道弯道里开始：弯道由系统转，车速由你控制 */
 const MODEQ=((typeof location!=='undefined'?location.search:'').match(/mode=([AB])/)||[])[1];
 // 进入匝道时，按你接下来的车速，在很远的地方（看不到）安排高速右道的车流：先有 1～3 辆从你旁边过去，然后一个空档，再后面又有车
-const accN=v=>Math.max(.8,2.7-.045*v);      /* 正常踩油门的加速度：低速约 2 m/s²，越快越小（50→110 约 10 秒、220 米） */
+const accN=v=>Math.max(.6,2.2-.045*v);      /* 普通汽油车正常（不是一脚到底）踩油门的加速度：50 km/h 时约 1.6 m/s²，越快越小；50→100 约 11 秒、240 米，50→110 约 14.5 秒、330 米 */
 function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++){const dt=.05;let vt=u<UARC0?Math.max(VR,V0-(u-UDIV)*.08):u<UARC1?VR:VF;v=v>vt?Math.max(vt,v-3*dt):Math.min(vt,v+(u>=UARC1?2.2:1.5)*dt);u+=v*dt;t+=dt;
   if(tA==null&&u>=UARC1)tA=t;if(tA!=null&&i%2===0)xs.push([t-tA,P(u)[0]])}
  const xA=P(UARC1)[0],at=(xr,vc)=>add('F',ZF1,xA+xr-vc*tA,vc);      /* xr：你刚到加速车道起点时，这辆车在你前面（＋）／后面（－）多少米 */
