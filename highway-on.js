@@ -47,7 +47,7 @@ const zt=ZT;
  for(let x=-600;x<1600;x+=100){const w=new T.Mesh(new T.BoxGeometry(100,.85,.5),CON);w.position.set(-(x+50),Y+.425,ZMED);scene.add(w)}      // 隔离墙
  // 标线：往东左边黄线、车道之间虚线；加速车道和右道之间：先实线后虚线，虚线一直画到加速车道收窄的尽头
  strip(Z(ZA+13.05),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+5.625),0,2200,0,.2,Y+.06,WL,3,9);dashes(Z(ZA+9.375),0,2200,0,.2,Y+.06,WL,3,9);
- strip(Z(ZA+1.875),0,o(XJ),-.08,.08,Y+.06,WL);strip(Z(ZA+1.875),o(XJ),o(XSOL),-.1,.1,Y+.06,WL);dashes(Z(ZA+1.875),o(XSOL),o(XEND),0,.2,Y+.06,WL,1.5,3);
+ strip(Z(ZA+1.875),0,o(XJ),-.08,.08,Y+.06,WL);strip(Z(ZA+1.875),o(XJ),o(XSOL),-.1,.1,Y+.06,WL);dashes(Z(ZA+1.875),o(XSOL),o(XTAP),0,.2,Y+.06,WL,1.5,3);
  strip(Z(ZA+1.875),o(XTAP),2200,-.08,.08,Y+.06,WL);strip(Z(ZA-1.8),o(XJ),o(XEND),-.08,.08,Y+.06,WL);
  strip(Z(ZA+18.35),0,2200,-.08,.08,Y+.06,YL);dashes(Z(ZA+22.025),0,2200,0,.2,Y+.06,WL,3,9);dashes(Z(ZA+25.775),0,2200,0,.2,Y+.06,WL,3,9);strip(Z(ZA+29.45),0,2200,-.08,.08,Y+.06,WL);
 }
@@ -102,7 +102,7 @@ const TXT={
  rampFast:["匝道弯道上太快","匝道弯道的建议速度是 50。弯道里可以慢慢提速，出弯看到加速车道以后再用力加速。"],
  slowA:["高速车很少，却没加到限速就并入","右车道车很少、空档很大，也不能一到虚线就慢慢并进去。要在加速车道里先把车速加到限速 110 左右，再并入。"],
  slowB:["车速比车流慢太多就并入","右车道车多、车流约 85 时，并入时车速要接近车流。为了让开旁边的车先减一点速没问题，但并进去的时候要已经加回来（低于约 72 就太慢），不然后面的车只能急刹。"],
- lateMerge:["走到加速车道尽头的收窄段才并入","虚线画到加速车道结束的地方，后面没有车道线的收窄段不是用来并线的。要在虚线结束之前完成并线；空档不合适就提早减速或加速去找空档。"],
+ onShoulder:["收窄段车身压到了路肩","加速车道最后一段慢慢收窄，在这里并线是可以的，但车身不能越过右边的白线进到路肩。走到收窄段还没并进去，就要尽快找空档并线，不要让车被挤到线外。"],
  slowF:["并入后车速太低","高速车流约 110，并入后要保持在限速附近，跟上车流。"],
  tooClose:["并入后跟前车太近","并入后要和前车拉开安全距离（理想是 2 秒左右）。刚并进去时近一点可以，但几秒内要松开加速或点减速，把距离拉开；一直贴得很近（不到 0.7 秒，比如 100 km/h 时不到 20 米）就扣分。"],
  hardBrake:["并入后冲到前车后面，只能急刹","比车流快很多并入不是问题，前提是前面的空档够大。如果并进去以后要急刹才不撞前车，说明速度太快或空档太小。"],
@@ -188,7 +188,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速找空档，看后视镜 → 看盲点 → 换线','#ffe27a');setSig('L')}      /* 转向灯由系统打 */
  if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
  if(R.ph===4&&t>R.p4+7){finish();return}
- if(R.ph===3&&me()[0]>XEND&&!R.merged)R.lateM=true;      /* 过了虚线终点还没并完 */
+ {const q=me();if(R.ph===3&&!R.merged&&q[0]>XEND&&q[1]-.95<ZA-1.8+3.6*Math.min(1,(q[0]-XEND)/(XTAP-XEND)))ev('onShoulder')}      /* 收窄段可以并线，但车身右边不能压过右边线进到路肩 */
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
  // 你的车速：城市道路 60（前面有车跟车）；匝道减到 50；加速车道提速到 100；没并进去就在加速车道尽头停下
  // 车速由你用踏板控制：按住油门加速，按住刹车减速，都不按就保持现在的车速
@@ -214,7 +214,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
-  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t;setSig(null);const kh=R.v*3.6;if(R.mode==='A'){if(kh<98)ev('slowA')}else if(kh<72)ev('slowB');if(R.lateM)ev('lateMerge')}mk()}}
+  if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t;setSig(null);const kh=R.v*3.6;if(R.mode==='A'){if(kh<98)ev('slowA')}else if(kh<72)ev('slowB')}mk()}}
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／看盲点
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
