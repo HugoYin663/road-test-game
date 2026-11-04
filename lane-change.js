@@ -108,6 +108,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
 function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let h;
  if(!R.ev.length)h='<h2>驾驶总结</h2><div class="st">★★★</div><p>打灯、看后视镜、回头看盲区、找够空档再换线，两次换线都做得很好。</p>';
  else h='<h2>驾驶总结</h2><p>这一趟有 '+R.ev.length+' 处需要注意：</p><div class="cards">'+R.ev.map(e=>`<div class="card">${e.img?`<img src="${e.img}">`:''}<b>${e.title}${SER.includes(e.key)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'}</b><span>${e.text}</span></div>`).join('')+'</div>';
+ if(typeof ADS!=='undefined')h+=ADS.credit();
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
