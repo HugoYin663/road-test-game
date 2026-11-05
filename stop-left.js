@@ -145,7 +145,9 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sig'){R.sig=R.sig?null:'L';if(R.sig){R.sigT=R.t;if(R.sigZ==null)R.sigZ=front();tick(true)}$('sg').style.display=R.sig?'block':'none';mk();return}
  if(m==='lookL'||m==='lookR'){R.look=m==='lookL'?-1:1;R.lookT=R.t;mk();return}
  if(R.mode==='turn')return;
- if(m==='stop'){R.stopReq=true;R.creep=false;mk();return}
+ if(m==='stop'){if(!R.stopReq&&!R.stopped&&!R.creep){const fz=front(),tg=CW0-.3,dA=tg-fz;      /* 和红灯停车一样：来得及就正好停在人行横道前，来不及就就地急停 */
+   if(dA>R.v*R.v/(2*5)+.2){R.stopT=tg;R.stopA=5}else{R.stopT=fz+R.v*R.v/14;R.stopA=7}}
+  R.stopReq=true;R.creep=false;mk();return}
  if(m==='creep'){if(R.v<.2&&R.stopped){if(pedNear())ev('pedYield');R.creep=true;R.stopReq=false;mk()}else if(!R.stopped)flash('先停车，再前移');return}
  if(m==='go')startTurn()}
 function cmdUp(m){if(!R)return;if((m==='lookL'&&R.look<0)||(m==='lookR'&&R.look>0)){R.lookUp=R.t;mk()}if(m==='creep'&&R.creep){R.creep=false;R.stopReq=true;mk()}}
@@ -165,16 +167,16 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.mode!=='turn'){
   // 车速：平常 40；离人行横道 25 米内自己慢到 20 左右（准备停车）；按停车就停；前移时很慢
   let vt=fz<CW0-25?11.1:5.6;
-  if(R.stopReq)vt=0;if(R.creep)vt=1.3;if(R.stopped&&!R.creep)vt=0;
+  if(R.stopReq){if(R.stopT!=null){const dS=R.stopT-fz;vt=dS>.05?Math.min(vt,Math.sqrt(2*R.stopA*dS)):0}else vt=0}if(R.creep)vt=1.3;if(R.stopped&&!R.creep)vt=0;
   // 一直不停车：冲过人行横道时算严重错误，系统帮你在路边停下
-  if(!R.everStop&&fz>CW0+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true}
+  if(!R.everStop&&!R.stopReq&&fz>CW0+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true;R.stopT=fz+R.v*R.v/14;R.stopA=7}      /* 按了停车、正在刹车的不算没停：停在哪里再判断位置 */
   const lim=LIM();      // 前移最远到这里（再往前就进了横路的车道）
   if(fz>lim-.2&&(R.creep||!R.stopReq)){vt=0;if(R.creep){R.creep=false;R.stopReq=true;flash('已经到横路边上了，不能再往前');mk()}}
   if(fz>lim-3&&!R.stopReq&&!R.creep&&!R.stopped)vt=Math.min(vt,Math.sqrt(2*4*Math.max(0,lim-fz)));
-  const a=R.v>vt?(R.stopReq?3.8:2.5):1.5;R.v=R.v>vt?Math.max(vt,R.v-a*dt):Math.min(vt,R.v+a*dt);
+  const a=R.v>vt?(R.stopReq?(R.stopT!=null?(R.stopA||4)+1:4):2.5):1.5;R.v=R.v>vt?Math.max(vt,R.v-a*dt):Math.min(vt,R.v+a*dt);
   R.z+=R.v*dt;
   // 停稳
-  if(R.v<.05&&!R.stopped&&R.stopReq){R.stopped=true;R.everStop=true;R.lastStop=t;R.v=0;
+  if(R.v<.05&&!R.stopped&&R.stopReq){R.stopT=null;R.stopped=true;R.everStop=true;R.lastStop=t;R.v=0;
    if(R.firstStop){R.firstStop=false;if(!R.ns){if(fz>CW0+.3)ev('stopOnCross');else if(fz<CW0-3)ev('stopFar')}banner('停稳了：看左、看右；看不清就前移','#ffe27a')}}
   if(R.creep&&R.v>.1)R.stopped=false;
   if(R.sig&&R.sigZ!=null&&!R.ls&&R.sigZ>CW0-15){R.ls=1;ev('lateSig')}
