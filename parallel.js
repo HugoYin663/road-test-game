@@ -20,6 +20,8 @@ const PK_TXT={
  noP:["没有挂 P 停好","停好车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车不再要求按住回头看：倒车前做 360° 观察（里面包括看正后面） */
  curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
+ // 考试模式：从后面 110 米开过来，离参考车 70 米时考官发指令；开过参考车 10 米还没停就算错过
+ exam:{laneX:PX-2*LW.HW-1,startZ:PA-110,insZ:PA-70,missZ:PA+10,side:'R',insText:'考官：在前面那辆车（车顶上方有蓝色箭头）后面的空位平行停车'},
  okText:'M.S.B. 之后停在参考车旁边，倒车时回头看，打方向的时机准确，没有碰车、没有碰路缘，停在车位中间、离路缘 30 厘米内，做得很好。',
  setup(R){Object.assign(R,{x:.35,z:PB-26,h:0,gear:'D',ph:0});R.obst=[];
   PARKS.forEach(p=>{const c=car([0x7b8794,0x1f2328,0xeceff1,0x4a4f57,0x8e2b2b][Math.random()*5|0]);live.push(c);place(c,p[0],p[1],0,0)});

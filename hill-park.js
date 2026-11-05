@@ -24,6 +24,7 @@ const HP_TXT={
  noP:["没有挂 P 停好","停车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
  curbs:[{side:1,x:HRW,soft:!HP.curb},{side:-1,x:-HRW}],
+ exam:{laneX:2.1,startZ:-120,insZ:-70,missZ:30,side:'R',insText:'考官：在前面右边靠边停车（停在房子前面）'},
  okText:'看后视镜、打灯、看盲点后靠边，停在离路边 30 厘米以内，车轮方向正确，离开时也做了 M.S.B.，做得很好。',
  setup(R){Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0});banner('考官：在前面右边靠边停车（停在房子前面）','#ffe27a',1)},
  onGear(g){const R2=R;if(R2.ph===2&&g==='P')parkDone()},
@@ -39,8 +40,8 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
   if(t>150&&!R.over){if(R.ph<3)ev('noP');finish()}},
  topCam(R){return[R.x-3,R.z+2,22]},
  // 选了另一种坡（或“再来一次”换一种）：重新加载页面（坡度在建场景时就定了）
- pick(d){if(d==='rand'||d===HP.k)return false;const k=d;location.search='?mode='+k+'&go=1';return true},
- again(){location.search='?mode='+HP_MODES.filter(m=>m.k!==HP.k)[Math.random()*3|0].k+'&go=1';return true}};
+ pick(d){if(d==='rand'||d===HP.k)return false;const k=d;location.search='?mode='+k+'&go=1'+(EXAM?'&ex=1':'');return true},
+ again(){location.search='?mode='+HP_MODES.filter(m=>m.k!==HP.k)[Math.random()*3|0].k+'&go=1'+(EXAM?'&ex=1':'');return true}};
 function parkDone(){const g=curbGap(1),wantLeft=HP.k==='upC',ok=wantLeft?R.w<-.05:R.w>.05;
  if(!ok)ev('wrongWheels');else if(Math.abs(R.w)<.6)ev('weakWheels');
  if(wantLeft&&g&&g.front>.06)ev('noRest');
