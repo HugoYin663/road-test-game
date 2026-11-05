@@ -117,10 +117,11 @@ function mk(){const on={sig:!!R.sig,lookL:R.look<0,lookR:R.look>0,stop:R.stopReq
 function me(){if(R.mode==='turn'){const q=R.turnP(Math.min(R.u,R.turnP.len-.01));return[q[0],q[1],q[2]]}return[XL,R.z,0]}
 const front=()=>R.z+FR;
 let SNC=null;
-function snap(){try{const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,400);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
- const p=me();SNC.position.set(-(p[0]*.5),62,p[1]*.5-1);SNC.up.set(0,0,1);SNC.lookAt(-(p[0]*.5),0,p[1]*.5);const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;
+let SNR=null;function snap(fc){try{const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,400);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
+ const p=me(),cx=fc?(p[0]+fc[0])/2:p[0]*.5,cz=fc?(p[1]+fc[1])/2:p[1]*.5,hh=fc?Math.max(62,Math.hypot(fc[0]-p[0],fc[1]-p[1])*1.15+18):62;SNC.position.set(-cx,hh,cz-1);SNC.up.set(0,0,1);SNC.lookAt(-cx,0,cz);      /* 有关的车也要拍进去 */if(!SNR){SNR=new T.Mesh(new T.RingGeometry(3.6,4.6,32),new T.MeshBasicMaterial({color:0xff2a2a,side:T.DoubleSide,depthTest:false}));SNR.rotation.x=-Math.PI/2;SNR.renderOrder=9;scene.add(SNR)}SNR.visible=!!fc;if(fc)SNR.position.set(-fc[0],.4,fc[1]);      /* 红圈：就是这辆车 */
+ const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;SNR.visible=false;
  const c2=document.createElement('canvas');c2.width=W;c2.height=H;const sw=Math.min(cvs.width,cvs.height*W/H),sh=sw*H/W;c2.getContext('2d').drawImage(cvs,(cvs.width-sw)/2,(cvs.height-sh)/2,sw,sh,0,0,W,H);return c2.toDataURL('image/jpeg',.82)}catch(e){return null}}
-function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1],img:snap()});flash(t[0])}
+function ev(key,o){o=o||{};if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1]+(o.add||''),img:snap(o.focus)});flash(t[0])}
 // ---------- 视线：从你眼睛到横路上的一点，有没有被路边停的车挡住 ----------
 function eye(){const p=me();return[p[0]-.38*Math.cos(p[2])+Math.sin(p[2])*.2,p[1]+Math.sin(p[2])*.38-Math.cos(p[2])*.2]}      // 驾驶座（左边）
 function segRect(ax,az,bx,bz,cx,cz,hx,hz){let t0=0,t1=1;const dx=bx-ax,dz=bz-az;for(const [p,q] of [[-dx,ax-(cx-hx)],[dx,(cx+hx)-ax],[-dz,az-(cz-hz)],[dz,(cz+hz)-az]]){if(p===0){if(q<0)return false}else{const r=q/p;if(p<0){if(r>t1)return false;if(r>t0)t0=r}else{if(r<t0)return false;if(r<t1)t1=r}}}return true}
@@ -135,11 +136,20 @@ function pedNear(){const P=R.ped;if(!P||P.z<front()-.6)return false;return P.x>-
 function turnPath(){const zc=R.z,zs=Math.max(zc,-6.3),Rr=ZWB-zs,pts=[[XL,zc]];if(zs>zc+.3)pts.push([XL,zs]);
  for(let i=1;i<=24;i++){const a=i/24*Math.PI/2;pts.push([XL-Rr+Rr*Math.cos(a),zs+Rr*Math.sin(a)])}pts.push([-90,ZWB]);
  const P0=path(pts),f=u=>{const a=P0(u),b=P0(Math.max(0,u-1)),c=P0(Math.min(P0.len-.01,u+1));return[a[0],a[1],Math.atan2(c[0]-b[0],c[1]-b[1])]};f.len=P0.len;f.arcEnd=(zs>zc+.3?zs-zc:0)+Rr*Math.PI/2;return f}
-// 预测：如果现在开始转，接下来 7 秒你和横路的车会不会撞上（横路车按现在的速度一直开）
-function predict(){const P=turnPath();let u=0,v=Math.max(R.v,0),why=null;const cars=R.cars.map(c=>({x:c.x,z:c.z,dir:c.dir,v:c.cv}));
- for(let t=0;t<7&&!why;t+=.1){const vt=u<P.arcEnd?6:11;v=Math.min(vt,v+2.2*.1);u+=v*.1;cars.forEach(c=>c.x+=c.dir*c.v*.1);const q=P(Math.min(u,P.len-.01));
-  for(const c of cars){if(Math.abs(c.x-q[0])>9||Math.abs(c.z-q[1])>6)continue;if(obbHit([q[0],q[1],q[2],2.3+1.2,.95+.35],[c.x,c.z,c.dir>0?Math.PI/2:-Math.PI/2,2.3+1.2,.95+.35])){why=c.dir>0?'unsafeL':'unsafeR';break}}}
- return why}
+// 预测：如果现在开始转，接下来 8 秒会不会和横路的车冲突
+//  · 横穿它的车道时：它不减速，开到你刚离开的地方，时间差不到 1.2 秒，就算抢行（不安全）
+//  · 并进它的车道、在它前面开时：它要用超过 4 m/s² 的力度刹车才不追尾，就算不安全（它会按实际情况减速跟车）
+function predict(){const P=turnPath();let u=0,v=Math.max(R.v,0),res=null;
+ const cars=R.cars.map(c=>({o:c,x:c.x,z:c.z,dir:c.dir,v:c.cv,x0:c.x}));
+ for(let t=0;t<8&&!res;t+=.1){const vt=u<P.arcEnd?6:11;v=Math.min(vt,v+2.2*.1);u+=v*.1;const q=P(Math.min(u,P.len-.01)),me=[q[0],q[1],q[2],2.3,.95];
+  for(const c of cars){const ch=c.dir>0?Math.PI/2:-Math.PI/2,same=Math.sin(q[2])*c.dir>.7,g=(q[0]-c.x)*c.dir-4.6;let bad=false;
+   if(same){if(g>-1&&g<45&&Math.abs(q[1]-c.z)<1.6){const ov=v,cl=Math.max(0,c.v-ov),dec=cl*cl/(2*Math.max(.5,g-3));if(dec>4)bad=true;
+      const need=ov+Math.sqrt(2*6*Math.max(0,g-3));if(need<c.v)c.v=Math.max(need,c.v-.6)}}
+   else{const ext=c.v*1.2;bad=Math.abs(c.x-q[0])<ext+8&&obbHit(me,[c.x+c.dir*ext/2,c.z,ch,2.3+ext/2,.95])}
+   if(!bad)bad=Math.abs(c.x-q[0])<6&&obbHit(me,[c.x,c.z,ch,2.3,.95]);
+   c.x+=c.dir*c.v*.1;
+   if(bad){res={why:c.dir>0?'unsafeL':'unsafeR',x:c.x0,z:c.z,dist:Math.abs(c.x0-XL),kmh:Math.round(c.o.cv*3.6)};break}}}
+ return res}
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sig'){R.sig=R.sig?null:'L';if(R.sig){R.sigT=R.t;if(R.sigZ==null)R.sigZ=front();tick(true)}$('sg').style.display=R.sig?'block':'none';mk();return}
@@ -158,7 +168,7 @@ function startTurn(){const t=R.t;if(pedNear())ev('pedYield');
  if(!R.sig)ev('noSig');
  if(!(R.lookL>R.lastStop&&R.lookR>R.lastStop))ev('noLook');
  if(blind())ev('blindGo');
- const why=predict();if(why)ev(why);
+ const pr=predict();if(pr)ev(pr.why,{focus:[pr.x,pr.z],add:`（当时这辆车离路口约 ${Math.round(pr.dist)} 米，车速约 ${pr.kmh} km/h，约 ${(pr.dist/Math.max(1,pr.kmh/3.6)).toFixed(1)} 秒就到）`});
  R.turnP=turnPath();R.u=0;R.mode='turn';R.stopReq=false;R.creep=false;mk();banner('左转','')}
 // ---------- 每一帧 ----------
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
