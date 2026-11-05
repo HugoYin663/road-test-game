@@ -50,18 +50,9 @@ signPost(-RW-1.0,-CW0+1.4,Math.PI,STOPT,.75,.75,1.55);      // 对面也有停�
 // ---------- 房子、车道、树、路灯、消防栓、信箱 ----------
 const WALLS=[0xb5654a,0x9c5a43,0xc9b28f,0xd8d2c4,0x8d6e5a,0xe2dccd,0xa8a29a],ROOFS=[0x3b3f45,0x4a4038,0x5b4a3d,0x2f3338,0x6b6e72];
 const WIN=M(0x2a3540),DOORc=[0x6b2b2b,0x234a6b,0x2f4f3a,0x111111],GAR=M(0xeeeeec),TRIM=M(0xf2f2ee);
-function house(x,z,h,setL){const g=new T.Group(),w=11+Math.random()*2.5,d=8.5+Math.random()*1.5,two=Math.random()<.5,H=two?5.6:3.0,wall=M(WALLS[Math.random()*WALLS.length|0]);
- const b=mesh(new T.BoxGeometry(w,H,d),wall,0,H/2,0);b.castShadow=true;b.receiveShadow=true;g.add(b);
- // 屋顶：人字形
- {const sh=new T.Shape();sh.moveTo(-d/2-.5,0);sh.lineTo(d/2+.5,0);sh.lineTo(0,2.3);sh.closePath();const r=new T.Mesh(new T.ExtrudeGeometry(sh,{depth:w+.6,bevelEnabled:false}),M(ROOFS[Math.random()*ROOFS.length|0]));r.rotation.y=Math.PI/2;r.position.set(-(w+.6)/2,H,0);r.castShadow=true;g.add(r)}
- // 车库在一边，大门在另一边；正面朝 +z
- const gs=Math.random()<.5?1:-1;g.add(mesh(new T.BoxGeometry(4.6,2.3,.08),GAR,gs*(w/2-2.8),1.15,d/2+.03));
- g.add(mesh(new T.BoxGeometry(1.0,2.1,.08),M(DOORc[Math.random()*4|0]),-gs*(w/2-3.6),1.05,d/2+.03));
- [[-gs*(w/2-1.6),1.5],[-gs*(w/2-5.4),1.5]].forEach(([wx,wy])=>{g.add(mesh(new T.BoxGeometry(1.4,1.2,.06),WIN,wx,wy,d/2+.04));g.add(mesh(new T.BoxGeometry(1.6,.12,.1),TRIM,wx,wy-.66,d/2+.05))});
- if(two)[-3,0,3].forEach(o=>g.add(mesh(new T.BoxGeometry(1.3,1.2,.06),WIN,o,4.2,d/2+.04)));
- // 车道（水泥）：从车库门一直铺到路边
- const dl=setL-d/2;g.add(mesh(new T.BoxGeometry(5,.05,dl),DRV,gs*(w/2-2.8),.13,d/2+dl/2));
- place(g,x,z,h);scene.add(g);return{x,z,gx:gs*(w/2-2.8),h}}
+function house(x,z,h,setL){const o=buildHouse(),g=o.g;      // 式样见 lib/houses.js：平房、科德角、殖民式、两层砖房、工匠平房
+ const dl=setL-o.zf;g.add(mesh(new T.BoxGeometry(o.side?3.2:5,.05,dl),DRV,o.gx,.13,o.zf+dl/2));
+ place(g,x,z,h);scene.add(g);return{x,z,gx:o.gx,h}}
 const DRIVES=[];
 // 沿你这条路（南北）两边、沿横路两边各一排房子；房子正面朝路，离人行道约 7 米
 const HD=SW1+7+4.5;      // 房子中心离路中心
