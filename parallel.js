@@ -16,6 +16,7 @@ const PK_TXT={
  notCentre:["没有停在车位中间","停好后前后都要留出空间：挂 D 往前一点，停在两辆车中间（能看到前车的后轮落地处）。"],
  manyMoves:["调整超过两次","除了倒进去、往前停到中间，最多再调整两次（往前或往后挪一段算一次）。调整太多次，说明打方向的时机不对。"],
  sigOn:["停好后没有关转向灯","停好车后要关掉转向灯。"],
+ no360:["倒车前没有做 360° 观察","开始倒车之前，要先把四周都看一遍（360° 观察）：前后左右的车、自行车、行人都确认没有，再挂 R 倒车。"],
  noP:["没有挂 P 停好","停好车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn'],vmax:2.0,noSplit:true,
  curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
@@ -29,7 +30,7 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn'],vmax:2.0,noSplit:true,
   // 0：开到参考车旁边停下（第一次停在参考车附近）：检查 M.S.B. 和起始位置
   if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;msb('R',{sh:'noShoulderR'});const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
    if(gap<.4||gap>1.7||Math.abs(al)>1.2||Math.abs(R.h)>.12)ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，回头看后面，慢慢倒进车位','#ffe27a')}
-  if(R.ph===1&&R.v<-.05){R.ph=2;R.lastDir=-1;R.moves=0;R.segD=0}
+  if(R.ph===1&&R.v<-.05){if(R.oT.A==null||R.t-R.oT.A>15)ev('no360');R.ph=2;R.lastDir=-1;R.moves=0;R.segD=0}
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
   if(t>200&&!R.over){if(R.ph<3)ev('noP');finish()}},
  draw(R){},

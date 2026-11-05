@@ -74,11 +74,9 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">0</b> km/h</div><div id="gear" style="font-size:24px;font-weight:800;color:#f2c12e">D</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
 <div id="bn">平行停车</div><div id="cf"></div><div id="fl"></div><div id="cgap" style="display:none"></div><div id="split"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
-<button class="b pos" id="bsigL" data-m="sigL">左转灯<small>Signal</small></button>
-<button class="b pos" id="bsigR" data-m="sigR">右转灯<small>Signal</small></button>
-<button class="b pos" id="bmir" data-m="mir">后视镜<small>Mirror</small></button>
-<button class="b pos" id="bshL" data-m="shL">看左盲点<small>Blind spot</small></button>
-<button class="b pos" id="bshR" data-m="shR">看右盲点<small>Blind spot</small></button>
+<button class="b pos" id="bsigL" data-m="sigR">右转灯<small>Signal</small></button>
+<button class="b pos" id="bsigR" data-m="obsR" style="background:#7b5bd6">右侧观察<small>两面镜＋右盲点</small></button>
+<button class="b pos" id="bmir" data-m="obs360" style="background:#d98a1f;font-size:17px;white-space:nowrap">360°观察<small>四周看一遍</small></button>
 <button class="b pos" id="bback" data-m="back">回头看<small>按住看后窗</small></button>
 <div id="gears"><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gD" data-m="gD">D</button></div>
 <div id="wind"><div id="whl"></div><span>方向盘 <span id="wtx">正</span></span></div>
@@ -91,9 +89,9 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p>小区路边停着一排车，两辆车，前面那辆是参考车（车顶上方有蓝色箭头），两车之间有一个约 8 米长的空位。你要<b>倒车平行停进去</b>。</p>
 <div class="modes"><button class="md" data-diff="easy"><b>开始练习</b><span>车位约 8 米（车长 4.6 米）</span></button></div>
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
-<p><b>操作</b>：全屏是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少；<b>P R D</b> 换挡（车停稳才能换）。左边：转向灯、后视镜、看左右盲点、<b>回头看</b>（按住，从后窗看后面，倒车时要一直按住）。可以同时按两个键，比如一边按住油门一边打方向。</p>
-<p>1. <b>开到参考车旁边</b>：看后视镜（后面没有车紧跟着）、打<b>右转灯</b>、看右盲点；开到参考车旁边停住：和它平行、<b>相隔约 1 米</b>，你的<b>后保险杠和它的后保险杠对齐</b>。</p>
-<p>2. <b>倒进去</b>：挂 <b>R</b>，按住<b>回头看</b>，慢慢倒车；方向盘<b>往右打到底</b>，往车位里转。</p>
+<p><b>操作</b>：全屏是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少度（打到底是 540°，一圈半）；<b>P R D</b> 换挡（车停稳才能换）。左边：<b>右转灯</b>；<b>右侧观察</b>（依次看中间后视镜、右后视镜、右边盲点）；<b>360° 观察</b>（左前、左镜、左盲点、中镜、右镜、右盲点都看一遍）；<b>回头看</b>（按住，从后窗看后面，倒车时要一直按住）。可以同时按两个键，比如一边按住油门一边打方向。</p>
+<p>1. <b>开到参考车旁边</b>：打<b>右转灯</b>、按<b>右侧观察</b>（后面没有车紧跟着、右边没有自行车）；开到参考车旁边停住：和它平行、<b>相隔约 1 米</b>，你的<b>后保险杠和它的后保险杠对齐</b>。</p>
+<p>2. <b>倒进去</b>：先做 <b>360° 观察</b>，挂 <b>R</b>，按住<b>回头看</b>，慢慢倒车；方向盘<b>往右打到底</b>，往车位里转。</p>
 <p>3. 车身和路缘大约成 <b>45°</b> 时，把方向盘<b>回正</b>，继续直着往后倒。</p>
 <p>4. 你的车头过了参考车的后保险杠后，方向盘<b>往左打到底</b>，车尾往前摆、车身慢慢摆正；和路缘<b>平行</b>时（或者离后车很近时）停住。</p>
 <p>5. 挂 <b>D</b>，往前一点停在两辆车<b>中间</b>，离路缘 <b>30 厘米以内</b>；关掉转向灯，挂 <b>P</b>。</p>
@@ -109,6 +107,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1105c"></script>
 <script src="lib/hood.js?v=1105c"></script>
-<script src="lib/lowspeed.js?v=1105e"></script>
-<script src="parallel.js?v=1105e"></script>
+<script src="lib/lowspeed.js?v=1105f"></script>
+<script src="parallel.js?v=1105f"></script>
 </body></html>
