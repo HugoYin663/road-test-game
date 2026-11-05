@@ -187,7 +187,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 横路的车：跟前车；你挡在它车道上就刹车、按喇叭
  // 行人：车头离人行横道 35 米时出现，正好在你停下来前后走到你车前
  if(R.pedOn&&!R.ped&&fz>CW0-35){const dir=Math.random()<.5?1:-1,o=ped(PCOL[Math.random()*5|0]);live.push(o);scene.add(o);R.ped={o,dir,x:-dir*(RW+9+Math.random()*4),v:1.25+Math.random()*.3,ph:0}}
- if(R.ped){const P=R.ped,blk=fz>CW0+.3&&R.mode!=='turn'&&Math.abs(P.x-XL)<4.5;const zt=blk?fz-2*FR-1.1:(CW0+CW1)/2;P.z=P.z==null?zt:P.z+Math.max(-1.2*dt,Math.min(1.2*dt,zt-P.z));P.x+=P.dir*P.v*dt;      /* 你的车挡在人行横道上：行人从你车后面绕过去 */P.ph+=dt*P.v*4.2;const sw=Math.sin(P.ph)*.5;P.o.userData.l.rotation.x=sw;P.o.userData.r.rotation.x=-sw;P.o.userData.al.rotation.x=-sw*.8;P.o.userData.ar.rotation.x=sw*.8;
+ if(R.ped){const P=R.ped,blk=fz>CW0+.3&&R.mode!=='turn'&&Math.abs(P.x-XL)<4.5;const zt=blk?(fz<-4.8?fz+.9:fz-2*FR-1.1):(CW0+CW1)/2;      /* 车停在人行横道上：行人只好从车头前面绕过去（你确实挡住了他）；车已经挪到横路边上时，从车后面绕 */P.z=P.z==null?zt:P.z+Math.max(-1.2*dt,Math.min(1.2*dt,zt-P.z));P.x+=P.dir*P.v*dt;      P.ph+=dt*P.v*4.2;const sw=Math.sin(P.ph)*.5;P.o.userData.l.rotation.x=sw;P.o.userData.r.rotation.x=-sw;P.o.userData.al.rotation.x=-sw*.8;P.o.userData.ar.rotation.x=sw*.8;
   place(P.o,P.x,P.z,P.dir>0?Math.PI/2:-Math.PI/2,.12);if(Math.abs(P.x)>60){scene.remove(P.o);R.ped=null;R.pedOn=false}
   if(R.mode!=='turn'&&R.v>.3&&fz>CW0-.2&&Math.abs(P.x-XL)<2.6&&P.z>fz-1.5)ev('pedYield')}      /* 开着车压到正在你车前走的行人前面 */
  const p=me();
