@@ -17,23 +17,28 @@ const PK_TXT={
  manyMoves:["调整超过两次","除了倒进去、往前停到中间，最多再调整两次（往前或往后挪一段算一次）。调整太多次，说明打方向的时机不对。"],
  sigOn:["停好后没有关转向灯","停好车后要关掉转向灯。"],
  no360:["倒车前没有做 360° 观察","每次开始倒车之前，都要把四周看一遍（360° 观察：左后盲点、左镜、中镜、右镜、右后盲点、正后面），确认没有车、自行车、行人再倒。"],
+ few360:["倒车过程中 360° 观察不够","平行停车要一直观察四周：倒车前做一次 360° 观察，车身斜着回正时再做一次，往左打方向前再做一次（至少 3 次）。"],
+ noYieldBike:["有自行车过来时没有停车让行","倒车、打方向时车头会摆到车道上。发现后面有自行车过来，要停车让它先过去，再继续。"],
+ noSeeBike:["没有发现后面过来的自行车","这次你的车正好停着，自行车过去了，但它过来之前你没有观察（360° 观察、左镜）。倒车时要一直观察四周。"],
  noP:["没有挂 P 停好","停好车的最后一步要挂 P（再熄火、拉手刹）。"]};
-const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车不再要求按住回头看：倒车前做 360° 观察（里面包括看正后面） */
+const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车不再要求按住回头看：倒车前做 360° 观察（里面包括看正后面） */
  curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
  // 考试模式：从后面 100 米开过来，一开始考官就发指令；离参考车约 14 米时系统已经减到很慢，你点“停车”停在参考车旁边；开过参考车 8 米还没停就算错过
  exam:{laneX:PX-2*LW.HW-1,startZ:PA-100,crawlZ:PA-14,missZ:PA+8,side:'R',insText:'考官：用前面那辆白车做参考，在它后面平行停车'},
- okText:'M.S.B. 之后停在参考车旁边，倒车时回头看，打方向的时机准确，没有碰车、没有碰路缘，停在车位中间、离路缘 30 厘米内，做得很好。',
+ okText:'停在参考车旁边的位置准确，倒车时一直做 360° 观察，打方向的时机准确，没有碰车、没有碰路缘，停在车位中间、离路缘 30 厘米内，做得很好。',
  setup(R){Object.assign(R,{x:.35,z:PB-26,h:0,gear:'D',ph:0});R.obst=[];
   PARKS.forEach((p,i)=>{const c=car(i===0?0xf4f6f8:[0x7b8794,0x1f2328,0x4a4f57,0x8e2b2b][Math.random()*4|0]);live.push(c);place(c,p[0],p[1],0,0)});      // 参考车固定是白车
-  SCN.obst=PARKS.map(p=>[p[0],p[1],0]);banner('考官：用前面那辆白车（车顶上方有蓝色箭头）做参考，在它后面平行停车','#ffe27a',1)},
+  SCN.obst=PARKS.map(p=>[p[0],p[1],0]);obsLbl(0);R.bk=null;banner('考官：用前面那辆白车（车顶上方有蓝色箭头）做参考，在它后面平行停车','#ffe27a',1)},
  onGear(g){if(R.ph===2&&g==='P')parkDone()},
+ peekR:R=>R.ph>=1,      // 停到参考车旁边以后，“右侧观察”变成按住看右前方（找 A 柱参考点）
  onSeg(dir,n){if(dir<0&&R.ph>=1&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');      /* 每次开始倒车前 15 秒内要做过 360° 观察 */
   if(R.ph>=2){if((R.segD||0)>.3)R.moves=(R.moves||0)+1;R.segD=0}},      /* 每换一次方向，结算上一段：走了 30 厘米以上才算一次 */
  step(R,dt){const t=R.t;
   // 0：开到参考车旁边停下（第一次停在参考车附近）：检查 M.S.B. 和起始位置
-  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
-   if(gap<.4||gap>1.7||Math.abs(al)>1.2||Math.abs(R.h)>.12)ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，回头看后面，慢慢倒进车位','#ffe27a')}
-  if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
+  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;R.n360b=R.n360||0;obsLbl(1);if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
+   if(gap<.4||gap>1.7||Math.abs(al)>1.2||Math.abs(R.h)>.12)ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
+  if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0;R.bkT=R.t+2+Math.random()*6}
+  if(HARD)bikeStep(R,dt);
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
   if(t>200&&!R.over){if(R.ph<3)ev('noP');finish()}},
  draw(R){},
@@ -43,8 +48,27 @@ function parkDone(){const g=curbGap(1),fA=(PA-LW.HL)-(R.z+LW.HL),rB=(R.z-LW.HL)-
  else{if(g&&Math.max(g.front,g.rear)>.3)ev('farCurb','（右轮离路缘 前 '+g.front.toFixed(2)+' 米、后 '+g.rear.toFixed(2)+' 米）');
   if(Math.abs(R.h)>.1)ev('notPar');if(fA<.5||rB<.5)ev('notCentre','（前面留了 '+fA.toFixed(1)+' 米，后面留了 '+rB.toFixed(1)+' 米）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0);if(nM>4)ev('manyMoves','（多调整了 '+(nM-2)+' 次）');      /* 倒进去、往前停到中间是正常步骤，另外最多调整 2 次 */
+ if((R.n360||0)-(R.n360b||0)<3)ev('few360','（停下以后一共做了 '+((R.n360||0)-(R.n360b||0))+' 次，要 3 次：倒车前、车身斜着回正时、往左打方向前）');
  if(R.sig)ev('sigOn');
  R.ph=3;setTimeout(()=>{if(!R.over)finish()},1200)}
 // 参考车上方的箭头（俯视里看得清是哪辆）
 {const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(-PX,3.2,PA);scene.add(a)}
+// “右侧观察”按钮：停车前＝中镜、右镜、右盲点；停下以后＝按住看右前方
+function obsLbl(p){const b=document.querySelector('[data-m="obsR"]');if(b)b.innerHTML=p?'看右前方<small>按住看 A 柱和右镜</small>':'右侧观察<small>两面镜＋右盲点</small>'}
+// 困难模式：倒车开始以后，一辆自行车从后面沿着马路骑过来，从你车的左边过去
+function bikeStep(R,dt){
+ if(!R.bk&&R.ph===2&&R.t>R.bkT){const c=cyclist(0x2e86de);live.push(c);R.bk={c,x:-1.6,z:R.z-45,v:4.5,t0:R.t,phase:0}}
+ const B=R.bk;if(!B||B.done)return;
+ // 它前面的路被你的车挡住了，就停下来等
+ const cs=corners();let gap=99;cs.forEach(q=>{if(Math.abs(q[0]-B.x)<1.1&&q[1]>B.z)gap=Math.min(gap,q[1]-B.z-.9)});
+ if(gap<5){B.wait=(B.wait||0)+dt;if(B.wait>1.2)B.go=1}      // 等了一会儿你还挡着：往左绕过去
+ if(B.go)B.x+=Math.max(-1*dt,(-3.2)-B.x);
+ const vt=gap<5&&!(B.go&&B.x<-2.9)?(B.go?1.2:0):4.5;B.v+=Math.max(-5*dt,Math.min(1.5*dt,vt-B.v));B.z+=B.v*dt;
+ place(B.c,B.x,B.z,0,0);B.c.userData.wh.forEach(w=>w.rotation.x-=B.v*dt/.36);
+ const zMax=Math.max(...cs.map(q=>q[1])),zMin=Math.min(...cs.map(q=>q[1]));
+ // 它快到你车旁边（后面 15 米以内）到它过去之前：你的车要停着
+ if(B.z>zMin-15&&B.z<zMax+1){B.phase=1;if(Math.abs(R.v)>.1)ev('noYieldBike')}
+ if(B.phase===1&&B.z>zMax+1){B.done=true;const seen=Math.max(R.oT.A||-9,R.mT||-9,R.oT.L||-9)>B.t0+1;
+  if(!R.ev.some(e=>e.key==='noYieldBike')){if(seen)banner('看到自行车，停车让它先过去：正确','#7ee787');else ev('noSeeBike')}}
+ if(obbHit([R.x,R.z,R.h,LW.HL,LW.HW],[B.x,B.z,0,.9,.35])){ev('crash');crashSnd();B.done=true}}
 LS.start(SCENE);
