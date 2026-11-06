@@ -24,7 +24,7 @@ const HP_TXT={
  noP:["没有挂 P 停好","停车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
  curbs:[{side:1,x:HRW,soft:!HP.curb},{side:-1,x:-HRW}],
- exam:{laneX:2.1,startZ:-110,crawlZ:-30,missZ:30,side:'R',insText:'考官：在前面右边靠边停车（停在房子前面）'},
+ exam:{laneX:2.1,startZ:-140,crawlZ:-30,missZ:30,side:'R',insText:'考官：在前面右边靠边停车（停在房子前面）'},
  okText:'看后视镜、打灯、看盲点后靠边，停在离路边 30 厘米以内，车轮方向正确，离开时也做了 M.S.B.，做得很好。',
  setup(R){Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0});banner('考官：在前面右边靠边停车（停在房子前面）','#ffe27a',1)},
  onGear(g){const R2=R;if(R2.ph===2&&g==='P')parkDone()},

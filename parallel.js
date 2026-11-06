@@ -9,7 +9,7 @@ const PK_TXT={
  noSigR:["停车前没有打右转灯","平行停车之前：看后视镜、打右转灯（告诉后面的车你要停车）、看右边盲点。"],
  noMirror:["没有看后视镜","开到参考车旁边停车之前，要先看后视镜，确认后面没有车紧跟着。"],
  noShoulderR:["倒车前没有看右边盲点","平行停车倒进去之前，要回头看右边盲点：右后方可能有自行车、行人。"],
- posGap:["停在参考车旁边的位置不对","起始位置：和参考车平行、相隔约 1 米，你的后保险杠和它的后保险杠对齐。"],
+ posGap:["停在参考车旁边的位置不对","起始位置：和参考车平行、相隔约 1 米，你的后保险杠和它的后保险杠对齐（或者你的后轮对准它的车尾）。"],
  notIn:["没有停进车位","车要停进两辆车之间的车位里，车身全在路边，不能停在车道上。"],
  farCurb:["停好后离路缘太远","平行停车最后要离路缘 30 厘米以内。"],
  notPar:["停好后车身没有和路缘平行","最后要把车身摆正，和路缘平行。"],
@@ -23,8 +23,8 @@ const PK_TXT={
  noP:["没有挂 P 停好","停好车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车不再要求按住回头看：倒车前做 360° 观察（里面包括看正后面） */
  curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
- // 考试模式：从后面 100 米开过来，一开始考官就发指令；离参考车约 14 米时系统已经减到很慢，你点“停车”停在参考车旁边；开过参考车 8 米还没停就算错过
- exam:{laneX:PX-2*LW.HW-1,startZ:PA-100,crawlZ:PA-14,missZ:PA+8,side:'R',insText:'考官：用前面那辆白车做参考，在它后面平行停车'},
+ // 考试模式：从后面 140 米开过来（听到指令后有 10 秒左右看镜子、打灯，系统才开始减速），一开始考官就发指令；离参考车约 14 米时系统已经减到很慢，你点“停车”停在参考车旁边；开过参考车 8 米还没停就算错过
+ exam:{laneX:PX-2*LW.HW-1,startZ:PA-140,crawlZ:PA-14,missZ:PA+8,side:'R',insText:'考官：用前面那辆白车做参考，在它后面平行停车'},
  okText:'停在参考车旁边的位置准确，倒车时一直做 360° 观察，打方向的时机准确，没有碰车、没有碰路缘，停在车位中间、离路缘 30 厘米内，做得很好。',
  setup(R){Object.assign(R,{x:.35,z:PB-26,h:0,gear:'D',ph:0});R.obst=[];
   PARKS.forEach((p,i)=>{const c=car(i===0?0xf4f6f8:[0x7b8794,0x1f2328,0x4a4f57,0x8e2b2b][Math.random()*4|0]);live.push(c);place(c,p[0],p[1],0,0)});      // 参考车固定是白车
@@ -39,7 +39,7 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
  step(R,dt){const t=R.t;
   // 0：开到参考车旁边停下（第一次停在参考车附近）：检查 M.S.B. 和起始位置
   if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;R.n360b=R.n360||0;R.bkK=1+(Math.random()*2|0);obsLbl(1);if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
-   if(gap<.4||gap>1.7||Math.abs(al)>1.2||Math.abs(R.h)>.12)ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
+   if(gap<.4||gap>1.7||al>.8||al<-2.0||Math.abs(R.h)>.12)      /* 后保险杠对齐，或者往后到“后轮对准参考车车尾”都可以 */ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(HARD)bikeStep(R,dt);
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
@@ -62,14 +62,14 @@ function obsLbl(p){const b=document.querySelector('[data-m="obsR"]');if(b)b.inne
 //  · 停下以后的第 1 或第 2 次 360° 观察时它出现在后面：你会看到它，等它过去再动就对了
 //  · 你没做观察就开始动车：它马上从后面过来，你正在动 → 没让行
 function bikeSpawn(R,d){const c=cyclist(0x2e86de);live.push(c);const zMin=Math.min(...corners().map(q=>q[1]));R.bk={c,x:-1.6,z:zMin-d,v:5,t0:R.t,phase:0}}
-function bikeStep(R,dt){const B=R.bk;if(!B||B.done)return;
+function bikeStep(R,dt){const B=R.bk;if(!B)return;
  const cs=corners(),xL=Math.min(...cs.map(q=>q[0])),xt=Math.max(-3.4,Math.min(-1.6,xL-1.1));B.x+=Math.max(-1.5*dt,Math.min(1.5*dt,xt-B.x));      // 你的车头摆出来了，它就往左边让一点
  B.z+=B.v*dt;place(B.c,B.x,B.z,0,0);B.c.userData.wh.forEach(w=>w.rotation.x-=B.v*dt/.36);
  const zMax=Math.max(...cs.map(q=>q[1])),zMin=Math.min(...cs.map(q=>q[1]));
  // 它从你车后面 12 米到骑过你的车头：你的车要停着
- if(B.z>zMin-12&&B.z<zMax+1){B.phase=1;if(Math.abs(R.v)>.1)ev('noYieldBike')}
- if(B.phase===1&&B.z>zMax+1){B.done=true;const seen=B.seen||Math.max(R.oT.A||-9,R.mT||-9,R.oT.L||-9)>B.t0+.5;
+ if(!B.done&&B.z>zMin-12&&B.z<zMax+1){B.phase=1;if(Math.abs(R.v)>.1)ev('noYieldBike')}
+ if(!B.done&&B.phase===1&&B.z>zMax+1){B.done=true;const seen=B.seen||Math.max(R.oT.A||-9,R.mT||-9,R.oT.L||-9)>B.t0+.5;
   if(!R.ev.some(e=>e.key==='noYieldBike')){if(seen)banner('看到自行车，停车让它先过去：正确','#7ee787');else ev('noSeeBike')}}
- if(obbHit([R.x,R.z,R.h,LW.HL,LW.HW],[B.x,B.z,0,.9,.35])){ev('crash');crashSnd();B.done=true}
- if(B.z>R.z+60){B.c.visible=false}}
+ if(!B.hit&&obbHit([R.x,R.z,R.h,LW.HL,LW.HW],[B.x,B.z,0,.9,.35])){B.hit=1;ev('crash');crashSnd();B.done=true}
+ if(B.z>R.z+150){B.c.visible=false;R.bk.gone=1}}      // 一直骑远，走远了才消失
 LS.start(SCENE);
