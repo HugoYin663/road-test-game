@@ -32,7 +32,7 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,
   else if(R.ph>=4&&dir<0)ev('tooMany')},
  step(R,dt){const t=R.t;
   if(R.ph===0&&R.x>2.45&&!R.c0){R.c0=1;msb('R')}
-  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;if(g.rear>.3)ev('farCurb','（后轮离路缘 '+g.rear.toFixed(2)+' 米）');banner('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始','#ffe27a')}}
+  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;if(g.rear>.35)ev('farCurb','（后轮离路缘 '+g.rear.toFixed(2)+' 米）');banner('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始','#ffe27a')}}
   // 路上开过的车：到时间出现，开过去就没了；你在路中间挡着它的车道时它停下来等
   if(!R.tr&&t>R.trT&&R.ph<5){const fromAhead=Math.random()<.5;R.tr={x:fromAhead?-2.1:2.1,z:fromAhead?R.z+140:R.z-140,dir:fromAhead?-1:1,v:11};R.trc.visible=true}
   if(R.tr){const c=R.tr;let vt=11;const ahead=(R.z-c.z)*c.dir,lat=Math.abs(R.x-c.x);if(ahead>0&&ahead<35&&(lat<2.4||Math.abs(Math.sin(R.h))>.3)&&R.ph>=1&&R.ph<5)vt=Math.max(0,Math.sqrt(2*5*Math.max(0,ahead-9)));

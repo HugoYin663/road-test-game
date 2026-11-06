@@ -48,7 +48,7 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
  topCam(R){return R.ph>=1?[.5,(PA+PB)/2,26]:[R.x-1.5,R.z+4,26]}};
 function parkDone(){const g=curbGap(1),fA=(PA-LW.HL)-(R.z+LW.HL),rB=(R.z-LW.HL)-(PB+LW.HL),inS=R.x>HRW-2.2&&fA>-.2&&rB>-.2;
  if(!inS)ev('notIn');
- else{if(g&&Math.max(g.front,g.rear)>.3)ev('farCurb','（右轮离路缘 前 '+g.front.toFixed(2)+' 米、后 '+g.rear.toFixed(2)+' 米）');
+ else{if(g&&Math.max(g.front,g.rear)>.35)ev('farCurb','（右轮离路缘 前 '+g.front.toFixed(2)+' 米、后 '+g.rear.toFixed(2)+' 米）');
   if(Math.abs(R.h)>.1)ev('notPar');if(fA<.5||rB<.5)ev('notCentre','（前面留了 '+fA.toFixed(1)+' 米，后面留了 '+rB.toFixed(1)+' 米）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0);if(nM>4)ev('manyMoves','（多调整了 '+(nM-2)+' 次）');      /* 倒进去、往前停到中间是正常步骤，另外最多调整 2 次 */
  if((R.n360||0)-(R.n360b||0)<3)ev('few360','（停下以后一共做了 '+((R.n360||0)-(R.n360b||0))+' 次，要 3 次：倒车前、车身斜着回正时、往左打方向前）');

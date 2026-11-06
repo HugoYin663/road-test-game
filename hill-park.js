@@ -31,7 +31,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
  step(R,dt){const t=R.t;
   // 0：靠边。开始往右靠时检查 M.S.B.
   if(R.ph===0&&R.x>2.45&&!R.c0){R.c0=1;msb('R')}
-  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2&&R.z>-20){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.7){R.ph=2;R.pz=R.z;R.dF=0;R.dB=0;if(Math.max(g.front,g.rear)>.3)ev('farCurb','（前轮离路边 '+g.front.toFixed(2)+' 米、后轮 '+g.rear.toFixed(2)+' 米）');if(Math.abs(R.h)>.1)ev('notPar');banner(HP.curb?'停好了：把车轮转到正确的方向，然后挂 P':'停好了：把车轮转到正确的方向，然后挂 P','#ffe27a')}}
+  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2&&R.z>-20){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.7){R.ph=2;R.pz=R.z;R.dF=0;R.dB=0;if(Math.max(g.front,g.rear)>.35)ev('farCurb','（前轮离路边 '+g.front.toFixed(2)+' 米、后轮 '+g.rear.toFixed(2)+' 米）');if(Math.abs(R.h)>.1)ev('notPar');banner(HP.curb?'停好了：把车轮转到正确的方向，然后挂 P':'停好了：把车轮转到正确的方向，然后挂 P','#ffe27a')}}
   if(R.ph===2){if(R.v>0)R.dF+=R.v*dt;else R.dB-=R.v*dt}
   // 3：离开。往左开出来时检查 M.S.B.
   if(R.ph===3&&R.gear!=='P'&&Math.abs(R.v)>.05&&!R.c3){R.c3=1}
