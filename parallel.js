@@ -11,8 +11,8 @@ const PK_TXT={
  noShoulderR:["倒车前没有看右边盲点","平行停车倒进去之前，要回头看右边盲点：右后方可能有自行车、行人。"],
  posGap:["停在参考车旁边的位置不对","起始位置：和参考车平行、相隔约 1 米，你的后保险杠和它的后保险杠对齐（或者你的后轮对准它的车尾）。"],
  notIn:["没有停进车位","车要停进两辆车之间的车位里，车身全在路边，不能停在车道上。"],
- farCurb:["停好后离路缘太远","平行停车最后要离路缘 30 厘米以内。"],
- notPar:["停好后车身没有和路缘平行","最后要把车身摆正，和路缘平行。"],
+ farCurb:["停好后离路缘太远","平行停车最后要离路缘 30 厘米以内（前后轮都在 40 厘米以内不算错）。"],
+ notPar:["不平行于路缘","停好后车身要和路缘平行：前轮、后轮离路缘差不多远。差得多，就再往前或往后调整一下。"],
  notCentre:["没有停在车位中间","停好后前后都要留出空间：挂 D 往前一点，停在两辆车中间（能看到前车的后轮落地处）。"],
  manyMoves:["调整超过两次","除了倒进去、往前停到中间，最多再调整两次（往前或往后挪一段算一次）。调整太多次，说明打方向的时机不对。"],
  sigOn:["停好后没有关转向灯","停好车后要关掉转向灯。"],
@@ -38,8 +38,7 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
   if(R.ph>=2){if((R.segD||0)>.3)R.moves=(R.moves||0)+1;R.segD=0}},      /* 每换一次方向，结算上一段：走了 30 厘米以上才算一次 */
  step(R,dt){const t=R.t;
   // 0：开到参考车旁边停下（第一次停在参考车附近）：检查 M.S.B. 和起始位置
-  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;R.n360b=R.n360||0;R.bkK=1+(Math.random()*2|0);obsLbl(1);if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
-   if(gap<.4||gap>1.7||al>.8||al<-2.0||Math.abs(R.h)>.12)      /* 后保险杠对齐，或者往后到“后轮对准参考车车尾”都可以 */ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
+  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;R.n360b=R.n360||0;R.bkK=1+(Math.random()*2|0);obsLbl(1);if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(HARD)bikeStep(R,dt);
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
@@ -48,8 +47,9 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
  topCam(R){return R.ph>=1?[.5,(PA+PB)/2,26]:[R.x-1.5,R.z+4,26]}};
 function parkDone(){const g=curbGap(1),fA=(PA-LW.HL)-(R.z+LW.HL),rB=(R.z-LW.HL)-(PB+LW.HL),inS=R.x>HRW-2.2&&fA>-.2&&rB>-.2;
  if(!inS)ev('notIn');
- else{if(g&&Math.max(g.front,g.rear)>.35)ev('farCurb','（右轮离路缘 前 '+g.front.toFixed(2)+' 米、后 '+g.rear.toFixed(2)+' 米）');
-  if(Math.abs(R.h)>.1)ev('notPar');if(fA<.5||rB<.5)ev('notCentre','（前面留了 '+fA.toFixed(1)+' 米，后面留了 '+rB.toFixed(1)+' 米）')}
+ else{const gt='（右轮离路缘 前 '+Math.round(g.front*100)+' 厘米、后 '+Math.round(g.rear*100)+' 厘米）';      // 宽容度：前后都在 40 厘米内、前后相差不到 25 厘米都不算错
+  if(g&&Math.abs(g.front-g.rear)>.25)ev('notPar',gt);else if(g&&Math.max(g.front,g.rear)>.4)ev('farCurb',gt);
+ if(fA<.5||rB<.5)ev('notCentre','（前面留了 '+fA.toFixed(1)+' 米，后面留了 '+rB.toFixed(1)+' 米）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0);if(nM>4)ev('manyMoves','（多调整了 '+(nM-2)+' 次）');      /* 倒进去、往前停到中间是正常步骤，另外最多调整 2 次 */
  if((R.n360||0)-(R.n360b||0)<3)ev('few360','（停下以后一共做了 '+((R.n360||0)-(R.n360b||0))+' 次，要 3 次：倒车前、车身斜着回正时、往左打方向前）');
  if(R.sig)ev('sigOn');
