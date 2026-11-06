@@ -20,18 +20,18 @@ const PK_TXT={
  noP:["没有挂 P 停好","停好车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车不再要求按住回头看：倒车前做 360° 观察（里面包括看正后面） */
  curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
- // 考试模式：从后面 110 米开过来，离参考车 70 米时考官发指令；开过参考车 10 米还没停就算错过
- exam:{laneX:PX-2*LW.HW-1,startZ:PA-110,insZ:PA-70,missZ:PA+10,side:'R',insText:'考官：在前面那辆车（车顶上方有蓝色箭头）后面的空位平行停车'},
+ // 考试模式：从后面 100 米开过来，一开始考官就发指令；离参考车约 14 米时系统已经减到很慢，你点“停车”停在参考车旁边；开过参考车 8 米还没停就算错过
+ exam:{laneX:PX-2*LW.HW-1,startZ:PA-100,crawlZ:PA-14,missZ:PA+8,side:'R',insText:'考官：用前面那辆白车做参考，在它后面平行停车'},
  okText:'M.S.B. 之后停在参考车旁边，倒车时回头看，打方向的时机准确，没有碰车、没有碰路缘，停在车位中间、离路缘 30 厘米内，做得很好。',
  setup(R){Object.assign(R,{x:.35,z:PB-26,h:0,gear:'D',ph:0});R.obst=[];
-  PARKS.forEach(p=>{const c=car([0x7b8794,0x1f2328,0xeceff1,0x4a4f57,0x8e2b2b][Math.random()*5|0]);live.push(c);place(c,p[0],p[1],0,0)});
-  SCN.obst=PARKS.map(p=>[p[0],p[1],0]);banner('考官：在前面那辆车（车顶上方有蓝色箭头）后面的空位平行停车','#ffe27a',1)},
+  PARKS.forEach((p,i)=>{const c=car(i===0?0xf4f6f8:[0x7b8794,0x1f2328,0x4a4f57,0x8e2b2b][Math.random()*4|0]);live.push(c);place(c,p[0],p[1],0,0)});      // 参考车固定是白车
+  SCN.obst=PARKS.map(p=>[p[0],p[1],0]);banner('考官：用前面那辆白车（车顶上方有蓝色箭头）做参考，在它后面平行停车','#ffe27a',1)},
  onGear(g){if(R.ph===2&&g==='P')parkDone()},
  onSeg(dir,n){if(dir<0&&R.ph>=1&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');      /* 每次开始倒车前 15 秒内要做过 360° 观察 */
   if(R.ph>=2){if((R.segD||0)>.3)R.moves=(R.moves||0)+1;R.segD=0}},      /* 每换一次方向，结算上一段：走了 30 厘米以上才算一次 */
  step(R,dt){const t=R.t;
   // 0：开到参考车旁边停下（第一次停在参考车附近）：检查 M.S.B. 和起始位置
-  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;msb('R',{sh:'noShoulderR'});const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
+  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);
    if(gap<.4||gap>1.7||Math.abs(al)>1.2||Math.abs(R.h)>.12)ev('posGap','（当时和参考车相隔 '+gap.toFixed(1)+' 米，后保险杠'+(al>0?'靠前 ':'靠后 ')+Math.abs(al).toFixed(1)+' 米）');banner('挂 R，回头看后面，慢慢倒进车位','#ffe27a')}
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
