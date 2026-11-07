@@ -1,7 +1,7 @@
 // ============================================================
 // three-point.js — 项目：三点调头（先靠右停在 30 厘米内 → 左转灯、看镜子、看盲点、两边观察 → 往前左打死 → 停在左路缘前 → R、右转灯、回头看 → 往后右打死 → 停在右路缘前 → D、左转灯 → 往回开）
 // ============================================================
-const HOOD=buildHood({g:0,curbR:true,curbL:true,quiet:[[-12,30]]});
+const HOOD=buildHood({g:0,curbR:true,curbL:true});      // 每栋房子都有车道：靠边时不能挡住车道口
 const TP_TXT={
  noSigR:["靠边前没有打右转灯","先要靠右边停车：看后视镜、打右转灯、回头看右边盲点，再慢慢靠过去。"],
  noMirror:["没有看后视镜","每次起步、换方向之前都要先看后视镜。"],
@@ -17,7 +17,7 @@ const TP_TXT={
  unsafe:["有车开过来还在调头","调头之前和调头过程中要一直观察两边：有车开过来，要停下来让它先过。"],
  wrongLane:["调头后没有开在正确的车道","调过头以后要开在新方向的右边车道（原来的对面车道）。"]};
 const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,
- curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
+ curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:40,side:'R',insText:'考官：在右边靠边停车，然后用三点调头往回开'},
  onHandover(R){R.trT=R.t+6+Math.random()*10},      // 考试模式：慢下来以后路上才开始有车
  okText:'靠边停在 30 厘米内，每一步之前都做了 M.S.B.，倒车回头看，没有原地打方向、没有碰路缘，三步完成调头，做得很好。',
@@ -32,7 +32,7 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,
   else if(R.ph>=4&&dir<0)ev('tooMany')},
  step(R,dt){const t=R.t;
   if(R.ph===0&&R.x>2.45&&!R.c0){R.c0=1;msb('R')}
-  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;if(g.rear>.35)ev('farCurb','（后轮离路缘 '+g.rear.toFixed(2)+' 米）');banner('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始','#ffe27a')}}
+  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;if(blocksDrive(1))ev('blockDrive');if(g.rear>.35)ev('farCurb','（后轮离路缘 '+g.rear.toFixed(2)+' 米）');banner('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始','#ffe27a')}}
   // 路上开过的车：到时间出现，开过去就没了；你在路中间挡着它的车道时它停下来等
   if(!R.tr&&t>R.trT&&R.ph<5){const fromAhead=Math.random()<.5;R.tr={x:fromAhead?-2.1:2.1,z:fromAhead?R.z+140:R.z-140,dir:fromAhead?-1:1,v:11};R.trc.visible=true}
   if(R.tr){const c=R.tr;let vt=11;const ahead=(R.z-c.z)*c.dir,lat=Math.abs(R.x-c.x);if(ahead>0&&ahead<35&&(lat<2.4||Math.abs(Math.sin(R.h))>.3)&&R.ph>=1&&R.ph<5)vt=Math.max(0,Math.sqrt(2*5*Math.max(0,ahead-9)));

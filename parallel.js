@@ -23,7 +23,7 @@ const PK_TXT={
  noSeeBike:["没有发现后面过来的自行车","这次你的车正好停着，自行车过去了，但它过来之前你没有观察（360° 观察、左镜）。倒车时要一直观察四周。"],
  noP:["没有挂 P 停好","停好车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车不再要求按住回头看：倒车前做 360° 观察（里面包括看正后面） */
- curbs:[{side:1,x:HRW},{side:-1,x:-HRW}],
+ curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  // 考试模式：从后面 140 米开过来（听到指令后有 10 秒左右看镜子、打灯，系统才开始减速），一开始考官就发指令；离参考车约 14 米时系统已经减到很慢，你点“停车”停在参考车旁边；开过参考车 8 米还没停就算错过
  exam:{laneX:PX-2*LW.HW-1,startZ:PA-140,crawlZ:PA-14,missZ:PA+8,side:'R',insText:'考官：用前面那辆白车做参考，在它后面平行停车'},
  okText:'停在参考车旁边的位置准确，倒车时一直做 360° 观察，打方向的时机准确，没有碰车、没有碰路缘，停在车位中间、离路缘 30 厘米内，做得很好。',

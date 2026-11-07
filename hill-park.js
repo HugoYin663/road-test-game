@@ -7,7 +7,7 @@ const HP_Q=((typeof location!=='undefined'?location.search:'').match(/mode=(\w+)
 // 场景只能建一次（坡度和路缘在建场景时定）：用网址参数或随机选一种；“再来一次”会换一种（重新加载页面）
 const HP=HP_MODES.find(m=>m.k===HP_Q)||HP_MODES[Math.random()*4|0];
 const HPG=HP.up?.07:-.07;
-const HOOD=buildHood({g:HPG,curbR:!!HP.curb,curbL:true,quiet:[[-15,25]]});
+const HOOD=buildHood({g:HPG,curbR:!!HP.curb,curbL:true});      // 每栋房子都有车道：停车时不能挡住车道口
 const HP_TXT={
  noSigR:["靠边前没有打右转灯","靠右边停车前，要先看后视镜、打右转灯、回头看右边盲点（M.S.B.），再慢慢靠过去。"],
  noMirror:["没有看后视镜","靠边、离开之前都要先看后视镜，确认后面没有车紧跟着。"],
@@ -23,7 +23,7 @@ const HP_TXT={
  sigOn:["停好后没有关转向灯","停好车后要关掉转向灯。"],
  noP:["没有挂 P 停好","停车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
- curbs:[{side:1,x:HRW,soft:!HP.curb},{side:-1,x:-HRW}],
+ curbs:[{side:1,x:HRW,soft:!HP.curb,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  exam:{laneX:2.1,startZ:-140,crawlZ:-30,missZ:30,side:'R',insText:'考官：在前面右边靠边停车（停在房子前面）'},
  okText:'看后视镜、打灯、看盲点后靠边，停在离路边 30 厘米以内，车轮方向正确，离开时也做了 M.S.B.，做得很好。',
  setup(R){Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0});banner('考官：在前面右边靠边停车（停在房子前面）','#ffe27a',1)},
@@ -31,7 +31,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
  step(R,dt){const t=R.t;
   // 0：靠边。开始往右靠时检查 M.S.B.
   if(R.ph===0&&R.x>2.45&&!R.c0){R.c0=1;msb('R')}
-  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2&&R.z>-20){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.7){R.ph=2;R.pz=R.z;R.dF=0;R.dB=0;if(Math.max(g.front,g.rear)>.35)ev('farCurb','（前轮离路边 '+g.front.toFixed(2)+' 米、后轮 '+g.rear.toFixed(2)+' 米）');if(Math.abs(R.h)>.1)ev('notPar');banner(HP.curb?'停好了：把车轮转到正确的方向，然后挂 P':'停好了：把车轮转到正确的方向，然后挂 P','#ffe27a')}}
+  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2&&R.z>-20){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.7){R.ph=2;R.pz=R.z;R.dF=0;R.dB=0;if(Math.max(g.front,g.rear)>.35)ev('farCurb','（前轮离路边 '+g.front.toFixed(2)+' 米、后轮 '+g.rear.toFixed(2)+' 米）');if(Math.abs(R.h)>.1)ev('notPar');if(blocksDrive(1))ev('blockDrive');banner(HP.curb?'停好了：把车轮转到正确的方向，然后挂 P':'停好了：把车轮转到正确的方向，然后挂 P','#ffe27a')}}
   if(R.ph===2){if(R.v>0)R.dF+=R.v*dt;else R.dB-=R.v*dt}
   // 3：离开。往左开出来时检查 M.S.B.
   if(R.ph===3&&R.gear!=='P'&&Math.abs(R.v)>.05&&!R.c3){R.c3=1}
