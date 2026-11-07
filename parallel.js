@@ -11,7 +11,8 @@ const PK_TXT={
  noShoulderR:["倒车前没有看右边盲点","平行停车倒进去之前，要回头看右边盲点：右后方可能有自行车、行人。"],
  posGap:["停在参考车旁边的位置不对","起始位置：和参考车平行、相隔约 1 米，你的后保险杠和它的后保险杠对齐（或者你的后轮对准它的车尾）。"],
  notIn:["没有停进车位","车要停进两辆车之间的车位里，车身全在路边，不能停在车道上。"],
- farCurb:["停好后离路缘太远","平行停车最后要离路缘 30 厘米以内（前后轮都在 40 厘米以内不算错）。"],
+ farCurb:["停好后离路缘太远","平行停车最后要离路缘 30 厘米以内（前后轮都在 45 厘米内不算错）。"],
+ farCurb2:["停好后离路缘稍远","平行停车最后要离路缘 30 厘米以内，这次稍远了一点（前后轮都在 45 厘米内不算错）。"],
  notPar:["不平行于路缘","停好后车身要和路缘平行：前轮、后轮离路缘差不多远。差得多，就再往前或往后调整一下。"],
  notCentre:["没有停在车位中间","停好后前后都要留出空间：挂 D 往前一点，停在两辆车中间（能看到前车的后轮落地处）。"],
  manyMoves:["调整超过两次","倒进去以后，往前、再往后算一次调整，最多两次（最后往前停到中间不另算）。调整太多次，说明打方向的时机不对。"],
@@ -31,14 +32,14 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
   SCN.obst=PARKS.map(p=>[p[0],p[1],0]);obsLbl(0);R.bk=null;banner('考官：用前面那辆白车（车顶上方有蓝色箭头）做参考，在它后面平行停车','#ffe27a',1)},
  onGear(g){if(R.ph===2&&g==='P')parkDone()},
  peekR:R=>R.ph>=1,
- // 困难模式：停下后的第 bkK 次 360° 观察开始时，自行车出现在后面约 26 米（观察到“正后面”时正好看得到）
+ // 困难模式：停下后的第 1 次 360° 观察开始时，自行车出现在后面约 26 米（观察到“正后面”时正好看得到）
  on360Start(R){if(HARD&&!R.bk&&R.ph>=1&&(R.n360||0)-(R.n360b||0)+1>=R.bkK){bikeSpawn(R,26);R.bk.seen=true}},      // 停到参考车旁边以后，“右侧观察”变成按住看右前方（找 A 柱参考点）
  onSeg(dir,n){if(HARD&&!R.bk&&R.ph>=1&&(R.oT.A==null||R.t-R.oT.A>15))bikeSpawn(R,14);      // 困难模式：没做观察就开始动车，自行车马上从后面过来
  if(dir<0&&R.ph>=1&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');      /* 每次开始倒车前 15 秒内要做过 360° 观察 */
   if(R.ph>=2){if((R.segD||0)>.3)R.moves=(R.moves||0)+1;R.segD=0}},      /* 每换一次方向，结算上一段：走了 30 厘米以上才算一次 */
  step(R,dt){const t=R.t;
   // 0：开到参考车旁边停下（第一次停在参考车附近）：检查 M.S.B. 和起始位置
-  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;R.n360b=R.n360||0;R.bkK=1+(Math.random()*2|0);obsLbl(1);if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
+  if(R.ph===0&&R.v===0&&R.z>PA-6&&R.z<PA+4){R.ph=1;R.n360b=R.n360||0;R.bkK=1;      /* 停下以后第一次 360° 观察时自行车就出现（原来随机第 1 或第 2 次，第 2 次才出现太突然） */obsLbl(1);if(!EXAM)msb('R',{sh:'noShoulderR'});      /* 考试模式里减速前已经检查过镜子和转向灯 */const gap=(PX-LW.HW)-(R.x+LW.HW),al=(R.z-LW.HL)-(PA-LW.HL);banner('挂 R，做 360° 观察，慢慢倒进车位（倒车时一直观察）','#ffe27a')}
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(HARD)bikeStep(R,dt);
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
@@ -48,7 +49,7 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
 function parkDone(){const g=curbGap(1),fA=(PA-LW.HL)-(R.z+LW.HL),rB=(R.z-LW.HL)-(PB+LW.HL),inS=R.x>HRW-2.2&&fA>-.2&&rB>-.2;
  if(!inS)ev('notIn');
  else{const gt='（右轮离路缘 前 '+Math.round(g.front*100)+' 厘米、后 '+Math.round(g.rear*100)+' 厘米）';      // 宽容度：前后都在 40 厘米内、前后相差不到 25 厘米都不算错
-  if(g&&Math.abs(g.front-g.rear)>.25)ev('notPar',gt);else if(g&&Math.max(g.front,g.rear)>.4)ev('farCurb',gt);
+  if(g&&Math.abs(g.front-g.rear)>.25)ev('notPar',gt);else if(g&&Math.max(g.front,g.rear)>.6)ev('farCurb',gt);else if(g&&Math.max(g.front,g.rear)>.45)ev('farCurb2',gt);      /* 45 厘米内不算错，45～60 稍远，60 以上太远 */
  if(fA<.5||rB<.5)ev('notCentre','（前面留了 '+fA.toFixed(1)+' 米，后面留了 '+rB.toFixed(1)+' 米）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0);const nAdj=Math.floor((nM-1)/2);if(nAdj>2)ev('manyMoves','（调整了 '+nAdj+' 次）');      /* 倒进去以后：往前＋往后＝一次调整；最后单独往前停到中间不算。最多 2 次 */
  if((R.n360||0)-(R.n360b||0)<3)ev('few360','（停下以后一共做了 '+((R.n360||0)-(R.n360b||0))+' 次，要 3 次：倒车前、车身斜着回正时、往左打方向前）');
@@ -59,7 +60,7 @@ function parkDone(){const g=curbGap(1),fA=(PA-LW.HL)-(R.z+LW.HL),rB=(R.z-LW.HL)-
 // “右侧观察”按钮：停车前＝中镜、右镜、右盲点；停下以后＝按住看右前方
 function obsLbl(p){const b=document.querySelector('[data-m="obsR"]');if(b)b.innerHTML=p?'看右前方<small>按住看 A 柱和右镜</small>':'右侧观察<small>两面镜＋右盲点</small>'}
 // 困难模式：一辆自行车从后面沿着马路骑过来，从你车的左边骑过去（不停）
-//  · 停下以后的第 1 或第 2 次 360° 观察时它出现在后面：你会看到它，等它过去再动就对了
+//  · 停下以后的第 1 次 360° 观察时它出现在后面：你会看到它，等它过去再动就对了
 //  · 你没做观察就开始动车：它马上从后面过来，你正在动 → 没让行
 function bikeSpawn(R,d){const c=cyclist(0x2e86de);live.push(c);const zMin=Math.min(...corners().map(q=>q[1]));R.bk={c,x:-1.6,z:zMin-d,v:5,t0:R.t,phase:0}}
 function bikeStep(R,dt){const B=R.bk;if(!B)return;
