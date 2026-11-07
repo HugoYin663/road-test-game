@@ -9,25 +9,27 @@ const TP_TXT={
  farCurb:["开始调头前离路缘太远","三点调头要先停在离右边路缘 30 厘米以内，路面才够用。"],
  noSigL:["往前左转前没有打左转灯","第一步往前左转之前，要打左转灯、看后视镜、回头看左边盲点。"],
  noShoulderL:["往前左转前没有看左边盲点","第一步往前左转之前，一定要回头看左边盲点：后面可能有车正开过来。"],
- noScan:["开始调头前没有两边观察","三点调头之前要两边都看（360° 观察）：路上两个方向的车、自行车、行人都要确认没有。"],
+ noScan:["开始调头前没有做 360° 观察","三点调头之前要做 360° 观察：路上两个方向的车、自行车、行人都要确认没有。"],
+ no360:["倒车前没有做 360° 观察","倒车之前要做 360° 观察（四周看一遍，包括正后面），确认没有车、自行车、行人再倒。"],
  noSigR2:["倒车前没有打右转灯","第二步倒车之前，按 M.S.B.：看后视镜、打右转灯、回头看。"],
  noSigL3:["最后往前开之前没有打左转灯","最后一步往前开之前，看后视镜、打左转灯、看盲点，再开走。"],
  touchCurb:["车轮碰到了路缘","往前、倒车都要在碰到路缘之前停住。"],
  tooMany:["超过三步才调过来","三点调头要在三步（前、后、前）内完成。每一步方向盘要打得够快、够多，到路中间开始回方向盘，停在路缘前。"],
  unsafe:["有车开过来还在调头","调头之前和调头过程中要一直观察两边：有车开过来，要停下来让它先过。"],
  wrongLane:["调头后没有开在正确的车道","调过头以后要开在新方向的右边车道（原来的对面车道）。"]};
-const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,
+const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车前做 360° 观察（里面包括看正后面），不用按住回头看 */
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:40,side:'R',insText:'考官：在右边靠边停车，然后用三点调头往回开'},
  onHandover(R){R.trT=R.t+6+Math.random()*10},      // 考试模式：慢下来以后路上才开始有车
  okText:'靠边停在 30 厘米内，每一步之前都做了 M.S.B.，倒车回头看，没有原地打方向、没有碰路缘，三步完成调头，做得很好。',
- setup(R){Object.assign(R,{x:2.1,z:-20,h:0,gear:'D',ph:0,tr:null,trT:3+Math.random()*12});banner('考官：在右边靠边停车，然后用三点调头往回开','#ffe27a',1);if(EXAM)R.trT=1e9;
+ onGo(R){banner('系统回正方向盘，开走','#7ee787')},
+ setup(R){SCN.vmax=2.0;Object.assign(R,{x:2.1,z:-20,h:0,gear:'D',ph:0,tr:null,trT:3+Math.random()*12});banner('考官：在右边靠边停车，然后用三点调头往回开','#ffe27a',1);if(EXAM)R.trT=1e9;
   // 路上偶尔有车开过：从前面开过来（对面车道）或者从后面开过来
   const c=car(C[1+Math.random()*8|0]);live.push(c);c.visible=false;R.trc=c},
  onTouch(){if(R.ph>=1)ev('touchCurb')},
- onSeg(dir,n){if(R.ph<1)return;
-  if(R.ph===1&&dir>0){R.ph=2;msb('L');if(!sawSh('R',15))ev('noScan');banner('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前','')}
-  else if(R.ph===2&&dir<0){R.ph=3;if(R.sig!=='R')ev('noSigR2');if(!sawMir(12))ev('noMirror');banner('第二步：倒车，方向盘往右打到底，回头看后面，停在路缘前','')}
+ onSeg(dir,n){if(R.ph<1)return;if(dir<0&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');
+  if(R.ph===1&&dir>0){R.ph=2;msb('L');if(R.oT.A==null||R.t-R.oT.A>15)ev('noScan');banner('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前','')}
+  else if(R.ph===2&&dir<0){R.ph=3;if(R.sig!=='R')ev('noSigR2');if(!sawMir(12))ev('noMirror');banner('第二步：倒车，方向盘往右打到底，一直观察，停在路缘前','')}
   else if(R.ph===3&&dir>0){R.ph=4;if(R.sig!=='L')ev('noSigL3');banner('第三步：往前开，回到右边车道','')}
   else if(R.ph>=4&&dir<0)ev('tooMany')},
  step(R,dt){const t=R.t;
@@ -40,7 +42,11 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,
    if(R.ph>=1&&R.ph<5&&Math.abs(R.v)>.1&&ahead>0&&ahead<35&&c.v>3)ev('unsafe');
    if(Math.abs(c.z-R.z)>170){R.tr=null;R.trc.visible=false;R.trT=t+15+Math.random()*25}}
   // 调过来了：车头朝南、往前开了一段
-  if(R.ph===4&&Math.cos(R.h)<-.95&&R.v>.5){R.d4=(R.d4||0)+R.v*dt;if(R.d4>8){if(R.x>-.4)ev('wrongLane');finish();return}}
+  // 车头调过来了（和原来方向差不到 20°）：油门键变成“行驶”；按了以后系统回正方向盘、开进车道、加速走，项目结束
+  if(R.ph===4&&!R.goShown&&Math.cos(R.h)<-.94){R.goShown=1;gasMode('go');banner('车头调过来了：按右下角“行驶”，系统回正方向盘开走','#7ee787')}
+  if(R.autoGo){R.gear='D';SCN.vmax=4.5;R.gas=true;R.v=Math.min(4.5,R.v+1.5*dt);const hd=Math.atan2(-2.1-R.x,-6);let e=hd-R.h;while(e>Math.PI)e-=2*Math.PI;while(e<-Math.PI)e+=2*Math.PI;
+   R.w+=Math.max(-dt/.6,Math.min(dt/.6,Math.max(-1,Math.min(1,e*1.8))-R.w));R.goT=(R.goT||0)+dt;if(R.goT>3.5){finish();return}}
+  else if(R.ph===4&&Math.cos(R.h)<-.95&&R.v>.5){R.d4=(R.d4||0)+R.v*dt;if(R.d4>8){if(R.x>-.4)ev('wrongLane');finish();return}}
   if(t>180)finish()},
  topCam(R){return R.ph>=1?[-3,(R.z+(R.z0||R.z))/2,28]:[R.x-3,R.z+2,22]}};
 LS.start(SCENE);
