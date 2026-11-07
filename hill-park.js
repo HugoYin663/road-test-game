@@ -22,7 +22,7 @@ const HP_TXT={
  rollFar:["调整车轮时车走得太多","调整车轮方向时只要往前或往后走半米左右，不要走太多。"],
  sigOn:["停好后没有关转向灯","停好车后要关掉转向灯。"],
  noP:["没有挂 P 停好","停车的最后一步要挂 P（再熄火、拉手刹）。"]};
-const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,
+const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,noSplit:true,
  curbs:[{side:1,x:HRW,soft:!HP.curb,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  exam:{laneX:2.1,startZ:-140,crawlZ:-30,missZ:30,side:'R',insText:'考官：在前面右边靠边停车（停在房子前面）'},
  okText:'看后视镜、打灯、看盲点后靠边，停在离路边 30 厘米以内，车轮方向正确，离开时也做了 M.S.B.，做得很好。',

@@ -13,7 +13,8 @@ const GRS=M(0xffffff,{map:noise('#79a95a',50,40)}),ASF=M(0xffffff,{map:noise('#5
 {const g=new T.Mesh(new T.PlaneGeometry(700,700),GRS);g.rotation.x=-Math.PI/2;g.receiveShadow=true;scene.add(g)}
 box(2*RW,.04,420,ASF,0,.02,0);box(460,.04,2*RW,ASF,0,.021,0);      // 你这条路（南北）、横路（东西）
 // 路缘（到转角为止）、人行道（一直通到转角，和横路的人行道接上）
-[-1,1].forEach(s=>{[[-230,-RW-RC],[RW+RC,230]].forEach(([a,b])=>{const L=b-a,c=(a+b)/2;box(.25,.15,L,CRB,s*(RW+.125),.075,c);box(L,.15,.25,CRB,c,.075,s*(RW+.125))});
+// 路缘在后面画（车道口那一段是平的，要等车道位置定了）
+[-1,1].forEach(s=>{
  [[-230,-6],[6,230]].forEach(([a,b])=>{const L=b-a,c=(a+b)/2;box(1.5,.12,L,SWK,s*(SW0+.75),.06,c);box(L,.12,1.5,SWK,c,.06,s*(SW0+.75))})});
 // 路口转角：路面填成圆角，外面一圈路缘
 function fan(pts,mat,y){const pos=[],idx=[];pts.forEach(p=>pos.push(-p[0],y,p[1]));for(let i=1;i<pts.length-1;i++)idx.push(0,i,i+1);const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;scene.add(m)}
@@ -50,9 +51,17 @@ signPost(-RW-1.0,-CW0+1.4,Math.PI,STOPT,.75,.75,1.55);      // 对面也有停�
 // ---------- 房子、车道、树、路灯、消防栓、信箱 ----------
 const WALLS=[0xb5654a,0x9c5a43,0xc9b28f,0xd8d2c4,0x8d6e5a,0xe2dccd,0xa8a29a],ROOFS=[0x3b3f45,0x4a4038,0x5b4a3d,0x2f3338,0x6b6e72];
 const WIN=M(0x2a3540),DOORc=[0x6b2b2b,0x234a6b,0x2f4f3a,0x111111],GAR=M(0xeeeeec),TRIM=M(0xf2f2ee);
+const MOUTH=[];      // 车道口：{road:'ns'|'ew',s:哪一边,a,b：沿路的范围}
+const DRA=M(0x4a4c51),CRBS=M(0x8e9196);
 function house(x,z,h,setL){const o=buildHouse(),g=o.g;      // 式样见 lib/houses.js：平房、科德角、殖民式、两层砖房、工匠平房
- const dl=setL-o.zf;g.add(mesh(new T.BoxGeometry(o.side?3.2:5,.05,dl),DRV,o.gx,.13,o.zf+dl/2));
- place(g,x,z,h);scene.add(g);return{x,z,gx:o.gx,h}}
+ // 车道：窄的占房子宽度一半以上，宽的和房子一样宽；水泥或沥青；人行道照常从车道上穿过去；路边那一段路缘是平的
+ const W=Math.min(o.bw,o.bw*(.55+Math.random()*.45)),cx=o.side?o.gx:Math.max(-o.bw/2+W/2,Math.min(o.bw/2-W/2,W>o.bw*.9?0:o.gx)),dm=Math.random()<.4?DRA:DRV;
+ const seg=(z0,z1,y,m)=>{if(z1>z0)g.add(mesh(new T.BoxGeometry(W,.05,z1-z0),m,cx,y,(z0+z1)/2))};
+ seg(o.fz,setL-(SW1-RW),.13,dm);seg(setL-(SW0-RW),setL-.25,.13,dm);seg(setL-.25,setL,.05,CRB);
+ place(g,x,z,h);scene.add(g);g.updateMatrixWorld(true);
+ const p=[cx-W/2,cx+W/2].map(lx=>new T.Vector3(lx,0,setL).applyMatrix4(g.matrixWorld)),ns=Math.abs(Math.sin(h))>.5;
+ const v=ns?p.map(q=>q.z):p.map(q=>-q.x);MOUTH.push({road:ns?'ns':'ew',s:ns?(x>0?1:-1):(z>0?1:-1),a:Math.min(...v),b:Math.max(...v)});
+ return{x,z,gx:o.gx,h}}
 const DRIVES=[];
 // 沿你这条路（南北）两边、沿横路两边各一排房子；房子正面朝路，离人行道约 7 米
 const HD=SW1+7+4.5;      // 房子中心离路中心
@@ -61,12 +70,20 @@ for(let z=30;z<210;z+=17)[-1,1].forEach(s=>{const hz=z+Math.random()*2;house(s*H
 for(let x=30;x<240;x+=17)[-1,1].forEach(sx=>[-1,1].forEach(sz=>{house(sx*(x+Math.random()*2),sz*HD,sz>0?Math.PI:0,HD-RW)}));
 // 路口四个角的房子：侧面朝横路
 [[1,-1],[-1,-1],[1,1],[-1,1]].forEach(([sx,sz])=>house(sx*(HD+1),sz*(HD+2),sx>0?-Math.PI/2:Math.PI/2,HD+1-RW));
+// 路缘（到转角为止）：车道口断开；立面颜色深一点（有阴影），脚下一条深色边沟
+{const GUT=M(0x4c4e54);
+ [-1,1].forEach(s=>{[['ns',[-230,-RW-RC]],['ns',[RW+RC,230]],['ew',[-230,-RW-RC]],['ew',[RW+RC,230]]].forEach(([rd,[a,b]])=>{
+  const gaps=MOUTH.filter(m=>m.road===rd&&m.s===s&&m.b>a&&m.a<b).sort((p,q)=>p.a-q.a);let c0=a;const pcs=[];gaps.forEach(m=>{pcs.push([c0,Math.max(c0,m.a)]);c0=Math.max(c0,m.b)});pcs.push([c0,b]);
+  pcs.forEach(([p,q])=>{const L=q-p,c=(p+q)/2;if(L<.05)return;
+   if(rd==='ns'){box(.25,.15,L,CRB,s*(RW+.125),.075,c);box(.02,.15,L,CRBS,s*(RW-.005),.075,c)}else{box(L,.15,.25,CRB,c,.075,s*(RW+.125));box(L,.15,.02,CRBS,c,.075,s*(RW-.005))}});
+  const L=b-a,c=(a+b)/2;if(rd==='ns')box(.22,.01,L,GUT,s*(RW-.11),.045,c);else box(L,.01,.22,GUT,c,.045,s*(RW-.11))})})}
+const onMouth=(rd,s,v)=>MOUTH.some(m=>m.road===rd&&m.s===s&&v>m.a-1.5&&v<m.b+1.5);
 // 行道树（草地隔离带里）
 const TRK=M(0x6b4a2e),LEAF=[M(0x3f8a3a),M(0x4f9a44),M(0x5a8f35)];
 function tree(x,z,s){const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.16,.22,2.4,6),TRK,0,1.2,0));const c=mesh(new T.SphereGeometry(2+Math.random()*.8*s,8,6),LEAF[Math.random()*3|0],0,3.8+Math.random()*.6,0);c.castShadow=true;g.add(c);g.position.set(-x,0,z);scene.add(g)}
-for(let z=-22;z>-230;z-=16+Math.random()*4)[-1,1].forEach(s=>Math.random()<.85&&tree(s*(RW+1.25),z+Math.random()*3,1));
-for(let z=24;z<210;z+=16+Math.random()*4)[-1,1].forEach(s=>Math.random()<.85&&tree(s*(RW+1.25),z,1));
-for(let x=24;x<240;x+=16+Math.random()*4)[-1,1].forEach(sx=>[-1,1].forEach(sz=>Math.random()<.8&&tree(sx*x,sz*(RW+1.25),1)));
+for(let z=-22;z>-230;z-=16+Math.random()*4)[-1,1].forEach(s=>{const zz=z+Math.random()*3;Math.random()<.85&&!onMouth('ns',s,zz)&&tree(s*(RW+1.25),zz,1)});
+for(let z=24;z<210;z+=16+Math.random()*4)[-1,1].forEach(s=>Math.random()<.85&&!onMouth('ns',s,z)&&tree(s*(RW+1.25),z,1));
+for(let x=24;x<240;x+=16+Math.random()*4)[-1,1].forEach(sx=>[-1,1].forEach(sz=>Math.random()<.8&&!onMouth('ew',sz,sx*x)&&tree(sx*x,sz*(RW+1.25),1)));
 // 路灯（路角）、消防栓、社区信箱
 {const pm=M(0x8a9099);[[RW+1.2,RW+9],[-RW-1.2,-RW-9]].forEach(([x,z])=>{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.08,.11,7.5,6),pm,0,3.75,0));g.add(mesh(new T.BoxGeometry(1.6,.1,.12),pm,(x>0?-1:1)*.8,7.4,0));g.add(mesh(new T.BoxGeometry(.5,.14,.25),BM(0xf4f1dc),(x>0?-1:1)*1.5,7.32,0));g.position.set(-x,0,z);scene.add(g)});
  const hy=new T.Group();hy.add(mesh(new T.CylinderGeometry(.16,.18,.7,10),M(0xd0261f),0,.35,0));hy.add(mesh(new T.SphereGeometry(.17,10,6),M(0xf2c12e),0,.72,0));hy.add(mesh(new T.CylinderGeometry(.06,.06,.5,6),M(0xd0261f),0,.45,0)).rotation.z=Math.PI/2;hy.position.set(-(-RW-1.1),0,-16);scene.add(hy);

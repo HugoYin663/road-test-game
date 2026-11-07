@@ -43,7 +43,7 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #wind{position:fixed;right:calc(122px + env(safe-area-inset-right,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));width:190px;display:flex;align-items:center;gap:8px;color:#fff;background:rgba(0,0,0,.45);border-radius:12px;padding:4px 10px;z-index:2;font-size:15px;font-weight:700}
 #whl{width:34px;height:34px;border:5px solid #ddd;border-radius:50%;position:relative;box-sizing:border-box}#whl:after{content:"";position:absolute;left:50%;top:0;width:4px;height:12px;margin-left:-2px;background:#f2c12e}
 #cgap{position:fixed;left:25%;transform:translateX(-50%);top:calc(56px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:8px;font-size:13px;z-index:2;white-space:nowrap}
-#hud{left:calc(50% + 14px)!important;top:calc(56px + env(safe-area-inset-top,0px))!important}
+#split{display:none}#cgap{left:50%!important;top:calc(104px + env(safe-area-inset-top,0px))!important}#fl{top:calc(140px + env(safe-area-inset-top,0px))!important}      /* 只有驾驶视角，不分屏 */
 #bn{left:50%!important;max-width:64vw;white-space:normal!important;text-align:center;font-size:14px;z-index:3}#fl{left:50%!important;top:calc(104px + env(safe-area-inset-top,0px))!important;white-space:normal!important;max-width:60vw;text-align:center}
 #cf{font-size:clamp(20px,3.6vw,30px)!important;white-space:normal!important;max-width:80vw;text-align:center}
 #vb{display:none!important}
@@ -93,7 +93,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
 <p><b>不能挡住车道口</b>：每栋房子都有车道通到路边，车道口那一段路缘是平的。靠边停车要停在两个车道口中间的路边，车身挡住车道口会扣分。</p>
 <p><b>两种玩法</b>：<b>分步练习</b>从静止开始，专门练倒车入位；<b>考试模式</b>和真实路考一样，车在路上行驶（系统保持车道，约 35 km/h），一开始考官就发指令。听到指令后看后视镜、打右转灯（有大约 10 秒）；快到的时候系统会自动减速到很慢（约 6 km/h），你在想停的地方点一下<b>停车</b>，车很快停住（和红灯停车一样）。停住后“停车”键变成<b>油门</b>，方向盘和挡位出现，后面自己操作。开过头没停下来算没完成。</p>
-<p><b>操作</b>：屏幕左边是俯视，右边是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少；<b>P R D</b> 换挡（车停稳才能换）。左边：转向灯、后视镜、看左右盲点、<b>回头看</b>（按住，从后窗看后面，倒车时要一直按住）。可以同时按两个键，比如一边按住油门一边打方向。</p>
+<p><b>操作</b>：全屏是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少；<b>P R D</b> 换挡（车停稳才能换）。左边：转向灯、后视镜、看左右盲点、<b>回头看</b>（按住，从后窗看后面，倒车时要一直按住）。可以同时按两个键，比如一边按住油门一边打方向。</p>
 <p>1. <b>靠边停车</b>：看后视镜、打右转灯、看右盲点，停在离右边路缘 <b>30 厘米以内</b>。</p>
 <p>2. <b>准备</b>：打<b>左转灯</b>，看后视镜，看左盲点、再看右边（两边都看），确认路上没有车、自行车、行人。</p>
 <p>3. <b>第一步（往前）</b>：按住油门慢慢往前，同时方向盘<b>往左打到底</b>（要先让车动起来再打）；过了路中间开始往右回方向盘，在<b>碰到左边路缘之前</b>停住。</p>
@@ -112,5 +112,5 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1106i"></script>
 <script src="lib/lowspeed.js?v=1106i"></script>
-<script src="three-point.js?v=1106i"></script>
+<script src="three-point.js?v=1106j"></script>
 </body></html>
