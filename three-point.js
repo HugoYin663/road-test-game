@@ -22,7 +22,7 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackC
  exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:40,side:'R',insText:'考官：在右边靠边停车，然后用三点调头往回开'},
  onHandover(R){R.trT=R.t+6+Math.random()*10},      // 考试模式：慢下来以后路上才开始有车
  okText:'靠边停在 30 厘米内，每一步之前都做了 M.S.B.，倒车回头看，没有原地打方向、没有碰路缘，三步完成调头，做得很好。',
- onGo(R){banner('系统回正方向盘，开走','#7ee787')},
+ onGo(R){banner('调头完成：系统回正方向盘，开到右边车道加速开走','#7ee787')},
  setup(R){SCN.vmax=2.0;Object.assign(R,{x:2.1,z:-20,h:0,gear:'D',ph:0,tr:null,trT:3+Math.random()*12});banner('考官：在右边靠边停车，然后用三点调头往回开','#ffe27a',1);if(EXAM)R.trT=1e9;
   // 路上偶尔有车开过：从前面开过来（对面车道）或者从后面开过来
   const c=car(C[1+Math.random()*8|0]);live.push(c);c.visible=false;R.trc=c},
@@ -40,7 +40,10 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackC
   if(R.tr)trafficStep(R,dt);
   // 调过来了：车头朝南、往前开了一段
   // 车头调过来了（和原来方向差不到 20°）：油门键变成“行驶”；按了以后系统回正方向盘、开进车道、加速走，项目结束
-  if(!R.goShown&&!R.over&&Math.cos(R.h)<-.94&&R.revDist>.5){      /* 车头调过来了（倒过车）就出现“行驶”，不再要求前面每一步都被识别到 */R.goShown=1;R.gas=false;gasMode('go');banner('车头调过来了：按右下角“行驶”，系统回正方向盘开走','#7ee787')}
+  // 车头调过来了（倒过车以后，和原来方向差不到 20°）：
+  //  · 正在往前开（第三步左打轮往前）→ 系统直接接手：回正方向盘、开到道路右侧、正常加速，结束
+  //  · 停着 → 油门键变成“行驶”，按一下系统接手
+  if(!R.autoGo&&!R.over&&Math.cos(R.h)<-.94&&R.revDist>.5){if(R.v>.1&&R.gear==='D'){R.autoGo=true;R.wl=R.wr=false;SCN.onGo(R);gasMode('go');mk()}else if(!R.goShown&&R.gear==='D'){R.goShown=1;R.gas=false;gasMode('go');banner('车头调过来了：按右下角“行驶”，系统开走','#7ee787')}}
   if(R.autoGo){R.gear='D';SCN.vmax=4.5;R.gas=true;R.v=Math.min(4.5,R.v+1.5*dt);const hd=Math.atan2(-2.1-R.x,-6);let e=hd-R.h;while(e>Math.PI)e-=2*Math.PI;while(e<-Math.PI)e+=2*Math.PI;
    R.w+=Math.max(-dt/.6,Math.min(dt/.6,Math.max(-1,Math.min(1,e*1.8))-R.w));R.goT=(R.goT||0)+dt;if(R.goT>3.5){finish();return}}
   if(t>180)finish()},
