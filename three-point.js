@@ -40,7 +40,7 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackC
   if(R.tr)trafficStep(R,dt);
   // 调过来了：车头朝南、往前开了一段
   // 车头调过来了（和原来方向差不到 20°）：油门键变成“行驶”；按了以后系统回正方向盘、开进车道、加速走，项目结束
-  if(R.ph===4&&!R.goShown&&Math.cos(R.h)<-.94){R.goShown=1;R.gas=false;gasMode('go');banner('车头调过来了：按右下角“行驶”，系统回正方向盘开走','#7ee787')}
+  if(!R.goShown&&!R.over&&Math.cos(R.h)<-.94&&R.revDist>.5){      /* 车头调过来了（倒过车）就出现“行驶”，不再要求前面每一步都被识别到 */R.goShown=1;R.gas=false;gasMode('go');banner('车头调过来了：按右下角“行驶”，系统回正方向盘开走','#7ee787')}
   if(R.autoGo){R.gear='D';SCN.vmax=4.5;R.gas=true;R.v=Math.min(4.5,R.v+1.5*dt);const hd=Math.atan2(-2.1-R.x,-6);let e=hd-R.h;while(e>Math.PI)e-=2*Math.PI;while(e<-Math.PI)e+=2*Math.PI;
    R.w+=Math.max(-dt/.6,Math.min(dt/.6,Math.max(-1,Math.min(1,e*1.8))-R.w));R.goT=(R.goT||0)+dt;if(R.goT>3.5){finish();return}}
   if(t>180)finish()},
