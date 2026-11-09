@@ -90,10 +90,10 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div class="modes"><button class="md" data-diff="rand"><b>随机</b><span>以有路缘的为主</span></button><button class="md" data-diff="upC"><b>上坡 · 有路缘</b><span>车轮朝外（往左）</span></button><button class="md" data-diff="downC"><b>下坡 · 有路缘</b><span>车轮朝路缘（往右）</span></button><button class="md" data-diff="downN"><b>没有路缘</b><span>车轮朝路边（往右）</span></button></div>
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
 <p><b>不能挡住车道口</b>：每栋房子都有车道通到路边，车道口那一段路缘是平的。靠边停车要停在两个车道口中间的路边，车身挡住车道口会扣分。</p>
-<p><b>按键</b>：全屏是驾驶视角。左边：左转灯、右转灯；<b>左侧观察</b>（中镜、左镜、左盲点）、<b>右侧观察</b>（中镜、右镜、右盲点）。右边：<b>⟲ ⟳</b> 按住打方向盘（打到底 540°）；<b>P R N D</b> 换挡；右下角的大键会跟着步骤变：<b>刹车 → 松刹车 → 油门</b>。</p>
-<p>1. <b>听指令、靠边</b>：车在路上行驶（约 35 km/h），考官一开始就发指令。先打<b>右转灯</b>、做<b>右侧观察</b>，再点<b>刹车</b>：系统减速并靠到右边路缘停住（停的位置由你点刹车的时机决定，大约 10 米内停住，不要挡住车道口）。</p>
+<p><b>按键</b>：全屏是驾驶视角。左边：左转灯、右转灯；<b>左侧观察</b>（中镜、左镜、左盲点）、<b>右侧观察</b>（中镜、右镜、右盲点）。右边：<b>⟲ ⟳</b> 按住打方向盘（打到底 540°）；<b>P R N D</b> 换挡；右下角的大键会跟着步骤变：<b>刹车 → 停车 → 油门 → 松刹车（有路缘时）→ 油门</b>。</p>
+<p>1. <b>听指令、靠边</b>：车在路上行驶（约 35 km/h），考官一开始就发指令。先打<b>右转灯</b>、做<b>右侧观察</b>，再点<b>刹车</b>：车减到很慢（约 6 km/h）。看好两个车道口中间的位置，点<b>停车</b>停住；然后按住<b>油门</b>、打方向，自己慢慢靠到右边路缘（30 厘米以内，车身摆正，不要挡住车道口）。</p>
 <p>2. <b>打方向</b>：停住后刹车一直踩着。方向盘打到底：<b>上坡、有路缘往左打</b>（车轮朝外）；<b>下坡、有路缘，或者没有路缘，往右打</b>（车轮朝路边）。</p>
-<p>3. <b>挂 N，松刹车</b>：挂 <b>N</b>，点一下<b>松刹车</b>，车顺着坡轻轻溜：有路缘时溜到车轮抵住路缘就停；没有路缘时往路边溜一点就停。车轮方向错了，车会往路中间溜（严重错误）。</p>
+<p>3. <b>有路缘：挂 N，松刹车</b>：靠好以后刹车自动踩住。挂 <b>N</b>，点一下<b>松刹车</b>，车顺着坡轻轻溜到车轮抵住路缘就停。车轮方向错了，车会往路中间溜（严重错误）。<b>没有路缘</b>：不用溜车（也没有 N 档），打好方向直接挂 P。</p>
 <p>4. <b>挂 P</b>：车停稳后挂 <b>P</b>，关掉转向灯。</p>
 <p>5. <b>离开</b>：考官说“安全的话，请继续行驶”，大键变成<b>油门</b>。挂 <b>D</b>、打<b>左转灯</b>、做<b>左侧观察</b>，点油门，车开出去，这一项结束。</p>
 <p>违规会当场闪现提示，结束后汇总成卡片。</p>
@@ -107,6 +107,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1106i"></script>
-<script src="lib/lowspeed.js?v=1108f"></script>
-<script src="hill-park.js?v=1108f"></script>
+<script src="lib/lowspeed.js?v=1108g"></script>
+<script src="hill-park.js?v=1108g"></script>
 </body></html>
