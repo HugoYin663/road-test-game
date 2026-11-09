@@ -48,8 +48,9 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2
    if(HP.curb&&R.curbT!=null&&t-R.curbT<.2){R.rested=true}      // 车轮抵住了路缘，车停住
    if(!HP.curb&&R.rollD>.35&&!R.stuck){const ok=HP.up?R.w>.05:R.w>.05;if(ok){R.stuck=1;R.rested=true;R.v=0}}      // 没有路缘：往路边溜一点就停（车轮压到路边松软的地方）
    if(R.rollD>1.2&&!R.away){R.away=1;ev('rollAway');R.hb=true;gasMode('hb')}}
+  if(R.ph===2.5){if(R.pb&&t-R.pbT>1.5)nextIns();else if(!R.pb&&t-R.pT>5){ev('noPB');nextIns()}}
   // 3：考官说继续行驶：挂 D、打左灯、左侧观察，点油门，系统开走
-  if(R.ph===3&&R.gas&&!R.autoGo){if(R.gear!=='D'){R.gas=false;tip('先挂 D 档');mk()}
+  if(R.ph===3&&R.gas&&!R.autoGo){if(R.pb){R.gas=false;tip('先放下手刹（再点一下手刹键）');mk()}else if(R.gear!=='D'){R.gas=false;tip('先挂 D 档');mk()}
    else{R.autoGo=true;if(R.sig!=='L')ev('noSigL');if(!sawMir(12))ev('noMirror');if(!sawSh('L',10))ev('noShoulderL');tip('开走了')}}
   if(R.autoGo){R.gear='D';SCN.vmax=4.5;R.gas=true;R.v=Math.min(4.5,R.v+1.2*dt);const hd=Math.atan2(2.1-R.x,6);let e=hd-R.h;
    R.w+=Math.max(-dt/.6,Math.min(dt/.6,Math.max(-1,Math.min(1,e*1.8))-R.w));R.goT=(R.goT||0)+dt;if(R.goT>3.5){finish();return}}
@@ -67,5 +68,6 @@ function parked(g){R.ph=2;R.rollD=0;R.gas=false;if(Math.min(g.front,g.rear)>1)ev
 function parkDone(){const wantLeft=HP.k==='upC',ok=wantLeft?R.w<-.05:R.w>.05;
  if(!ok)ev('wrongWheels');else if(Math.abs(R.w)<.6)ev('weakWheels');
  if(HP.curb&&!R.rested&&!R.away)ev('noRest');
- R.ph=3;R.hb=false;R.px=R.x;gasMode('gas');$('bgas').style.visibility='';mk();setTimeout(()=>{if(!R.over)banner('考官：好。安全的话，请继续行驶（when safe, drive on）','#ffe27a',1)},4000)}      // 挂 P 表示做完了，4 秒后考官发下一条指令
+ R.ph=2.5;R.pT=R.t;R.hb=false;R.px=R.x;$('bgas').style.visibility='hidden';mk()}      // 挂 P 以后还要拉手刹：拉了（或 5 秒没拉，判错）考官才发下一条指令
+function nextIns(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banner('考官：好。安全的话，请继续行驶（when safe, drive on）','#ffe27a',1)}
 LS.start(SCENE);

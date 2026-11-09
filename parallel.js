@@ -42,6 +42,7 @@ const SCENE={g:0,Y:()=>0,TXT:PK_TXT,SER:['notIn','noYieldBike'],vmax:2.0,noSplit
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(HARD)bikeStep(R,dt);
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
+  if(R.ph===3&&!R.over){if(R.pb&&t-R.pbT>1)finish();else if(!R.pb&&t-R.pT>5){ev('noPB');finish()}}
   if(t>200&&!R.over){if(R.ph<3)ev('noP');finish()}},
  draw(R){},
  topCam(R){return R.ph>=1?[.5,(PA+PB)/2,26]:[R.x-1.5,R.z+4,26]}};
@@ -52,7 +53,7 @@ function parkDone(){const g=curbGap(1),fA=(PA-LW.HL)-(R.z+LW.HL),rB=(R.z-LW.HL)-
  if(fA<.5||rB<.5)ev('notCentre','（前面留了 '+fA.toFixed(1)+' 米，后面留了 '+rB.toFixed(1)+' 米）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0);const nAdj=Math.floor((nM-1)/2);if(nAdj>2)ev('manyMoves','（调整了 '+nAdj+' 次）');      /* 倒进去以后：往前＋往后＝一次调整；最后单独往前停到中间不算。最多 2 次 */
  if((R.n360||0)-(R.n360b||0)<3)ev('few360','（停下以后一共做了 '+((R.n360||0)-(R.n360b||0))+' 次，要 3 次：倒车前、车身斜着回正时、往左打方向前）');
- R.ph=3;setTimeout(()=>{if(!R.over)finish()},1200)}
+ R.ph=3;R.pT=R.t}      // 挂 P 以后还要拉手刹：拉了就结束；5 秒没拉判错再结束
 // 参考车上方的箭头（俯视里看得清是哪辆）
 {const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(-PX,3.2,PA);scene.add(a)}
 // “右侧观察”按钮：停车前＝中镜、右镜、右盲点；停下以后＝按住看右前方

@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <title>安省路考练习场</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;800&family=Noto+Sans+SC:wght@400;500;700&display=swap">
 <style>
@@ -32,7 +33,7 @@
   --bg:#121815;--card:#1b2320;--ink:#e6ece8;--mute:#9aa8a0;--line:#2c3732;--sign:#14824a;--sign-ink:#ffffff;--signal:#f0b93a;--live:#43b072;--soon:#e0a54a;--plan:#87958d;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121815;--card:#1b2320;--ink:#e6ece8;--mute:#9aa8a0;--line:#2c3732;--sign:#14824a;--sign-ink:#ffffff;--signal:#f0b93a;--live:#43b072;--soon:#e0a54a;--plan:#87958d;color-scheme:dark}
-*{box-sizing:border-box}html,body{margin:0}
+*{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
 .wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
@@ -66,7 +67,7 @@ a.item:hover,a.item:focus-visible{outline:3px solid var(--signal);outline-offset
 .route li::marker{font-family:var(--f-display);font-weight:800;color:var(--sign)}
 .route .diff{color:var(--sign);font-weight:700}
 .note{color:var(--mute);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
-</style></head><body>
+</style>
 
 <div class="wrap">
   <header class="sign">
@@ -133,17 +134,17 @@ a.item:hover,a.item:focus-visible{outline:3px solid var(--signal);outline-offset
     <div class="group">
       <h3>低速操作</h3>
       <div class="grid">
-        <a class="item" href="three-point.html?v=1109d">
+        <a class="item" href="three-point.html?v=1109e">
           <div class="top"><b>三点调头</b><span class="st live">可以练</span></div>
           <span class="d">靠边停在 30 厘米内，每一步 M.S.B.，前、后、前三步调头，不原地打方向、不碰路缘</span>
           <span class="go">开始练习 →</span>
         </a>
-        <a class="item" href="hill-park.html?v=1109d">
+        <a class="item" href="hill-park.html?v=1109e">
           <div class="top"><b>上下坡停车</b><span class="st live">可以练</span></div>
           <span class="d">上坡有路缘车轮朝外，下坡、没有路缘车轮朝路边；停好再离开</span>
           <span class="go">开始练习 →</span>
         </a>
-        <a class="item" href="parallel.html?v=1109d">
+        <a class="item" href="parallel.html?v=1109e">
           <div class="top"><b>平行停车</b><span class="st live">可以练</span></div>
           <span class="d">停在参考车旁边 1 米、后保险杠对齐，倒车右打、45° 回正、左打，停在车位中间</span>
           <span class="go">开始练习 →</span>
@@ -189,5 +190,3 @@ a.item:hover,a.item:focus-visible{outline:3px solid var(--signal);outline-offset
 
   <p class="note">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p>
 </div>
-
-</body></html>
