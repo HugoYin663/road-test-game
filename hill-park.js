@@ -5,7 +5,12 @@
 const HP_MODES=[{k:'upC',up:1,curb:1,name:'上坡、有路缘'},{k:'downC',up:0,curb:1,name:'下坡、有路缘'},{k:'upN',up:1,curb:0,name:'上坡、没有路缘'},{k:'downN',up:0,curb:0,name:'下坡、没有路缘'}];
 const HP_Q=((typeof location!=='undefined'?location.search:'').match(/mode=(\w+)/)||[])[1];
 // 场景只能建一次（坡度和路缘在建场景时定）：用网址参数或随机选一种；“再来一次”会换一种（重新加载页面）
-const HP=HP_MODES.find(m=>m.k===HP_Q)||HP_MODES[Math.random()*4|0];
+// 随机：有路缘的为主（上坡有路缘、下坡有路缘各 40%），没有路缘的各 10%
+const hpRand=()=>{const r=Math.random();return HP_MODES[r<.4?0:r<.8?1:r<.9?2:3]};
+const HP=HP_MODES.find(m=>m.k===HP_Q)||hpRand();
+// 考官的指令（英文原话＋中文）
+const HP_INS={upC:['an uphill park with a curb','上坡、有路缘'],downC:['a downhill park with a curb','下坡、有路缘'],upN:['an uphill park without a curb','上坡、没有路缘'],downN:['a downhill park without a curb','下坡、没有路缘']}[HP.k];
+const HP_INSTXT='Examiner: "When it\'s safe, pull over on the right and show me '+HP_INS[0]+'."（安全时靠右停车，做'+HP_INS[1]+'的坡道停车）';
 const HPG=HP.up?.07:-.07;
 const HOOD=buildHood({g:HPG,curbR:!!HP.curb,curbL:true});      // 每栋房子都有车道：停车时不能挡住车道口
 const HP_TXT={
@@ -24,9 +29,10 @@ const HP_TXT={
  noP:["没有挂 P 停好","停车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,noSplit:true,
  curbs:[{side:1,x:HRW,soft:!HP.curb,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
- exam:{laneX:2.1,startZ:-140,crawlZ:-30,missZ:30,side:'R',insText:'考官：在前面右边靠边停车（停在房子前面）'},
+ alwaysExam:true,      // 上下坡停车总是从行驶中开始：考官一开始就发指令
+ exam:{laneX:2.1,startZ:-140,crawlZ:-30,missZ:30,side:'R',insText:HP_INSTXT},
  okText:'看后视镜、打灯、看盲点后靠边，停在离路边 30 厘米以内，车轮方向正确，离开时也做了 M.S.B.，做得很好。',
- setup(R){Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0});banner('考官：在前面右边靠边停车（停在房子前面）','#ffe27a',1)},
+ setup(R){Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0});banner(HP_INSTXT,'#ffe27a',1)},
  onGear(g){const R2=R;if(R2.ph===2&&g==='P')parkDone()},
  step(R,dt){const t=R.t;
   // 0：靠边。开始往右靠时检查 M.S.B.
@@ -41,7 +47,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,noSplit:tr
  topCam(R){return[R.x-3,R.z+2,22]},
  // 选了另一种坡（或“再来一次”换一种）：重新加载页面（坡度在建场景时就定了）
  pick(d){if(d==='rand'||d===HP.k)return false;const k=d;location.search='?mode='+k+'&go=1'+(EXAM?'&ex=1':'');return true},
- again(){location.search='?mode='+HP_MODES.filter(m=>m.k!==HP.k)[Math.random()*3|0].k+'&go=1'+(EXAM?'&ex=1':'');return true}};
+ again(){let k=hpRand().k;if(k===HP.k)k=hpRand().k;location.search='?mode='+k+'&go=1'+(EXAM?'&ex=1':'');return true}};
 function parkDone(){const g=curbGap(1),wantLeft=HP.k==='upC',ok=wantLeft?R.w<-.05:R.w>.05;
  if(!ok)ev('wrongWheels');else if(Math.abs(R.w)<.6)ev('weakWheels');
  if(wantLeft&&g&&g.front>.06)ev('noRest');
