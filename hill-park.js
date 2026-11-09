@@ -60,7 +60,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2
  again(){let k=hpRand().k;if(k===HP.k)k=hpRand().k;location.search='?mode='+k+'&go=1';return true}};
 // 靠边停好了：检查离路缘、平行、车道口；有路缘：刹车踩着，打方向、挂 N、松刹车让车溜到位，再挂 P；没有路缘：打方向、挂 P
 function parked(g){R.ph=2;R.rollD=0;R.gas=false;if(Math.min(g.front,g.rear)>1)ev('farCurb','（离路边 '+Math.round(Math.min(g.front,g.rear)*100)+' 厘米）');else 
- if(Math.max(g.front,g.rear)>.45)ev('farCurb','（前轮离路边 '+Math.round(g.front*100)+' 厘米、后轮 '+Math.round(g.rear*100)+' 厘米）');if(Math.abs(R.h)>.1)ev('notPar');      /* 挂 N／P 的时候才检查 */if(blocksDrive(1))ev('blockDrive');
+ if(Math.max(g.front,g.rear)>.45)ev('farCurb','（前轮离路边 '+Math.round(g.front*100)+' 厘米、后轮 '+Math.round(g.rear*100)+' 厘米）');if(Math.abs(R.h)>.1)ev('notPar');      /* 挂 N／P 的时候才检查 */{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}
  if(HP.curb&&R.gear==='N'){R.hb=true;gasMode('hb');tip('刹车踩着。方向盘打好以后，点一下“松刹车”让车溜到车轮抵住路缘，停稳后挂 P')}
  else{R.hb=true;$('bgas').style.visibility='hidden'}
  mk()}
