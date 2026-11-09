@@ -76,10 +76,8 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <button class="b pos" id="bsigL" data-m="sigL">左转灯<small>Signal</small></button>
 <button class="b pos" id="bsigR" data-m="sigR">右转灯<small>Signal</small></button>
-<button class="b pos" id="bmir" data-m="mir">后视镜<small>Mirror</small></button>
-<button class="b pos" id="bshL" data-m="shL">看左盲点<small>Blind spot</small></button>
-<button class="b pos" id="bshR" data-m="shR">看右盲点<small>Blind spot</small></button>
-<button class="b pos" id="bback" data-m="back">回头看<small>按住看后窗</small></button>
+<button class="b pos" id="bshL" data-m="obsL" style="background:#7b5bd6">左侧观察<small>中镜＋左镜＋左盲点</small></button>
+<button class="b pos" id="bshR" data-m="obsR" style="background:#7b5bd6">右侧观察<small>中镜＋右镜＋右盲点</small></button>
 <div id="gears"><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gD" data-m="gD">D</button></div>
 <div id="wind"><div id="whl"></div><span>方向盘 <span id="wtx">正</span></span></div>
 <button class="b pos" id="bwl" data-m="wl">⟲<small>往左打</small></button>
@@ -93,12 +91,12 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
 <p><b>不能挡住车道口</b>：每栋房子都有车道通到路边，车道口那一段路缘是平的。靠边停车要停在两个车道口中间的路边，车身挡住车道口会扣分。</p>
 <p><b>开始</b>：和真实路考一样，车在路上行驶（系统保持车道，约 35 km/h），一开始考官就发指令。听到指令后看后视镜、打右转灯（有大约 10 秒）；快到的时候系统会自动减速到很慢（约 6 km/h），你在想停的地方点一下<b>停车</b>，车很快停住（和红灯停车一样）。停住后“停车”键变成<b>油门</b>，方向盘和挡位出现，后面自己操作。开过头没停下来算没完成。</p>
-<p><b>操作</b>：全屏是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少；<b>P R D</b> 换挡（车停稳才能换）。左边：转向灯、后视镜、看左右盲点、<b>回头看</b>（按住，从后窗看后面，倒车时要一直按住）。可以同时按两个键，比如一边按住油门一边打方向。</p>
-<p>1. <b>靠边</b>：看后视镜、打右转灯、看右盲点（M.S.B.），按住油门慢慢往右靠，车身和路边平行，停在离路缘（或路边白线）<b>30 厘米以内</b>。</p>
-<p>2. <b>上坡、有路缘（车轮朝外）</b>：按住油门往前走一点点（不超过半米），同时方向盘<b>往左打到底</b>；停住，挂 <b>R</b>，回头看，慢慢往后溜，让右前轮<b>轻轻靠在路缘上</b>；挂 <b>P</b>。</p>
-<p>3. <b>下坡、有路缘（车轮朝路缘）</b>：挂 <b>R</b>，回头看，慢慢往后约半米，同时方向盘<b>往右打到底</b>；停住，挂 <b>P</b>。</p>
+<p><b>操作</b>：全屏是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少；<b>P R D</b> 换挡（车停稳才能换）。左边一列是左转灯、右转灯；右边一列是<b>左侧观察</b>（中镜、左镜、左盲点）和<b>右侧观察</b>（中镜、右镜、右盲点）。可以同时按两个键，比如一边按住油门一边打方向。</p>
+<p>1. <b>靠边</b>：打右转灯、按<b>右侧观察</b>（M.S.B.），按住油门慢慢往右靠，车身和路边平行，停在离路缘（或路边白线）<b>30 厘米以内</b>。</p>
+<p>2. <b>上坡、有路缘（车轮朝外）</b>：按住油门往前走一点点（不超过半米），同时方向盘<b>往左打到底</b>；停住，挂 <b>R</b>，慢慢往后溜，让右前轮<b>轻轻靠在路缘上</b>；挂 <b>P</b>。</p>
+<p>3. <b>下坡、有路缘（车轮朝路缘）</b>：挂 <b>R</b>，慢慢往后约半米，同时方向盘<b>往右打到底</b>；停住，挂 <b>P</b>。</p>
 <p>4. <b>没有路缘（上坡、下坡都一样）</b>：和下坡有路缘一样，车轮<b>往右（朝路边）</b>打到底，挂 P。</p>
-<p>5. 停好后关掉转向灯。<b>离开</b>：上坡有路缘挂 D；下坡先挂 R 往后一点、把方向回正。然后看后视镜、打左转灯、看左盲点，再开出来，继续往前开。</p>
+<p>5. 停好后关掉转向灯。<b>离开</b>：上坡有路缘挂 D；下坡先挂 R 往后一点、把方向回正。然后打左转灯、按<b>左侧观察</b>，再开出来，继续往前开。</p>
 <p>离路缘的距离靠自己看：挂 R 时右侧外后视镜会自动往下翻，能看到右后轮和路缘（要求 30 厘米以内，35 厘米以内都不算错）。前车、后车 2.5 米以内时，画面上方会显示距离（像倒车雷达）。违规会当场闪现提示，结束后汇总成卡片。</p>
 </div></details>
 <p class="mu">参考 Canadian Pro Drivers 教材的步骤。仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
@@ -110,6 +108,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1106i"></script>
-<script src="lib/lowspeed.js?v=1108d"></script>
-<script src="hill-park.js?v=1108d"></script>
+<script src="lib/lowspeed.js?v=1108e"></script>
+<script src="hill-park.js?v=1108e"></script>
 </body></html>

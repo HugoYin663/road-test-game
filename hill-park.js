@@ -9,8 +9,8 @@ const HP_Q=((typeof location!=='undefined'?location.search:'').match(/mode=(\w+)
 const hpRand=()=>{const r=Math.random();return HP_MODES[r<.4?0:r<.8?1:r<.9?2:3]};
 const HP=HP_MODES.find(m=>m.k===HP_Q)||hpRand();
 // 考官的指令（英文原话＋中文）
-const HP_INS={upC:['an uphill park with a curb','上坡、有路缘'],downC:['a downhill park with a curb','下坡、有路缘'],upN:['an uphill park without a curb','上坡、没有路缘'],downN:['a downhill park without a curb','下坡、没有路缘']}[HP.k];
-const HP_INSTXT='Examiner: "When it\'s safe, pull over on the right and show me '+HP_INS[0]+'."（安全时靠右停车，做'+HP_INS[1]+'的坡道停车）';
+const HP_INS={upC:['上坡、有路缘','uphill, with curb'],downC:['下坡、有路缘','downhill, with curb'],upN:['上坡、没有路缘','uphill, no curb'],downN:['下坡、没有路缘','downhill, no curb']}[HP.k];
+const HP_INSTXT='考官：安全的时候靠右停车（pull over），做'+HP_INS[0]+'的坡道停车（'+HP_INS[1]+'）';      // 先用中文，关键词标英文
 const HPG=HP.up?.07:-.07;
 const HOOD=buildHood({g:HPG,curbR:!!HP.curb,curbL:true});      // 每栋房子都有车道：停车时不能挡住车道口
 const HP_TXT={
@@ -29,7 +29,7 @@ const HP_TXT={
  noP:["没有挂 P 停好","停车的最后一步要挂 P（再熄火、拉手刹）。"]};
 const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,noSplit:true,
  curbs:[{side:1,x:HRW,soft:!HP.curb,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
- alwaysExam:true,      // 上下坡停车总是从行驶中开始：考官一开始就发指令
+ alwaysExam:true,keepIns:true,noBackCheck:true,      // 考官的指令一直留在上方；调整车轮时往后溜一点不用按回头看      // 上下坡停车总是从行驶中开始：考官一开始就发指令
  exam:{laneX:2.1,startZ:-140,crawlZ:-30,missZ:30,side:'R',insText:HP_INSTXT},
  okText:'看后视镜、打灯、看盲点后靠边，停在离路边 30 厘米以内，车轮方向正确，离开时也做了 M.S.B.，做得很好。',
  setup(R){Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0});banner(HP_INSTXT,'#ffe27a',1)},
@@ -37,7 +37,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels'],vmax:2.2,noSplit:tr
  step(R,dt){const t=R.t;
   // 0：靠边。开始往右靠时检查 M.S.B.
   if(R.ph===0&&R.x>2.45&&!R.c0){R.c0=1;msb('R')}
-  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2&&R.z>-20){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.7){R.ph=2;R.pz=R.z;R.dF=0;R.dB=0;if(Math.max(g.front,g.rear)>.35)ev('farCurb','（前轮离路边 '+g.front.toFixed(2)+' 米、后轮 '+g.rear.toFixed(2)+' 米）');if(Math.abs(R.h)>.1)ev('notPar');if(blocksDrive(1))ev('blockDrive');banner(HP.curb?'停好了：把车轮转到正确的方向，然后挂 P':'停好了：把车轮转到正确的方向，然后挂 P','#ffe27a')}}
+  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2&&R.z>-20){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.7){R.ph=2;R.pz=R.z;R.dF=0;R.dB=0;if(Math.max(g.front,g.rear)>.35)ev('farCurb','（前轮离路边 '+g.front.toFixed(2)+' 米、后轮 '+g.rear.toFixed(2)+' 米）');if(Math.abs(R.h)>.1)ev('notPar');if(blocksDrive(1))ev('blockDrive');tip('停好了：把车轮转到正确的方向，然后挂 P')}}
   if(R.ph===2){if(R.v>0)R.dF+=R.v*dt;else R.dB-=R.v*dt}
   // 3：离开。往左开出来时检查 M.S.B.
   if(R.ph===3&&R.gear!=='P'&&Math.abs(R.v)>.05&&!R.c3){R.c3=1}
@@ -53,5 +53,5 @@ function parkDone(){const g=curbGap(1),wantLeft=HP.k==='upC',ok=wantLeft?R.w<-.0
  if(wantLeft&&g&&g.front>.06)ev('noRest');
  if(R.dF>.8||R.dB>1.3)ev('rollFar');
  if(R.sig)ev('sigOn');
- R.ph=3;R.px=R.x;setTimeout(()=>{if(!R.over)banner('考官：好，现在离开停车位，继续往前开','#ffe27a',1)},800)}
+ R.ph=3;R.px=R.x;setTimeout(()=>{if(!R.over)banner('考官：好。安全的话，请继续行驶（when safe, drive on）','#ffe27a',1)},800)}
 LS.start(SCENE);
