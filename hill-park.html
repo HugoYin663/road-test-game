@@ -78,7 +78,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b pos" id="bsigR" data-m="sigR">右转灯<small>Signal</small></button>
 <button class="b pos" id="bshL" data-m="obsL" style="background:#7b5bd6">左侧观察<small>中镜＋左镜＋左盲点</small></button>
 <button class="b pos" id="bshR" data-m="obsR" style="background:#7b5bd6">右侧观察<small>中镜＋右镜＋右盲点</small></button>
-<div id="gears"><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gD" data-m="gD">D</button></div>
+<div id="gears"><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gN" data-m="gN">N</button><button class="b" id="gD" data-m="gD">D</button></div>
 <div id="wind"><div id="whl"></div><span>方向盘 <span id="wtx">正</span></span></div>
 <button class="b pos" id="bwl" data-m="wl">⟲<small>往左打</small></button>
 <button class="b pos" id="bwr" data-m="wr">⟳<small>往右打</small></button>
@@ -90,14 +90,13 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div class="modes"><button class="md" data-diff="rand"><b>随机</b><span>以有路缘的为主</span></button><button class="md" data-diff="upC"><b>上坡 · 有路缘</b><span>车轮朝外（往左）</span></button><button class="md" data-diff="downC"><b>下坡 · 有路缘</b><span>车轮朝路缘（往右）</span></button><button class="md" data-diff="downN"><b>没有路缘</b><span>车轮朝路边（往右）</span></button></div>
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
 <p><b>不能挡住车道口</b>：每栋房子都有车道通到路边，车道口那一段路缘是平的。靠边停车要停在两个车道口中间的路边，车身挡住车道口会扣分。</p>
-<p><b>开始</b>：和真实路考一样，车在路上行驶（系统保持车道，约 35 km/h），一开始考官就发指令。听到指令后看后视镜、打右转灯（有大约 10 秒）；快到的时候系统会自动减速到很慢（约 6 km/h），你在想停的地方点一下<b>停车</b>，车很快停住（和红灯停车一样）。停住后“停车”键变成<b>油门</b>，方向盘和挡位出现，后面自己操作。开过头没停下来算没完成。</p>
-<p><b>操作</b>：全屏是驾驶视角。右边：<b>油门</b>按住车就慢慢走（D 往前、R 往后），松开就刹车停住；<b>⟲ ⟳</b> 按住往左、往右打方向盘（打到底约 1.3 秒），旁边的小方向盘显示打了多少；<b>P R D</b> 换挡（车停稳才能换）。左边一列是左转灯、右转灯；右边一列是<b>左侧观察</b>（中镜、左镜、左盲点）和<b>右侧观察</b>（中镜、右镜、右盲点）。可以同时按两个键，比如一边按住油门一边打方向。</p>
-<p>1. <b>靠边</b>：打右转灯、按<b>右侧观察</b>（M.S.B.），按住油门慢慢往右靠，车身和路边平行，停在离路缘（或路边白线）<b>30 厘米以内</b>。</p>
-<p>2. <b>上坡、有路缘（车轮朝外）</b>：按住油门往前走一点点（不超过半米），同时方向盘<b>往左打到底</b>；停住，挂 <b>R</b>，慢慢往后溜，让右前轮<b>轻轻靠在路缘上</b>；挂 <b>P</b>。</p>
-<p>3. <b>下坡、有路缘（车轮朝路缘）</b>：挂 <b>R</b>，慢慢往后约半米，同时方向盘<b>往右打到底</b>；停住，挂 <b>P</b>。</p>
-<p>4. <b>没有路缘（上坡、下坡都一样）</b>：和下坡有路缘一样，车轮<b>往右（朝路边）</b>打到底，挂 P。</p>
-<p>5. 停好后关掉转向灯。<b>离开</b>：上坡有路缘挂 D；下坡先挂 R 往后一点、把方向回正。然后打左转灯、按<b>左侧观察</b>，再开出来，继续往前开。</p>
-<p>离路缘的距离靠自己看：挂 R 时右侧外后视镜会自动往下翻，能看到右后轮和路缘（要求 30 厘米以内，35 厘米以内都不算错）。前车、后车 2.5 米以内时，画面上方会显示距离（像倒车雷达）。违规会当场闪现提示，结束后汇总成卡片。</p>
+<p><b>按键</b>：全屏是驾驶视角。左边：左转灯、右转灯；<b>左侧观察</b>（中镜、左镜、左盲点）、<b>右侧观察</b>（中镜、右镜、右盲点）。右边：<b>⟲ ⟳</b> 按住打方向盘（打到底 540°）；<b>P R N D</b> 换挡；右下角的大键会跟着步骤变：<b>刹车 → 松刹车 → 油门</b>。</p>
+<p>1. <b>听指令、靠边</b>：车在路上行驶（约 35 km/h），考官一开始就发指令。先打<b>右转灯</b>、做<b>右侧观察</b>，再点<b>刹车</b>：系统减速并靠到右边路缘停住（停的位置由你点刹车的时机决定，大约 10 米内停住，不要挡住车道口）。</p>
+<p>2. <b>打方向</b>：停住后刹车一直踩着。方向盘打到底：<b>上坡、有路缘往左打</b>（车轮朝外）；<b>下坡、有路缘，或者没有路缘，往右打</b>（车轮朝路边）。</p>
+<p>3. <b>挂 N，松刹车</b>：挂 <b>N</b>，点一下<b>松刹车</b>，车顺着坡轻轻溜：有路缘时溜到车轮抵住路缘就停；没有路缘时往路边溜一点就停。车轮方向错了，车会往路中间溜（严重错误）。</p>
+<p>4. <b>挂 P</b>：车停稳后挂 <b>P</b>，关掉转向灯。</p>
+<p>5. <b>离开</b>：考官说“安全的话，请继续行驶”，大键变成<b>油门</b>。挂 <b>D</b>、打<b>左转灯</b>、做<b>左侧观察</b>，点油门，车开出去，这一项结束。</p>
+<p>违规会当场闪现提示，结束后汇总成卡片。</p>
 </div></details>
 <p class="mu">参考 Canadian Pro Drivers 教材的步骤。仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
@@ -108,6 +107,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1106i"></script>
-<script src="lib/lowspeed.js?v=1108e"></script>
-<script src="hill-park.js?v=1108e"></script>
+<script src="lib/lowspeed.js?v=1108f"></script>
+<script src="hill-park.js?v=1108f"></script>
 </body></html>
