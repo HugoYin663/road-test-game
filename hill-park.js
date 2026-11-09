@@ -29,9 +29,9 @@ const HP_TXT={
 const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2,noSplit:true,
  curbs:[{side:1,x:HRW,soft:!HP.curb,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,soft:!HP.curb,gaps:HOOD.drives.filter(d=>d.side<0)}],
  alwaysExam:true,keepIns:true,noBackCheck:true,      // 总是从行驶中开始，考官的指令一直留在上方
- stpLabel:'刹车<small>点一下<br>减到很慢</small>',
- // 行驶中不会自动减速：你点“刹车”，车才减到很慢（约 6 km/h）；看好两个车道口中间的位置，点“停车”停住，再自己按油门、打方向靠到路缘（和三点调头第一步一样）
- exam:{laneX:2.1,startZ:-140,missZ:150,side:'R',noAutoSlow:true,twoStage:true,insText:HP_INSTXT},
+ stpLabel:'刹车<small>点一下<br>减速靠边</small>',
+ // 行驶中不会自动减速：你点“刹车”，系统减速并靠到右边路缘（离路缘约 20 厘米），然后贴着路缘极慢地往前走（约 3 km/h）；看好车道口（路边橙色标杆）中间的位置，点“停车”停住
+ exam:{laneX:2.1,startZ:-140,missZ:150,side:'R',noAutoSlow:true,twoStage:true,crawlV:.85,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT},
  okText:'打灯、右侧观察后靠边，没有挡住车道口；车轮方向正确，松刹车让车轮抵住路缘后挂 P；离开前打左灯、左侧观察，做得很好。',
  setup(R){SCN.vmax=2.2;{const n=$('gN');if(n)n.style.display=HP.curb?'':'none'}      // 没有路缘：不用空档溜车，没有 N 档
   Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0,hb:false});banner(HP_INSTXT,'#ffe27a',1)},
