@@ -59,10 +59,10 @@ for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
  const col=s>0&&k===1?0xf4f6f8:PCOLS[Math.random()*PCOLS.length|0];
  const jz=near?0:(Math.random()-.5)*.25,jh=near?0:(Math.random()-.5)*.05;
  PARKS.push([s*PCX,ZS(k)+jz,h+jh,col])});
-const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,
+const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,tiltL:true,
  curbs:[{side:1,x:XC},{side:-1,x:-XC}],
  // 考试模式：在停车场的车道里约 15 km/h 开过来，一开始考官就发指令；开过空车位时系统减到很慢，你在合适的地方点“停车”
- exam:{laneX:LX,startZ:-25,crawlZ:1,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
+ exam:{laneX:LX,startZ:-32,crawlZ:-7,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
  okText:'起始位置准确，倒车前做了 360° 观察，往右打到底、和旁边的车平行时回正，车停在车位正中间、车身摆正，挂 P、拉手刹，做得很好。',
  setup(R){Object.assign(R,{x:LX,z:5.3,h:0,gear:'D',ph:EXAM?0:1});R.ac=null;R.n360b=0;
   PARKS.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});
