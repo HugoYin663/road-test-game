@@ -175,10 +175,11 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   if(blk&&!p.det){p.bt=(p.bt||0)+dt;if(p.bt>.8&&!R.ev.some(e=>e.key==='blockP')){R.ev=R.ev.filter(e=>e.key!=='stopXw');ev('blockP')}if(p.bt>1.6)p.det=true}      /* 只有真的挡住了过街的行人才算错；没人过街时停在人行横道上观察没问题 */if(p.det){const fz=f[1]+1.4,cz=p.path(p.off+pedD(p,R.t))[1];p.oz=(p.oz||0)+Math.max(-dt,Math.min(dt,(Math.abs(n[0]-f[0])<4?fz-cz:0)-(p.oz||0)))}   // 等一会儿，再从车头前绕过去
   if((blk&&!p.det)||p.dd!=null){if(p.dd==null)p.dd=pedD(p,R.t);p.wv=p.wv||p.sg[0].v;p.dd+=(blk&&!p.det?0:p.wv)*dt}});
  // 横向车：按时间表开，前面有车或你的车挡在车道上就减速
- R.TR.list.forEach(s=>{if(s.crash){s.cv=0;return}let vt=s.v;R.TR.list.forEach(o=>{if(o!==s&&o.lane===s.lane&&o.x>s.x&&o.x-s.x<14)vt=Math.min(vt,Math.max(0,(o.x-s.x-7)*1.5))});
+ R.TR.list.forEach(s=>{if(s.crash){s.cv=0;return}let vt=s.v;R.TR.list.forEach(o=>{if(o!==s&&o.lane===s.lane&&o.x>s.x&&o.x-s.x<45)vt=Math.min(vt,Math.max(0,o.cv+(o.x-s.x-7)*1.2))});      /* 跟前车：看得远一点（45 米），按前车的速度跟 */
   if(s.stop)vt=Math.min(vt,Math.sqrt(7*Math.max(0,-19.6-s.x)));      // 横向黄灯、红灯：停在停车线后
   const g=a[0]-s.x;if(Math.abs(a[1]-s.lane)<2.6&&g>0&&g<45){if(s.seeT==null)s.seeT=R.t;if(R.t-s.seeT>.7)vt=Math.min(vt,Math.max(0,(g-6)*1.3));if(g<22&&!R.honked){R.honked=true;honk()}}      /* 你开进它的车道：司机约 0.7 秒后才踩刹车，太近就会撞上 */
-  s.cv=s.cv>vt?Math.max(vt,s.cv-7*dt):Math.min(vt,s.cv+2.5*dt);s.x+=s.cv*dt});
+  s.cv=s.cv>vt?Math.max(vt,s.cv-7*dt):Math.min(vt,s.cv+2.5*dt);s.x+=s.cv*dt;
+  R.TR.list.forEach(o=>{if(o!==s&&o.lane===s.lane&&o.x>s.x-.01&&o.x-s.x<5.6){s.x=o.x-5.6;s.cv=Math.min(s.cv,o.cv)}})});      /* 无论如何不会开进前车里 */
  bgFlows.forEach(f=>{let vb=f.crash?0:f.v;const x=f.p(f.off)[0];
   if(R.cyc&&R.cy.ph>=3){if(f.go===undefined)f.go=x<31;if(f.lx!=null&&x>f.lx+50)f.go=false;      // 黄灯时已经很近的车开过去；其他的停在对面停车线后排队
    if(!f.go){const q=bgFlows.filter(g=>g.go===false).map(g=>g.p(g.off)[0]).sort((a,b)=>a-b),i=q.indexOf(x);vb=Math.min(vb,Math.sqrt(7*Math.max(0,x-(19.6+Math.max(0,i)*6.9))))}}

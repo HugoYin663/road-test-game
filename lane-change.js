@@ -100,10 +100,11 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   let vt=c.vd;R.cars.forEach(o=>{if(o===c||o.lane!==c.lane)return;const g=o.z-c.z-4.6;if(g>-1&&g<70)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
   if(occ(c.lane)){const g=R.z-c.z-4.6;if(g>-1&&g<70){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}      /* 只有你切到它前面时它才按喇叭 */}}}
   const dec=occ(c.lane)&&R.z>c.z?8:5;c.cv=c.cv>vt?Math.max(vt,c.cv-dec*dt):Math.min(vt,c.cv+1.8*dt);c.z+=c.cv*dt});
- R.opp.forEach(o=>{o.z-=V0*dt;if(o.z<R.z-160)o.z=R.z+260+Math.random()*80});
+ R.opp.forEach(o=>{o.z-=V0*dt;if(o.z<R.z-160){let z=R.z+260+Math.random()*80;while(R.opp.some(p=>p!==o&&p.x===o.x&&Math.abs(p.z-z)<14))z+=15;o.z=z}});      /* 对面车重新出现时，同一车道上不和别的车叠在一起 */
  // 相撞
  if(!R.crash){const me=[R.x,R.z,R.h,2.3,.95];const H=R.cars.find(c=>obbHit(me,[c.x,c.z,0,2.3,.95]));
-  if(H){H.crash=true;H.spin=(R.x>H.x?-1:1)*.3;R.crash={t};crashSnd();ev('crash')}}
+  if(H){H.crash=true;H.spin=(R.x>H.x?-1:1)*.12;R.crash={t,H};R.lc=null;R.h=0;crashSnd();ev("crash")}}
+ if(R.crash&&R.crash.H){const H=R.crash.H;for(let k=0;k<40&&obbHit([R.x,R.z,R.h,2.3,.95],[H.x,H.z,H.spin||0,2.3,.95]);k++)R.x+=(R.x>H.x?1:-1)*.05}      /* 撞上以后两辆车分开（刚好碰着），不会叠在一起滑 */
  if(R.crash&&t-R.crash.t>3){finish();return}}
 function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let h;
  if(!R.ev.length)h='<h2>驾驶总结</h2><div class="st">★★★</div><p>打灯、看后视镜、回头看盲区、找够空档再换线，两次换线都做得很好。</p>';
