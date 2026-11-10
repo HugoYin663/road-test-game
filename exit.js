@@ -16,10 +16,9 @@ const XR=-20,NX=-21.85,SX=-25.55,XW=-27.4,ZC=(ZA+ZB)/2;      // 大路：东边�
 const LANE=-1.8;      // 在车道里往南开时走西半边（右边）
 const VR=50/3.6;      // 大路车速
 const EX_TXT={
- pbOn:["没有放手刹就想开车","起步前要先放下手刹（点 P 档左边的手刹键）。"],
- noLookL:["起步前没有看镜子和左边盲点","出车位前：看后视镜、打左转灯、转头看左边盲点（按左侧观察），确认没有车和行人再起步。"],
+ noLookL:["起步前没有看左边","出车位前：看后视镜、打左转灯、转头看左边（按看左），确认没有车和行人再起步。"],
  noSigOut:["出车位没有打左转灯","起步之前就要打好转向灯（要往哪边转就打哪边）。"],
- noScanAisle:["车头出到车道前没有左右看","慢慢往前挪，车头快出到车道时，先停一下左右看车道（按观察路口），确认没有车、没有人再转出去。"],
+ noScanAisle:["车头出到车道前没有左右看","按住前移慢慢往前挪，车头出到车道边时停一下，看左、看右看清车道，确认没有车、没有人再点行驶。"],
  noYieldCar:["车道上有车过来时没有停下让它","出车位时车道上有车开过来，它有路权：先停住让它过去，再出来。"],
  noSeeCar:["没有发现车道上过来的车","那辆车过去时你正好停着，但它过来之前你没有左右看车道。出车位前一定要左右看。"],
  noYieldPed:["没有让过车道的行人","停车场里行人常常从车中间走出来横过车道：看到就停下让他走过去。"],
@@ -28,7 +27,7 @@ const EX_TXT={
  noSigL2:["上大路左转前没有打左转灯","往出口开的时候就要打好左转灯。"],
  noPedE:["没有让人行道上的行人","出口要横过人行道：有行人在走，停在人行道前面让他先过。"],
  stopFar:["停得离大路太远，看不远","出口没有停牌，但你没有路权：车头要停到大路边上（靠近路边石的位置），两边才看得远。停得太靠后，要再往前挪一点、停住再看。"],
- noScan:["上大路前没有左右观察","车头停到大路边以后，左—右—左看两个方向的车（按观察路口），确认都有足够的空档再转。"],
+ noScan:["上大路前没有左右观察","车头停到大路边以后，看左、看右、再看左，确认两个方向都有足够的空档再转。"],
  cutOff:["大路上的车没有安全空档就开出去了","你没有路权：要等两个方向都有足够的空档。左边过来的车（你要横过它的车道）至少要 3 秒以上，右边过来的车（你要并进它的车道）要更远。"]};
 // ---------------- 场景 ----------------
 const LOT={ASF:M(0xffffff,{map:noise('#6f7176',40,70)}),RD:M(0x55585d),CAP:M(0xf2efe8),AWN:M(0x2f7d6d),S1:M(0x2f6fe0),S2:M(0xd9483b),S3:M(0x3a9a5b),S4:M(0xf0b429),PAT:M(0x707277),YEL:M(0xd9b23c),CRB:M(0xc9cbcf),SWK:M(0xd5d3cc),GRS:M(0xffffff,{map:noise('#79a95a',50,40)}),GRS2:M(0x79a95a),
@@ -79,16 +78,19 @@ function buildParks(withB){const P=[];
   const nose=Math.random()<.7,h=(s>0)===nose?Math.PI/2:-Math.PI/2;
   P.push([s*PCX,ZS(k)+(near?0:(Math.random()-.5)*.25),h+(near?0:(Math.random()-.5)*.05),PCOLS[Math.random()*PCOLS.length|0]])});return P}
 // ---------------- 系统开的路线 ----------------
-const PATH=(()=>{const P=[],seg=(a,b)=>{const n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.5);for(let i=0;i<n;i++)P.push([a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n])},
+function mkPath(fromStall){const P=[],seg=(a,b)=>{const n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.5);for(let i=0;i<n;i++)P.push([a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n])},
  arc=(cx,cz,r,a0,a1)=>{const n=Math.ceil(Math.abs(a1-a0)*r/.5);for(let i=0;i<n;i++){const a=a0+(a1-a0)*i/n;P.push([cx+r*Math.cos(a),cz+r*Math.sin(a)])}};
- const RT=4.5,zc=ZL+RT,RL=4.55,xl=SX+RL;
- seg([LANE,40],[LANE,zc]);const i1=P.length;arc(LANE-RT,zc,RT,0,-Math.PI/2);const i2=P.length;      // 车道往南，尽头右转往西
+ const RT=4.5,zc=ZL+RT,RL=4.55,xl=SX+RL;let iS=0;
+ // 路线是后轴走的线。出车位：先直着往西挪出来，司机过了旁边的车（车头出到车道约 3 米），往左转进车道，再并到车道右边
+ if(fromStall){seg([PCX+LW.TX,0],[4.4,0]);arc(4.4,-4,4,Math.PI/2,Math.PI);seg([.4,-4],[LANE,-9]);iS=P.length;seg([LANE,-9],[LANE,zc])}else seg([LANE,40],[LANE,zc]);
+ const i1=P.length;arc(LANE-RT,zc,RT,0,-Math.PI/2);const i2=P.length;      // 车道往南，尽头右转往西
  seg([LANE-RT,ZL],[xl,ZL]);const i3=P.length;arc(xl,ZL-RL,RL,Math.PI/2,Math.PI);const i4=P.length;      // 往西到大路，左转往南
  seg([SX,ZL-RL],[SX,-400]);P.push([SX,-400]);
  const L=[0];for(let i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));
- return{P,L,i1,i2,i3,i4}})();
-function pathAt(s){const{P,L}=PATH;let i=0;while(i<L.length-2&&L[i+1]<s)i++;const f=Math.min(1,Math.max(0,(s-L[i])/(L[i+1]-L[i]||1)));return[P[i][0]+(P[i+1][0]-P[i][0])*f,P[i][1]+(P[i+1][1]-P[i][1])*f,Math.atan2(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1])]}
-function sNear(x,z){const{P,L}=PATH;let b=0,bd=1e9;for(let i=0;i<P.length;i+=2){const d=Math.hypot(P[i][0]-x,P[i][1]-z);if(d<bd){bd=d;b=i}}return L[b]}
+ return{P,L,iS,i1,i2,i3,i4}}
+const PATH=mkPath(true),PATHA=mkPath(false);      // 你的路线（从车位出来）；车道上那辆车的路线
+function pathAt(s){const{P,L}=PATHA;let i=0;while(i<L.length-2&&L[i+1]<s)i++;const f=Math.min(1,Math.max(0,(s-L[i])/(L[i+1]-L[i]||1)));return[P[i][0]+(P[i+1][0]-P[i][0])*f,P[i][1]+(P[i+1][1]-P[i][1])*f,Math.atan2(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1])]}
+function sNear(x,z){const{P,L}=PATHA;let b=0,bd=1e9;for(let i=0;i<P.length;i+=2){const d=Math.hypot(P[i][0]-x,P[i][1]-z);if(d<bd){bd=d;b=i}}return L[b]}
 // ---------------- 工具 ----------------
 const frontX=()=>Math.min(...corners().map(q=>q[0]));
 function inPath(px,pz,r){const s=Math.sin(R.h),c=Math.cos(R.h),fw=(px-R.x)*s+(pz-R.z)*c,lt=(px-R.x)*c-(pz-R.z)*s;return fw>LW.HL-.3&&Math.abs(lt)<LW.HW+r+.35?fw-LW.HL-r:null}      // 在车头前面的通道里：返回离车头的距离
@@ -109,15 +111,16 @@ function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1
 const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack','noPedE','cutOff'],vmax:2.0,noSplit:true,noBackCheck:true,
  curbs:[{side:1,x:XC},{side:-1,x:-XC,z0:ZA,z1:200}],
  goLabel:'行驶<small>系统继续<br>慢慢开</small>',stpLabel:'停车<small>点一下<br>就停住</small>',
- okText:'出车位前放了手刹、看了镜子和盲点、打了灯，车头出到车道先左右看；车道里让了行人和车；车头停到大路边，左右看清楚，等到安全的空档才左转上大路，做得很好。',
+ okText:'出车位前看了左边、打了灯，慢慢挪到车道边先左右看；车道里让了行人和车；车头停到大路边，左右看清楚，等到安全的空档才左转上大路，做得很好。',
  setup(R){const ev0=HARD?{ac:1,aisle:['ped','back'],pe:1}:{ac:Math.random()<.5,aisle:[Math.random()<.5?'ped':'back'],pe:Math.random()<.4};
-  Object.assign(R,{x:PCX,z:0,h:-Math.PI/2,gear:'P',pb:true,ph:0,EV:ev0,haz:[]});
+  Object.assign(R,{x:PCX,z:0,h:-Math.PI/2,gear:'D',ph:0,EV:ev0,haz:[],auto:{pts:PATH.P,i:0},stopReq:true});      /* 一开始就由系统控制方向：玩家只管停车、前移、行驶 */
   const PK=buildParks(ev0.aisle.includes('back'));PK.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
   if(ev0.aisle.includes('back')){const c=car(0x7b8794);live.push(c);const B={c,x:PCX,z:ZS(KB),h:Math.PI/2,v:0,st:0,rl:revLights(c)};place(c,B.x,B.z,B.h,0);R.B=B;SCN.obst.push([B.x,B.z,B.h])}else R.B=null;
   R.tf={q:trafPlan(HARD),cars:[]};R.AC=null;R.P1=null;R.PE=null;
   banner('考官：开出车位，左转（pull out of the spot and turn left）','#ffe27a',1)},
  onGear(g){},
  autoV(R,dt){const A=R.auto,i=A.i,fx=frontX();let v=2.2;A.brk=2.5;
+  if(i<PATH.iS)v=1.4;      // 出车位：走路的速度
   if(i>=PATH.i1-12&&i<PATH.i2)v=1.6;      // 车道尽头右转：慢
   else if(i>=PATH.i2&&i<PATH.i3){v=2.5;if(fx<XR+6)v=Math.max(.9,Math.min(2.5,.9+(fx-(XR+1.2))*.35))}      // 往出口开：快到大路时减到很慢（挪到路边）
   if(i>=PATH.i3-6||fx<XR-.2)v=i>=PATH.i4?11:4;      // 开出去了：左转，然后加速
@@ -126,16 +129,15 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
   return v},
  onAutoBtn(R,m){if(m==='stp')R.stopT=R.t},
  step(R,dt){const t=R.t;
-  if(R.pb&&R.gas){R.gas=false;ev('pbOn');tip('先放下手刹（点 P 档左边的手刹键）');mk()}
-  // ---------- 出车位（自己开） ----------
-  if(R.ph===0&&R.v>.1){R.ph=1;if(!(sawMir(15)&&(R.oT.L||-99)>t-15))ev('noLookL');if(R.sig!=='L')ev('noSigOut');if(R.EV.ac&&!R.AC)acSpawn()}
+  // ---------- 出车位（系统控制方向，玩家控制走、停、前移） ----------
+  if(R.ph===0&&R.v>.1){R.ph=1;if(!((R.oT.XL||-99)>t-15))ev('noLookL');if(R.sig!=='L')ev('noSigOut');if(R.EV.ac&&!R.AC)acSpawn()}
   if(R.ph===1){const fx=frontX();
    if(!R.scanChk&&fx<AW-1.5){R.scanChk=1;if(!sawScan(10))ev('noScanAisle')}
-   if(Math.abs(normA(R.h-Math.PI))<.5&&R.x<1.2&&fx<AW-1)goAuto()}
+   if(R.auto.i>=PATH.iS-4){R.ph=2;if(R.sig==='L')setSig(null);tip('进了车道：系统继续慢慢开。看到行人、倒车出来的车，点“停车”让；可以走了点“行驶”')}}
   acStep(dt);
   // ---------- 车道里（系统开） ----------
   if(R.ph===2){
-   if(!R.p1T&&R.EV.aisle.includes('ped')&&R.z<ZS(-4)+SWD/2+11){R.p1T=1;const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.P1={o,x:-4.6,z:ZS(-4)+SWD/2,v:1.25,ph:0,t0:t};
+   if(!R.p1T&&R.EV.aisle.includes('ped')&&R.z<ZS(-6)+SWD/2+12){R.p1T=1;const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.P1={o,x:-4.6,z:ZS(-6)+SWD/2,v:1.25,ph:0,t0:t};
     R.haz.push(()=>R.P1&&!R.P1.gone?inPath(R.P1.x,R.P1.z,.35):null)}
    if(R.B&&!R.B.st&&R.z<ZS(KB)+12.5){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
    if(R.z<-12&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1)}
@@ -159,10 +161,8 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
   if(t>300&&!R.over)finish()},
  draw(R){},
  topCam(R){return[R.x,R.z-4,30]}};
-function goAuto(){R.ph=2;R.auto={pts:PATH.P,i:0};R.auto.i=Math.max(0,PATH.P.findIndex(q=>q[1]<R.z-1));R.gas=R.wl=R.wr=false;R.stopReq=false;R.gear='D';cruiseUI(true);mk();
- if(R.sig==='L')setSig(null);tip('进了车道：系统帮你慢慢开。看到行人、倒车出来的车，点“停车”让；可以走了点“行驶”')}
 // 出车位时车道上过来的车（从北边往南，走西半边，从你车头前面经过）
-function acSpawn(){const c=car([0x8e2b2b,0x23324f,0xb9bec4][Math.random()*3|0]);live.push(c);R.AC={c,s:sNear(LANE,R.z+26),v:0,t0:R.t,seen:false};R.haz.push(()=>{const A=R.AC;if(!A||A.gone||R.ph<2)return null;return inPath(A.x,A.z,1.0)})}
+function acSpawn(){const c=car([0x8e2b2b,0x23324f,0xb9bec4][Math.random()*3|0]);live.push(c);R.AC={c,s:sNear(LANE,R.z+26),v:0,t0:R.t,seen:false};R.haz.push(()=>{const A=R.AC;if(!A||A.gone)return null;return inPath(A.x,A.z,1.0)})}
 function acStep(dt){const A=R.AC;if(!A||A.gone)return;if(sawScan(1.5)||((R.oT.XR||-99)>A.t0+.5))A.seen=true;
  const p=pathAt(A.s);A.x=p[0];A.z=p[1];
  // 你的车头伸到了它的路上：它在你前面停住等（按喇叭）
@@ -171,7 +171,7 @@ function acStep(dt){const A=R.AC;if(!A||A.gone)return;if(sawScan(1.5)||((R.oT.XR
  A.s+=A.v*dt;place(A.c,A.x,A.z,p[2],0);
  if(R.ph<=1){const near=A.z-LW.HL<Math.max(...zs)+12&&A.z+LW.HL>Math.min(...zs)-1;if(near&&R.v>.1&&fx<AW+.2)ev('noYieldCar');
   if(!A.done&&A.z+LW.HL<Math.min(...zs)-1){A.done=true;if(!R.ev.some(e=>e.key==='noYieldCar')){if(A.seen)banner('看到车道上的车，停下让它先过去：正确','#7ee787');else ev('noSeeCar')}}}
- if(A.s>PATH.L[PATH.i3]){A.c.visible=false;A.gone=1}}      // 它开到大路边就不再管它
+ if(A.s>PATHA.L[PATHA.i3]){A.c.visible=false;A.gone=1}}      // 它开到大路边就不再管它
 // 行人：车道里横过去的（从西边的车中间走出来，走向东边的商铺）；出口人行道上走的
 function pedStep(dt){const P1=R.P1;if(P1&&!P1.gone){P1.x+=P1.v*dt;walk(P1,dt);place(P1.o,P1.x,P1.z,Math.PI/2,0);
   const sh=Math.sin(R.h),ch=Math.cos(R.h),fw=(P1.x-R.x)*sh+(P1.z-R.z)*ch-LW.HL,lt=(P1.x-R.x)*ch-(P1.z-R.z)*sh;      /* 用车的方向算：行人在车头前 2.5 米以内、还在你的车道上或正要走进来（从你右边走过来，走过你车的左边才算过去） */

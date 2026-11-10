@@ -71,30 +71,29 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 .back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
 #rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
 #gears .b#gPB.on{background:#2fd1b3;color:#0d2b26!important}      /* 手刹拉上：亮起来 */
+#btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:2}#btns .b{width:104px;height:66px}
+#bstop{background:#d93a3a}#bcr{background:#d98a1f}#bgo{background:#2aa24a}
+#bsigL{bottom:calc(82px + env(safe-area-inset-bottom,0px))!important}#bsigR{bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}#bshL{bottom:calc(82px + env(safe-area-inset-bottom,0px))!important}#bshR{bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
 </style></head><body>
-<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">0</b> km/h</div><div id="gear" style="font-size:24px;font-weight:800;color:#f2c12e">D</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">0</b> km/h</div><div id="gear" style="display:none">D</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
 <div id="bn">出车位、出停车场</div><div id="cf"></div><div id="fl"></div><div id="cgap" style="display:none"></div><div id="split"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
+<div id="btns"><button class="b" id="bstop" data-m="stp">停车<small>Stop</small></button><button class="b" id="bcr" data-m="creep">前移<small>按住慢慢往前</small></button><button class="b" id="bgo" data-m="go">行驶<small>Go</small></button></div>
 <button class="b pos" id="bsigL" data-m="sigL">左转灯<small>Signal</small></button>
 <button class="b pos" id="bsigR" data-m="sigR">右转灯<small>Signal</small></button>
-<button class="b pos" id="bmir" data-m="scan" style="background:#d98a1f">观察路口<small>左—右—左</small></button>
-<button class="b pos" id="bshL" data-m="obsL" style="background:#7b5bd6">左侧观察<small>两面镜＋左盲点</small></button>
-<button class="b pos" id="bshR" data-m="obsR" style="background:#7b5bd6">右侧观察<small>两面镜＋右盲点</small></button>
-<div id="gears"><button class="b" id="gPB" data-m="pb" title="Parking Brake" style="color:#2fd1b3;font-size:20px;letter-spacing:-1px">(<span style="display:inline-block;width:22px;height:22px;line-height:20px;border:2.5px solid currentColor;border-radius:50%;font-size:15px;font-weight:800;margin:0 1px">P</span>)</button><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gD" data-m="gD">D</button></div>
-<div id="wind"><div id="whl"></div><span>方向盘 <span id="wtx">正</span></span></div>
-<button class="b pos" id="bwl" data-m="wl">⟲<small>往左打</small></button>
-<button class="b pos" id="bwr" data-m="wr">⟳<small>往右打</small></button>
-<button class="b pos" id="bgas" data-m="gas">油门<small>按住走<br>松开就停</small></button>
+<button class="b pos" id="bshL" data-m="lookL">看左<small>按住一直看</small></button>
+<button class="b pos" id="bshR" data-m="lookR">看右<small>按住一直看</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html">← 全部项目</a>
 <h2>出车位、出停车场、上大路左转 · 3D</h2>
 <p>你的车尾朝里停在停车场的车位里（挂着 P、拉着手刹）。考官：<b>开出车位，左转</b>。出了车位系统帮你在车道里慢慢开，到车道尽头<b>右转</b>，往出口开；考官：<b>前面左转上大路</b>。</p>
 <div class="modes"><button class="md" data-diff="easy"><b>练习</b><span>车道里有行人或倒车出来的车，大路上的车一波一波来</span></button><button class="md" data-diff="hard"><b>困难模式</b><span>出车位时车道上有车过来，车道里行人和倒车的车都有，出口有行人，大路车更密</span></button></div>
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
-<p><b>1. 出车位（自己开）</b>（PROCEDURE FOR LEAVING）：挂 <b>D</b>，点手刹键<b>放下手刹</b>；看镜子、打<b>左转灯</b>、看左边盲点（按<b>左侧观察</b>）。按住<b>油门</b>慢慢往前挪（走路的速度），车头快出到车道时，停一下，按<b>观察路口</b>左右看车道，没有车、没有人再走。<b>司机过了旁边那辆车</b>，再往左打（太早打，车尾会扫到旁边的车）。</p>
-<p><b>2. 车道里（系统开）</b>：车头转进车道、差不多朝南以后，系统接手，保持在车道右边慢慢开。右下角变成<b>停车／行驶</b>：看到行人从车中间走出来、有车亮着白色倒车灯倒出来，点<b>停车</b>让，让完点<b>行驶</b>。离得太近系统会帮你急刹，但已经算没让。</p>
+<p><b>操作</b>（和停牌左转一样）：方向全部由系统控制，你只管<b>停车</b>、<b>前移</b>（按住慢慢往前，松开就停）、<b>行驶</b>；左边是<b>左转灯</b>、<b>右转灯</b>，<b>看左</b>、<b>看右</b>（按住一直看，点一下看一眼）。</p>
+<p><b>1. 出车位</b>（PROCEDURE FOR LEAVING）：车停在车位里（已经挂好 D、踩着刹车）。打<b>左转灯</b>，<b>看左</b>确认没有车和行人；按住<b>前移</b>慢慢往前挪（走路的速度），车头出到车道边就松开，<b>看左、看右</b>看清车道，车道上有车过来要等它过去，然后点<b>行驶</b>：系统开出来、等司机过了旁边那辆车再往左转进车道。</p>
+<p><b>2. 车道里</b>：系统在车道右边慢慢开。看到行人从车中间走出来、有车亮着白色倒车灯倒出来，点<b>停车</b>让，让完点<b>行驶</b>。离得太近系统会帮你急刹，但已经算没让。</p>
 <p><b>3. 右转</b>：考官说“前面右转”，在车道尽头转弯前打好<b>右转灯</b>（转完会自己灭）。</p>
-<p><b>4. 上大路左转</b>：往出口开时打好<b>左转灯</b>。出口没有停牌，但横着的大路是主路，你<b>没有路权</b>（按让牌的走法）：系统快到大路时会减到很慢，你点<b>停车</b>，把<b>车头停到大路边上</b>（停得太靠后看不远）；按<b>观察路口</b>左—右—左看清两个方向；左边过来的车你要横过它的车道，右边过来的车你要并进它的车道，<b>两个方向都有足够的空档</b>再点<b>行驶</b>，系统左转开上大路。出口要横过人行道，有行人在走要先让。</p>
+<p><b>4. 上大路左转</b>：往出口开时打好<b>左转灯</b>。出口没有停牌，但横着的大路是主路，你<b>没有路权</b>（按让牌的走法）：快到大路时系统会减到很慢，你点<b>停车</b>；停得不够近就按住<b>前移</b>，把<b>车头挪到大路边上</b>（停得太靠后看不远）；<b>看左、看右、再看左</b>，左边过来的车你要横过它的车道，右边过来的车你要并进它的车道，<b>两个方向都有足够的空档</b>再点<b>行驶</b>，系统左转开上大路。出口要横过人行道，有行人在走要先让。</p>
 <p>做错的地方当场提示，最后汇总。不让行人、不让车、没有安全空档就开上大路是严重错误。</p>
 </div></details>
 <p class="mu">参考 90 DEGREE PARKING (BACKING IN) 教材的步骤。仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
@@ -106,6 +105,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1109b"></script>
-<script src="lib/lowspeed.js?v=1110f"></script>
-<script src="exit.js?v=1110f"></script>
+<script src="lib/lowspeed.js?v=1110g"></script>
+<script src="exit.js?v=1110g"></script>
 </body></html>
