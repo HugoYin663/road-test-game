@@ -38,7 +38,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2
  // 点“刹车”：这时应该已经打了右转灯、做了右侧观察
  onStopReq(R){if(R.sig!=='R')ev('noSigR');if(!sawMir(12))ev('noMirror');if(!sawSh('R',10))ev('noShoulderR')},
  onGear(g){if(R.ph===0&&!R.cruise&&(g==='N'||g==='P')){const cg=curbGap(1);parked(cg||{front:9,rear:9})}
-  if(R.ph===2&&g==='P')parkDone()},
+  R.gT=R.t;if(R.ph===2&&g==='P'){R.ph=2.5;R.pT=R.t;R.hb=false;$('bgas').style.visibility='hidden';mk()}else if(R.ph===2.5&&g!=='P'){R.ph=2;$('bgas').style.visibility='';mk()}},      /* 挂 P 又马上换掉：当作误操作，继续 */
  step(R,dt){const t=R.t;
   // 1：自己靠到右边路缘停好（停住、车身摆正、离路缘 70 厘米以内）
   // 靠边以后还可以按油门前后挪（比如挡住了车道口）；挂 N 或挂 P 时才算停好
@@ -48,7 +48,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2
    if(HP.curb&&R.curbT!=null&&t-R.curbT<.2){R.rested=true}      // 车轮抵住了路缘，车停住
    if(!HP.curb&&R.rollD>.35&&!R.stuck){const ok=HP.up?R.w>.05:R.w>.05;if(ok){R.stuck=1;R.rested=true;R.v=0}}      // 没有路缘：往路边溜一点就停（车轮压到路边松软的地方）
    if(R.rollD>1.2&&!R.away){R.away=1;ev('rollAway');R.hb=true;gasMode('hb')}}
-  if(R.ph===2.5){if(R.pb&&t-R.pbT>1.5)nextIns();else if(!R.pb&&t-R.pT>5){ev('noPB');nextIns()}}
+  if(R.ph===2.5){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();nextIns()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');nextIns()}}      /* 挂 P、拉手刹以后停 1.5 秒没有别的操作才算做完 */
   // 3：考官说继续行驶：挂 D、打左灯、左侧观察，点油门，系统开走
   if(R.ph===3&&R.gas&&!R.autoGo){if(R.pb){R.gas=false;tip('先放下手刹（再点一下手刹键）');mk()}else if(R.gear!=='D'){R.gas=false;tip('先挂 D 档');mk()}
    else{R.autoGo=true;if(R.sig!=='L')ev('noSigL');if(!sawMir(12))ev('noMirror');if(!sawSh('L',10))ev('noShoulderL');tip('开走了')}}
@@ -68,6 +68,6 @@ function parked(g){R.ph=2;R.rollD=0;R.gas=false;if(Math.min(g.front,g.rear)>1)ev
 function parkDone(){const wantLeft=HP.k==='upC',ok=wantLeft?R.w<-.05:R.w>.05;
  if(!ok)ev('wrongWheels');else if(Math.abs(R.w)<.6)ev('weakWheels');
  if(HP.curb&&!R.rested&&!R.away)ev('noRest');
- R.ph=2.5;R.pT=R.t;R.hb=false;R.px=R.x;$('bgas').style.visibility='hidden';mk()}      // 挂 P 以后还要拉手刹：拉了（或 5 秒没拉，判错）考官才发下一条指令
+R.px=R.x}      // 挂 P 以后还要拉手刹：拉了（或 5 秒没拉，判错）考官才发下一条指令
 function nextIns(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banner('考官：好。安全的话，请继续行驶（when safe, drive on）','#ffe27a',1)}
 LS.start(SCENE);

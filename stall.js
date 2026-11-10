@@ -58,13 +58,13 @@ for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
 const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,
  curbs:[{side:1,x:XC},{side:-1,x:-XC}],
  // 考试模式：在停车场的车道里约 15 km/h 开过来，一开始考官就发指令；开过空车位时系统减到很慢，你在合适的地方点“停车”
- exam:{laneX:LX,startZ:-55,crawlZ:-3,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位，倒车停进去（back into the parking spot on your right）'},
+ exam:{laneX:LX,startZ:-55,crawlZ:-3,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
  okText:'起始位置准确，倒车前做了 360° 观察，往右打到底、和旁边的车平行时回正，车停在车位正中间、车身摆正，挂 P、拉手刹，做得很好。',
  setup(R){Object.assign(R,{x:LX,z:5.3,h:0,gear:'D',ph:EXAM?0:1});R.ac=null;R.n360b=0;
   PARKS.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});
   SCN.obst=PARKS.map(p=>[p[0],p[1],p[2]]);
   if(!EXAM)banner('挂 R，做 360° 观察，慢慢往后倒，方向盘往右打到底','#ffe27a',1)},
- onGear(g){if(R.ph===2&&g==='P')parkDone()},
+ onGear(g){R.gT=R.t;if(R.ph===2&&g==='P'){R.ph=3;R.pT=R.t}else if(R.ph===3&&g!=='P')R.ph=2},      /* 挂 P 又马上换回 R/D：当作误操作，继续 */
  onHandover(R){R.ph=1;R.n360b=R.n360||0;const dz=R.z-.2-(ZS(1)+LW.HW);      // 司机（车中心往后约 0.2 米）对着参考车远端车头角的前后差
   if(dz<.5)ev('posEarly','（你停在那个车角再往前 '+Math.max(0,dz).toFixed(1)+' 米的地方，这台车大约要 1～2 米）');else if(dz>2.6)ev('posLate','（你停在那个车角再往前 '+dz.toFixed(1)+' 米的地方）');
   tip('挂 R，做 360° 观察，慢慢往后倒，方向盘往右打到底')},
@@ -77,7 +77,7 @@ const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
   acStep(R,dt);
-  if(R.ph===3&&!R.over){if(R.pb&&t-R.pbT>1)finish();else if(!R.pb&&t-R.pT>5){ev('noPB');finish()}}
+  if(R.ph===3&&!R.over){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();finish()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');finish()}}      /* 挂 P、拉手刹以后，停 1.5 秒没有别的操作才算做完；挂 P 后 5 秒还没拉手刹，判错再结束 */
   if(t>240&&!R.over){if(R.ph<3)ev('noP');finish()}},
  draw(R){},
  topCam(R){return R.ph>=1?[3.5,2,24]:[R.x+1.5,R.z+4,26]}};
@@ -90,9 +90,9 @@ function parkDone(){const cs=corners(),zs=cs.map(q=>q[1]),xs=cs.map(q=>q[0]),zl=
   if(fx<AW-.15)ev('notDeep','（车头伸出车位线约 '+Math.round((AW-fx)*100)+' 厘米）');
   if(Math.abs(R.w)>.1)ev('wheelNotStr','（方向盘还'+(R.w<0?'往左 ':'往右 ')+Math.round(Math.abs(R.w)*WLOCK)+'°）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0);const nAdj=Math.floor((nM-1)/2);if(nAdj>2)ev('manyMoves','（调整了 '+nAdj+' 次）');
- R.ph=3;R.pT=R.t}      // 挂 P 以后还要拉手刹：拉了就结束；5 秒没拉判错再结束
-// 参考车上方的箭头
-{const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(-PCX,3.2,ZS(1));scene.add(a)}
+}
+// 指定车位上方的蓝色箭头
+{const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(-PCX,3.2,ZS(0));scene.add(a)}
 // 困难模式：车道上一辆车从后面开过来，从你的左边过去
 //  · 停下以后第一次 360° 观察时它出现：你会看到它，等它过去再倒就对了
 //  · 没做观察就开始动车：它马上过来，你在动 → 没让行；你的车头已经摆到车道上，它就停下来等你（按喇叭）
