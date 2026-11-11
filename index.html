@@ -131,7 +131,7 @@ section{display:flex;flex-direction:column;gap:12px}
       </a>
       <a class="tile big" href="#practice">
         <span class="k"><span class="zh">单项练习</span><span class="en">Practice by Skill</span></span>
-        <span class="d"><span class="zh">路口、换线、高速、停车、调头等 14 个项目，可以单独反复练，做错当场提示。</span><span class="en">14 skills — intersections, lane changes, highway, parking, turnabouts. Practise any one on its own, with instant feedback.</span></span>
+        <span class="d"><span class="zh">路口、换线、高速、停车、调头等 15 个项目，可以单独反复练，做错当场提示。</span><span class="en">15 skills — intersections, lane changes, highway, parking, turnabouts. Practise any one on its own, with instant feedback.</span></span>
         <span class="arrow"><span class="zh">查看全部项目 →</span><span class="en">See all skills →</span></span>
       </a>
     </div>
@@ -191,7 +191,7 @@ section{display:flex;flex-direction:column;gap:12px}
 
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1111k';
+const V='1111l';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -199,6 +199,7 @@ const ITEMS={
  'green-left':{zh:'绿灯左转',en:'Left turn on green',dz:'进路口等候，看对面车流的空档、右转车、行人和自行车，黄灯时完成左转',de:'Wait inside the intersection, judge gaps in oncoming traffic, watch right-turners, pedestrians and cyclists, and clear on amber'},
  'green-arrow':{zh:'左转箭头',en:'Left-turn arrow',dz:'红灯或绿灯加左转箭头，跟着前车转；排第 5 辆时箭头变黄熄灭，判断停还是进',de:'Follow the queue on an advance arrow; when it turns amber as you reach the line, decide whether to stop or go'},
  'stop-left':{zh:'停牌路口左转',en:'Left turn at a stop sign',dz:'小区单面停牌路口：人行横道前停稳，看左看右，被路边停车挡住就前移，找两边的空档左转',de:'Two-way stop in a residential area: stop before the crosswalk, look both ways, creep up when parked cars block your view, then turn left in a safe gap'},
+ 'stop-4way':{zh:'四面停牌直行',en:'Straight through an all-way stop',dz:'四面停牌路口：人行横道前停稳，看左看右，先停稳的先走，对面左转车比你先到要让它，轮到你时果断直行',de:'All-way stop: stop before the crosswalk, look both ways, first to stop goes first, let the earlier left-turner go, then proceed without hesitation'},
  'lane-change':{zh:'换线',en:'Lane change',dz:'SMOG：打灯、看后视镜、回头看盲区，等够空档再换线；换过去再换回来',de:'SMOG: signal, mirror, shoulder check, wait for a big enough gap, then change lanes and back again'},
  'highway-on':{zh:'上高速',en:'Merging onto the highway',dz:'从匝道弯道开始，在加速车道里按车流提速、找空档并入 401',de:'From the ramp curve, match traffic speed in the acceleration lane and merge into a gap on the 401'},
  'highway-off':{zh:'下高速',en:'Exiting the highway',dz:'中间车道 80，换到最右车道后跟上车流加速到 110，进出口减速车道再减速，开到匝道弯道',de:'From 80 in the busy middle lane, move right, speed up to traffic (about 110), and slow only in the exit lane before the ramp curve'},
@@ -208,7 +209,7 @@ const ITEMS={
  'stall':{zh:'停车场倒车入位',en:'Reverse into a parking stall',dz:'开过空车位，司机对着参考车第 4 个角停住，R＋360° 观察，右打到底，平行时回正，停在两线正中',de:'Drive past the stall, stop with your seat at the reference car’s far corner, 360° check, full right lock, straighten when parallel, finish centred'},
  'headin':{zh:'停车场头进',en:'Forward into a parking stall',dz:'打灯右转进停车场、让行人，左转进车道让对面的车，车头过第一条线约半米停住，左打到底开进左边车位，平行时回正，停在车位中间',de:'Signal into the plaza, yield to pedestrians and oncoming cars, stop with your bumper half a metre past the first line, full left lock into the stall, straighten when parallel'},
  'exit':{zh:'出车位、出停车场',en:'Leaving a stall and the lot',dz:'放手刹、看镜打灯、挪到车道边左右看，车道里让行人和倒车的车，出口车头停到大路边，等两边空档左转上大路',de:'Release the brake, mirrors and signal, edge out and look both ways, yield to pedestrians and reversing cars, stop at the road edge and turn left in a safe gap'}};
-const GROUPS=[{zh:'路口判断',en:'Intersections',ids:['green-right','red-right','green-left','green-arrow','stop-left']},
+const GROUPS=[{zh:'路口判断',en:'Intersections',ids:['green-right','red-right','green-left','green-arrow','stop-left','stop-4way']},
  {zh:'行驶中判断',en:'On the road',ids:['lane-change','highway-on','highway-off']},
  {zh:'低速操作',en:'Low-speed manoeuvres',ids:['three-point','hill-park','parallel','stall','headin','exit']}];
 // ---------- 模拟考试的路线（每一段对应哪个单项，下一步串起来时用） ----------
