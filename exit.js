@@ -42,8 +42,8 @@ for(let i=0;i<20;i++){const x=(Math.random()*2-1)*(XC-.5),z=ZB+Math.random()*100
 // 车位线
 const SLINE=new T.PlaneGeometry(SD-.1,.1);
 for(let k=-9;k<=24;k++)[-1,1].forEach(s=>{if(s<0&&k<-8)return;const p=mesh(SLINE,LOT.YEL,-(s*(AW+SD/2+.05)),.012,ZS(k)+SWD/2);p.rotation.x=-Math.PI/2;scene.add(p)});
-// 大路的黄色双中线
-[-.1,.1].forEach(d=>{const p=mesh(new T.PlaneGeometry(.1,600),LOT.YEL,-(-23.7+d),.012,0);p.rotation.x=-Math.PI/2;scene.add(p)});
+// 大路的黄色单中线：在出口那里断开（车可以从这里左转进出）
+[[-300,ZB-3],[ZA+3,300]].forEach(([a,b])=>{const p=mesh(new T.PlaneGeometry(.12,b-a),LOT.YEL,23.7,.012,(a+b)/2);p.rotation.x=-Math.PI/2;scene.add(p)});
 // 路缘、人行道
 box(.2,.15,80-ZA,LOT.CRB,XC+.1,.075,(80+ZA)/2);box(2.6,.14,80-ZA,LOT.SWK,XC+1.5,.07,(80+ZA)/2);      // 东边
 box(.2,.15,80-ZA,LOT.CRB,-(XC+.1),.075,(80+ZA)/2);      // 西边车位尽头的路缘（出口那段没有）
