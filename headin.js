@@ -141,7 +141,7 @@ function parkDone(){const cs=corners(),zs=cs.map(q=>q[1]),xs=cs.map(q=>q[0]),zl=
  else{const deg=Math.abs(da)*180/Math.PI;
   if(over>0)ev('overLine','（车身压过线约 '+Math.round(over*100)+' 厘米）');else if(Math.abs(R.z-ZT)>.3)ev('notCentre','（离两边的线：'+(R.z-zl-LW.HW).toFixed(2)+' 米 和 '+(zr-R.z-LW.HW).toFixed(2)+' 米）');
   if(deg>5)ev('crooked','（斜了约 '+Math.round(deg)+'°）');
-  const dd=-PCX-R.x;if(rx>-AW+.15)ev('notDeep','（车尾伸出车位线约 '+Math.round((rx+AW)*100)+' 厘米）');else if(Math.abs(dd)>.4)ev('notAlign','（你的车比两边的车'+(dd>0?'往里多开了 ':'靠外了 ')+Math.round(Math.abs(dd)*100)+' 厘米）');
+  const dd=-PCX-R.x;if(rx>-AW+.15)ev('notDeep','（车尾伸出车位线约 '+Math.round((rx+AW)*100)+' 厘米）');;      /* 和两边的车对齐只是找位置的方法，不算硬指标：只要车头／车尾不伸到车道上就行 */
   if(Math.abs(R.w)>.1)ev('wheelNotStr','（方向盘还'+(R.w<0?'往左 ':'往右 ')+Math.round(Math.abs(R.w)*WLOCK)+'°）')}
  const nM=(R.moves||0)+((R.segD||0)>.3?1:0),nAdj=Math.floor((nM-1)/2);if(nAdj>2)ev('manyMoves','（调整了 '+nAdj+' 次）')}
 // 进口人行道上走的行人（往北走，横过进口）
