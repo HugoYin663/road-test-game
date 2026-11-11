@@ -191,7 +191,7 @@ section{display:flex;flex-direction:column;gap:12px}
 
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1111j';
+const V='1111k';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -201,7 +201,7 @@ const ITEMS={
  'stop-left':{zh:'停牌路口左转',en:'Left turn at a stop sign',dz:'小区单面停牌路口：人行横道前停稳，看左看右，被路边停车挡住就前移，找两边的空档左转',de:'Two-way stop in a residential area: stop before the crosswalk, look both ways, creep up when parked cars block your view, then turn left in a safe gap'},
  'lane-change':{zh:'换线',en:'Lane change',dz:'SMOG：打灯、看后视镜、回头看盲区，等够空档再换线；换过去再换回来',de:'SMOG: signal, mirror, shoulder check, wait for a big enough gap, then change lanes and back again'},
  'highway-on':{zh:'上高速',en:'Merging onto the highway',dz:'从匝道弯道开始，在加速车道里按车流提速、找空档并入 401',de:'From the ramp curve, match traffic speed in the acceleration lane and merge into a gap on the 401'},
- 'highway-off':{zh:'下高速',en:'Exiting the highway',dz:'提前换到右车道，进减速车道再减速，下匝道',de:'Move to the right lane early, slow down only in the deceleration lane, then take the ramp'},
+ 'highway-off':{zh:'下高速',en:'Exiting the highway',dz:'中间车道 80，换到最右车道后跟上车流加速到 110，进出口减速车道再减速，开到匝道弯道',de:'From 80 in the busy middle lane, move right, speed up to traffic (about 110), and slow only in the exit lane before the ramp curve'},
  'three-point':{zh:'三点调头',en:'Three-point turn',dz:'靠边停在 30 厘米内，每一步 M.S.B.，前、后、前三步调头，不原地打方向、不碰路缘',de:'Pull over within 30 cm, M.S.B. at every step, forward–reverse–forward, no dry steering, no curb contact'},
  'hill-park':{zh:'上下坡停车',en:'Parking on a hill',dz:'上坡有路缘车轮朝外，下坡、没有路缘车轮朝路边；停好再离开',de:'Uphill with a curb, wheels away from it; downhill or no curb, wheels toward the edge. Park, then move off'},
  'parallel':{zh:'平行停车',en:'Parallel parking',dz:'停在参考车旁边 1 米、后保险杠对齐，倒车右打、45° 回正、左打，停在车位中间',de:'Stop 1 m beside the reference car with bumpers aligned, reverse with right lock, straighten at 45°, left lock, finish centred'},

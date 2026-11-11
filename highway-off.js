@@ -1,5 +1,5 @@
 // ============================================================
-// highway-off.js — 项目：下高速（401 往东中间车道 → 换到最右车道 → 出口减速车道 → 匝道（建议 50）→ 匝道尽头停车标志前停稳）
+// highway-off.js — 项目：下高速（401 往东中间车道，车流约 80 → 换到最右车道 → 前面路还长，跟上车流加速到 110 左右 → 出口减速车道里减速 → 开到匝道弯道结束）
 // ============================================================
 // 道路来自 lib/road2.js（城市道路，和换线、上高速同一条路），高速在路堤上，城市道路从桥上跨过去。出口在城市道路西边（桥前）
 // 路线坐标 (x,z)：x 向东为正，z 向北为正；画到场景里是 (-x, y, z)
@@ -8,8 +8,8 @@ const ZF1=ZA+3.75,ZF2=ZA+7.5,ZF3=ZA+11.25,ZMED=ZA+15.7,ZW1=ZA+20.15,ZW2=ZA+23.9,
 const XW=-1800,XLEN=3400;      // 高速从 x=-1800 画到 1600
 // 出口：ZA 是出口减速车道的中心线。XT0 开始渐宽（70 米），XT1 起全宽，XG 分岔（虚线结束）；匝道先直 AA 米，右弯 60°（半径 RE），斜着往东南 DD 米，再左弯 60°，最后往东 BB 米到停车线 XS
 const RE=130,TH=Math.PI/3,AA=7.5,BB=22,ZEND=470,XS=-14;
-const DD=(ZA-ZEND-2*RE*(1-Math.cos(TH)))/Math.sin(TH),XG=XS-BB-AA-2*RE*Math.sin(TH)-DD*Math.cos(TH),XT0=XG-280,XT1=XT0+70;
-const X0=-1300;      // 你出发的位置（中间车道）
+const DD=(ZA-ZEND-2*RE*(1-Math.cos(TH)))/Math.sin(TH),XG=XS-BB-AA-2*RE*Math.sin(TH)-DD*Math.cos(TH),XT0=XG-370,XT1=XT0+70;      // 出口减速车道约 370 米（从 110 换进来还有足够的距离减速）
+const X0=-1420;      // 你出发的位置（中间车道）
 // 你的路线 P：沿出口车道的中心线（高速部分在 z=ZA），分岔后是匝道，过了停车线再往东一点
 const PP=(()=>{const pts=[[XW,ZA]];let x=XG,z=ZA,h=Math.PI/2;pts.push([x,z]);
  const seg=(len,k)=>{const n=Math.ceil(len);for(let i=0;i<n;i++){const ds=len/n;h+=k*ds/2;x+=Math.sin(h)*ds;z+=Math.cos(h)*ds;h+=k*ds/2;pts.push([x,z])}};
@@ -112,24 +112,26 @@ const TXT={
  tooClose:["跟前车太近","高速上要和前车保持约 2 秒的距离。一直贴得很近（不到 0.7 秒，比如 100 km/h 时不到 20 米）就扣分。"],
  hardBrake:["冲到前车后面，只能急刹","和前车的车速差太大、距离又近，只能急刹才不撞上。要提早松开加速、点减速。"],
  crash:["和别的车相撞","换线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
- speedF:["高速上超速","这段高速限速 110，不要超过限速。"]};
+ speedF:["高速上超速","这段高速限速 110，不要超过限速。"],
+ stay80:["换到最右车道后一直只开 80","中间车道车多才开 80；换到右车道后前面没有慢车、离出口还很远，应该跟上车流加速到 110 左右，到出口减速车道里再减速。一直慢慢开，后面的车只能跟着你或者急着超你。"],
+ rampFastC:["进匝道弯道时车速太快","匝道弯道建议 50 km/h。要在出口减速车道里就把车速降下来，进弯前降到 50～60 左右。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash','missExit','noStop'];
 // 其他车：road A＝城市道路（往北，s＝z，lane＝x），F＝高速往东（s＝x，lane＝z），W＝高速往西
 function carPos(c){if(c.road==='A')return[c.lane,c.s,c.lane<0?Math.PI:0];if(c.road==='F')return[c.s,c.lane,Math.PI/2];return[c.s,c.lane,-Math.PI/2]}
 function add(road,lane,s,v,o){const c=car(C[1+Math.random()*8|0]);live.push(c);const k=Object.assign({c,road,lane,s,vd:v,cv:Math.abs(v)},o||{});R.cars.push(k);return k}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
- R={t:0,u:uAtX(X0),d:7.5,v:27.8,ph:1,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],lc:null,lastDone:-9,q:[],hd:0};
+ R={t:0,u:uAtX(X0),d:7.5,v:22.2,ph:1,sig:null,sigT:-9,mT:{},oT:{},look:null,yaw:0,pit:0,ev:[],over:false,cars:[],lc:null,lastDone:-9,q:[],hd:0};
  // 城市道路：两个方向都有车
  for(let k=0;k<10;k++)add('A',[1.75,5.25][k%2],200+k*70+Math.random()*20,V0);for(let k=0;k<10;k++)add('A',-1.75-(k%2)*3.5,250+k*70+Math.random()*20,-V0);
  // 你的车道（中间）：前后各有车，速度和你差不多
- [75,150,240].forEach(d=>add('F',ZF2,X0+d+Math.random()*10,27.8));[-55,-115].forEach(d=>add('F',ZF2,X0+d,27.8));
- // 右车道：一团一团的车（2～3 辆、间距 33～38 米），团和团之间 110～140 米的空档；车速约 92，比你慢一点，空档会从前面慢慢移到你旁边
- {const VR1=25.5,c0=X0+15+Math.random()*20,gp=()=>110+Math.random()*30,sp=()=>33+Math.random()*5;let x=c0+gp()/2,k=0,n=2+(Math.random()*2|0);
+ [45,90,140,195,250].forEach(d=>add('F',ZF2,X0+d+Math.random()*8,22.2));[-40,-85].forEach(d=>add('F',ZF2,X0+d,22.2));      // 中间车道车多，大家都只开 80 左右
+ // 右车道：一团一团的车（2～3 辆、间距 33～38 米），团和团之间 120～160 米的空档；车速约 108，比你快：一团车从后面超过去以后，就有空档可以换过去，换过去要马上加速跟上
+ {const VR1=30,c0=X0+15+Math.random()*20,gp=()=>125+Math.random()*35,sp=()=>33+Math.random()*5;let x=c0+gp()/2,k=0,n=2+(Math.random()*2|0);
   while(x<X0+1500){add('F',ZF1,x,VR1);if(++k===n){x+=gp();k=0;n=2+(Math.random()*2|0)}else x+=sp()}
-  x=c0-55-Math.random()*10;k=0;n=2+(Math.random()*2|0);while(x>X0-500){add('F',ZF1,x,VR1);if(++k===n){x-=gp();k=0;n=2+(Math.random()*2|0)}else x-=sp()}}
+  x=c0-55-Math.random()*10;k=0;n=2+(Math.random()*2|0);while(x>X0-900){add('F',ZF1,x,VR1);if(++k===n){x-=gp();k=0;n=2+(Math.random()*2|0)}else x-=sp()}}
  for(let k=0;k<30;k++)add('F',ZF3,XW+k*115+Math.random()*30,30.5+Math.random()*2);      // 左车道快一些
  for(let k=0;k<36;k++)add('W',[ZW1,ZW2,ZW3][k%3],XW+k*95+Math.random()*40,-(29+Math.random()*3));
- mine.visible=false;setSig(null);banner('401 往东','');mk();$('sp').textContent='100'}
+ mine.visible=false;setSig(null);banner('401 往东','');mk();$('sp').textContent='80'}
 const accN=v=>Math.max(.6,2.37-.045*v);      // 和上高速一样：50→100 约 10 秒
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
@@ -176,13 +178,14 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  if(R.ph===1&&p[0]>=XT0){R.ph=2;banner('出口车道开始：看后视镜 → 看盲点 → 换线，进出口车道','#ffe27a')}
  if(R.ph<=2&&!R.lr&&R.d>5&&!(R.lc&&R.lc.d1<5)&&p[0]>XT0-150){R.lr=1;ev('lateRight')}
  if(R.ph<=2&&R.d<.5&&!R.lc){R.ph=3;banner('在出口车道里减速，匝道建议 50 km/h','#ffe27a')}
- if(R.ph<=3&&R.u>=UG){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missExit');R.ph=9;R.miss=t;R.mx=p[0];R.mz=p[1];R.lc=null;R.hd=0;setSig(null)}else{R.ph=4;banner('匝道：前方停车标志，在停车线前停稳','#ffe27a')}}
+ if(R.ph<=3&&R.u>=UG){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missExit');R.ph=9;R.miss=t;R.mx=p[0];R.mz=p[1];R.lc=null;R.hd=0;setSig(null)}else{R.ph=4;banner('匝道：前方弯道，建议 50 km/h','#ffe27a')}}
+ if(R.ph===4&&R.u>=UC1+2){if(R.v*3.6>68)ev('rampFastC',{add:'（进弯时 '+Math.round(R.v*3.6)+' km/h）'});R.ph=5;R.p5=t;banner('下高速完成','')}      /* 开到匝道第一个弯就结束（后面接城市道路） */
  if(R.ph===9&&t>R.miss+3){finish();return}
  // 停车线：车头＝车中心往前 2.3 米
- if(R.ph===4){const front=R.u+2.3,dist=US-front;
+ if(false){const front=R.u+2.3,dist=US-front;
   if(R.v<.15&&dist>-.5){R.stT=(R.stT||0)+dt;if(R.stT>.6){if(dist>6)ev('farStop');R.ph=5;R.p5=t;banner('停稳了','')}}else R.stT=0;
   if(dist<-.8&&R.v>.5){ev('noStop');R.ph=5;R.p5=t}}
- if(R.ph===5&&t>R.p5+1.5){finish();return}
+ if(R.ph===5&&t>R.p5+1){finish();return}
  // 车速：你用加速／减速按钮控制（按住起作用，松开保持车速）
  let vt=99;
  R.cars.forEach(c=>{if(!occ(c))return;const q=carPos(c),g=(c.road==='A'?Math.abs(q[1]-p[1]):q[0]-p[0])-4.6;if(c.road==='F'&&(g>-2&&g<60))vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
@@ -195,9 +198,10 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  if(FG<200&&!R.acc&&!R.dec&&!R.crash){const want=Math.max(FV-2.5,FV+(FG-2*R.v)/4);if(R.v>want)R.v=Math.max(want,R.v-1.5*dt)}
  // 车速判断
  const kmh=R.v*3.6;
- if(onHwy()&&R.ph<9){R.sH=R.d>1.8&&kmh<85&&!(FG<45&&FV*3.6<88)?(R.sH||0)+dt:0;if(R.sH>2)ev('slowHwy')}      /* 主路上（还没进出口车道）就减速；前车慢逼你慢的不算 */
+ if(onHwy()&&R.ph<9){R.sH=R.d>1.8&&kmh<72&&!(FG<45&&FV*3.6<80)?(R.sH||0)+dt:0;if(R.sH>2)ev('slowHwy')}      /* 主路上（还没进出口车道）就减速；前车慢逼你慢的不算 */
+ {const inR=Math.abs(R.d-3.75)<.4&&!R.lc&&R.ph<9,far=p[0]<XT0-60,free=!(FG<80&&FV*3.6<100);R.s80=inR&&far&&free&&kmh<96?(R.s80||0)+dt:0;if(R.s80>7)ev('stay80')}      /* 在右车道、离出口车道还有 60 米以上、前面没有慢车：7 秒还没加速到 96 以上 */
  R.spF=onHwy()&&kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
- R.rf=((R.u>UC1+5&&R.u<UC2)||(R.u>UC3+5&&R.u<UC4))&&kmh>65?(R.rf||0)+dt:0;if(R.rf>1)ev('rampFast');
+ R.rf=R.ph<5&&((R.u>UC1+5&&R.u<UC2)||(R.u>UC3+5&&R.u<UC4))&&kmh>65?(R.rf||0)+dt:0;if(R.rf>1)ev('rampFast');
  if(FG<200&&t-R.lastDone>4&&!R.lc){const g=FG,lv=FV,h=g/Math.max(1,R.v);
   if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>4.5)ev('hardBrake',{ah:g+4.6,add:`（当时你 ${Math.round(kmh)} km/h，前车 ${Math.round(lv*3.6)} km/h，车距约 ${Math.max(0,Math.round(g))} 米）`});
   R.tc=h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(kmh)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}
@@ -224,7 +228,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
   if(Hh){Hh.crash=true;Hh.spin=.3;R.crash={t};crashSnd();ev('crash')}}
  if(R.crash&&t-R.crash.t>3){finish();return}}
 function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let h;
- if(!R.ev.length)h='<h2>驾驶总结</h2><div class="st">★★★</div><p>提早换到最右车道，在出口车道里才减速，匝道上车速合适，在停车线前停稳，做得很好。</p>';
+ if(!R.ev.length)h='<h2>驾驶总结</h2><div class="st">★★★</div><p>提早换到最右车道，换过去后跟上车流加速，到出口车道里才减速，进匝道弯道时车速合适，做得很好。</p>';
  else h='<h2>驾驶总结</h2><p>这一趟有 '+R.ev.length+' 处需要注意：</p><div class="cards">'+R.ev.map(e=>`<div class="card">${e.img?`<img src="${e.img}">`:''}<b>${e.title}${SER.includes(e.key)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'}</b><span>${e.text}</span></div>`).join('')+'</div>';
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
