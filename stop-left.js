@@ -10,6 +10,8 @@ const CW0=-8.4,CW1=-6.1;      // 人行横道（你这条路）：z 从 CW0 到 
 const FR=2.3;      // 车中心到车头
 // 四面停牌（页面里写 var ALLWAY=1）：四个方向都有 STOP（下面加 ALL WAY 小牌），你直行；先停稳的先走——这一局对面左转的车比你先到，要让它先转
 const AW4=typeof ALLWAY!=='undefined'&&!!ALLWAY;
+// 车头要停在 SL 前面：单面停牌没有停车线，SL 就是人行横道；四面停牌每个方向都有粗白停车线（人行横道外面 0.6 米，0.45 米宽），SL 是停车线靠你这边的边
+const SL=AW4?CW0-1.05:CW0;
 // ---------- 地面、道路 ----------
 const GRS=M(0xffffff,{map:noise('#79a95a',50,40)}),ASF=M(0xffffff,{map:noise('#5f6168',70,30)}),CRB=M(0xc9cbcf),SWK=M(0xd5d3cc),DRV=M(0xcfccc4);
 {const g=new T.Mesh(new T.PlaneGeometry(700,700),GRS);g.rotation.x=-Math.PI/2;g.receiveShadow=true;scene.add(g)}
@@ -29,6 +31,8 @@ const ASD=M(0x5f6168,{side:T.DoubleSide}),CRD=M(0xc9cbcf,{side:T.DoubleSide}),SW
 // 人行横道（你这条路，以及对面那条路）：小区里只画两条细白线（不是大路口那种斑马线）
 const WLm=BM(WH);
 [[CW0,CW1],[-CW1,-CW0]].forEach(([a,b])=>{box(2*RW,.03,.18,WLm,0,.045,a+.09);box(2*RW,.03,.18,WLm,0,.045,b-.09)});
+if(AW4){[[CW0,CW1],[-CW1,-CW0]].forEach(([a,b])=>{box(.18,.03,2*RW,WLm,a+.09,.045,0);box(.18,.03,2*RW,WLm,b-.09,.045,0)});      /* 四面停牌：横路两边也有人行横道 */
+ const c=SL+.225,w=RW-.15;box(w,.035,.45,WLm,RW/2,.05,c);box(w,.035,.45,WLm,-RW/2,.05,-c);box(.45,.035,w,WLm,c,.05,-RW/2);box(.45,.035,w,WLm,-c,.05,RW/2)}      /* 四个方向的粗白停车线：只画在来车那一半（中线到路缘） */
 // 路口两个角的院子：大云杉、灌木和树篱，挡住在人行横道前往左右看的视线（真实小区路口常见）。OBST＝挡视线的矩形 [x,z,半长x,半宽z]
 const OBST=[];
 {const SP=M(0x2f5f3a),SH=[M(0x3f7a3a),M(0x4d8a40),M(0x5f9640)];
@@ -46,10 +50,11 @@ const STOPT=cv(256,256,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,1
 const BLADE=t=>cv(256,48,(x,w,h)=>{x.fillStyle='#1d6b3a';x.fillRect(0,0,w,h);x.strokeStyle='#fff';x.lineWidth=3;x.strokeRect(3,3,w-6,h-6);x.fillStyle='#fff';x.font='bold 30px Arial';x.textAlign='center';x.fillText(t,w/2,34)});
 const blades=(g,top)=>{const a=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('BIRCH CRES'),side:T.DoubleSide}),0,top+.42,0);a.rotation.y=Math.PI/2;g.add(a);
  const b=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('MAPLE DR'),side:T.DoubleSide}),0,top+.18,0);b.rotation.y=Math.PI;g.add(b)};
-signPost(RW+1.0,CW0-1.4,0,STOPT,.75,.75,1.55,blades);      // 你这边：右边路角
-signPost(-RW-1.0,-CW0+1.4,Math.PI,STOPT,.75,.75,1.55);      // 对面也有停牌（你看到它的背面）
+signPost(RW+1.0,(AW4?SL+.4:CW0)-1.4,0,STOPT,.75,.75,1.55,blades);      // 你这边：右边路角
+signPost(-RW-1.0,-(AW4?SL+.4:CW0)+1.4,Math.PI,STOPT,.75,.75,1.55);      // 对面也有停牌（你看到它的背面）
 const AWT=cv(256,96,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.fillStyle='#c8102e';x.fillRect(6,6,w-12,h-12);x.fillStyle='#fff';x.font='bold 54px Arial';x.textAlign='center';x.fillText('ALL WAY',w/2,66)});
-if(AW4)[[RW+1.0,CW0-1.4,0],[-RW-1.0,-CW0+1.4,Math.PI],[-(SW1+.8),-(RW+1.0),Math.PI/2],[SW1+.8,RW+1.0,-Math.PI/2]].forEach((a,i)=>{if(i>=2)signPost(a[0],a[1],a[2],STOPT,.75,.75,1.55);signPost(a[0],a[1],a[2],AWT,.62,.23,1.27)});      /* 横路两个方向也有停牌；四个停牌下面都有 ALL WAY 小牌 */
+const STRT=cv(64,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.fillStyle='#c8102e';for(let i=0;i<5;i++)x.fillRect(4,6+i*50,w-8,26)});      /* 停牌下面红白横条的竖牌 */
+if(AW4)[[RW+1.0,SL-1.0,0],[-RW-1.0,-SL+1.0,Math.PI],[SL-1.0,-(RW+1.0),Math.PI/2],[-SL+1.0,RW+1.0,-Math.PI/2]].forEach((a,i)=>{if(i>=2)signPost(a[0],a[1],a[2],STOPT,.75,.75,1.55);signPost(a[0],a[1],a[2],AWT,.62,.23,1.27);signPost(a[0],a[1],a[2],STRT,.24,.86,.36)});      /* 横路两个方向也有停牌；四个停牌下面都有 ALL WAY 小牌 */
 {const t=cv(200,280,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);x.font='bold 130px Arial';x.fillText('40',w/2,200)});
  signPost(RW+1.0,-80,0,t,.6,.84,1.6)}
 // ---------- 房子、车道、树、路灯、消防栓、信箱 ----------
@@ -112,6 +117,8 @@ const TXT={
  unsafeR:["右边来车太近还转弯","你要转进去的那条车道上，右边来的车不用停。它离得太近时转进去，它只能急刹或撞上你。"],
  hesitate:["有安全的空档却一直不走","两边都没车、看得也清楚的时候，要果断转弯。等了很久不走，会影响后面的车，也算犹豫不决。"],
  crash:["和别的车相撞","左转要让横路两个方向的车。看不清就慢慢前移再看，确认两边都有足够的空档再走。"]};
+if(AW4){TXT.stopOnCross=["停车压到了停车线","有停车线时，车头要停在粗白停车线后面，不要压线，更不能停到人行横道上。"];TXT.stopFar=["停车离停车线太远","车头要停在接近停车线的地方（1～2 米内）。停得太远，别的车看不出你已经停好在等。"];
+ TXT.noStop=["停牌前没有完全停车","停牌路口必须在停车线前完全停住（车速为 0）。慢慢滑过去（rolling stop）在路考里是严重错误。"]}
 const SER=['noStop','unsafeL','unsafeR','crash','pedYield','yield4'];
 // 横路车流：dir＝+1 往东（从你左边来），-1 往西（从你右边来）
 function add(dir,x,v){const c=car(C[1+Math.random()*8|0]);live.push(c);const k={c,dir,x,v,cv:v,z:dir>0?ZE:ZWB};R.cars.push(k);return k}
@@ -127,17 +134,17 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  if(AW4){R.pedOn=Math.random()<(hard?.4:.25);R.A=[mkA('O',-3.2)];if(hard){R.A.push(mkA('L',-5.4));R.A.push(mkA('Rt',2.2))}}      /* 对面左转车比你早约 1.6 秒停下；困难：左边直行车更早到，右边直行车比你晚到（要让你） */
  mine.visible=view===2;R.sig=null;$('sg').style.display='none';banner('Maple Dr 往北','');mk();$('sp').textContent='40'}
 // ---------- 四面停牌：其他车 ----------
-const SZ0=-(SW1+.3+FR);      // 横路的车停下时车中心的位置（车头在人行道前）
+const SZ0=AW4?SL-.3-FR:-(SW1+.3+FR);      // 横路的车停下时车中心的位置（车头在人行道前）
 function mkA(k,off){const Rr=8.3;let pts;
  if(k==='O'){pts=[[-XL,140],[-XL,6.3]];for(let i=1;i<=24;i++){const a=i/24*Math.PI/2;pts.push([-XL+Rr-Rr*Math.cos(a),6.3-Rr*Math.sin(a)])}pts.push([140,ZE])}      // 对面往南、左转往东
  else if(k==='L')pts=[[-140,ZE],[140,ZE]];else pts=[[140,ZWB],[-140,ZWB]];
- const P=path(pts),stopAt=k==='O'?(()=>{for(let u=0;u<P.len;u+=.05)if(P(u)[1]<=-CW0+.3+FR)return u})():(()=>{for(let u=0;u<P.len;u+=.05)if(Math.abs(P(u)[0])<=-SZ0)return u})();
- const c=car(C[[2,4,6,8][Math.random()*4|0]]);live.push(c);if(k==='O')c.userData.bl.forEach(m=>m.position.x=-m.position.x);
+ const P=path(pts),stopAt=k==='O'?(()=>{for(let u=0;u<P.len;u+=.05)if(P(u)[1]<=-SL+.3+FR)return u})():(()=>{for(let u=0;u<P.len;u+=.05)if(Math.abs(P(u)[0])<=-SZ0)return u})();
+ const c=car(C[[2,4,6,8][Math.random()*4|0]]);live.push(c);
  return{k,c,P,u:Math.max(0,stopAt-58),v:11,st:'app',off,stopAt,tStop:null}}
 // 你的车头还要多久开到 F（按平常的开法：离人行横道 25 米以外 40 km/h，以内 20 km/h）
-function tTo(F){const fz=front();if(F<=fz||R.everStop)return 0;let t=0;const k=CW0-25;if(fz<k){t+=(Math.min(F,k)-fz)/11.1}if(F>k)t+=(F-Math.max(fz,k))/5.6;return t}
+function tTo(F){const fz=front();if(F<=fz||R.everStop)return 0;let t=0;const k=SL-25;if(fz<k){t+=(Math.min(F,k)-fz)/11.1}if(F>k)t+=(F-Math.max(fz,k))/5.6;return t}
 // 你还要多久停下（按平常的开法估计）
-function tPlayer(){if(R.everStop)return 0;if(R.stopReq&&R.stopT!=null)return R.v/(R.stopA||5)+.3;const d=CW0-front();return d>25?(d-25)/11.1+25/5.6+.6:Math.max(0,d)/5.6+.6}
+function tPlayer(){if(R.everStop)return 0;if(R.stopReq&&R.stopT!=null)return R.v/(R.stopA||5)+.3;const d=SL-front();return d>25?(d-25)/11.1+25/5.6+.6:Math.max(0,d)/5.6+.6}
 const bc4=b=>{const s=Math.sin(b[2]),c=Math.cos(b[2]);return[[1,1],[1,-1],[-1,1],[-1,-1]].map(([f,l])=>[b[0]+s*b[3]*f+c*b[4]*l,b[1]+c*b[3]*f-s*b[4]*l])};
 const inBoxP=(x,z)=>Math.abs(x)<RW+.6&&Math.abs(z)<RW+.6;
 function meIn(){const p=me();return bc4([p[0],p[1],p[2],2.3,.95]).some(q=>inBoxP(q[0],q[1]))}
@@ -208,7 +215,7 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sig'){R.sig=R.sig?null:'L';if(R.sig){R.sigT=R.t;if(R.sigZ==null)R.sigZ=front();tick(true)}$('sg').style.display=R.sig?'block':'none';mk();return}
  if(m==='lookL'||m==='lookR'){R.look=m==='lookL'?-1:1;R.lookT=R.t;mk();return}
  if(R.mode==='turn')return;
- if(m==='stop'){if(!R.stopReq&&!R.stopped&&!R.creep){const fz=front(),tg=CW0-.3,dA=tg-fz;      /* 和红灯停车一样：来得及就正好停在人行横道前，来不及就就地急停 */
+ if(m==='stop'){if(!R.stopReq&&!R.stopped&&!R.creep){const fz=front(),tg=SL-.3,dA=tg-fz;      /* 和红灯停车一样：来得及就正好停在人行横道前，来不及就就地急停 */
    if(dA>R.v*R.v/(2*5)+.2){R.stopT=tg;R.stopA=5}else{R.stopT=fz+R.v*R.v/14;R.stopA=7}}
   R.stopReq=true;R.creep=false;mk();return}
  if(m==='creep'){if(R.v<.2&&R.stopped){if(pedNear())pedEv();R.creep=true;R.stopReq=false;mk()}else if(!R.stopped)flash('先停车，再前移');return}
@@ -232,10 +239,10 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  const fz=front();
  if(R.mode!=='turn'){
   // 车速：平常 40；离人行横道 25 米内自己慢到 20 左右（准备停车）；按停车就停；前移时很慢
-  let vt=fz<CW0-25?11.1:5.6;
+  let vt=fz<SL-25?11.1:5.6;
   if(R.stopReq){if(R.stopT!=null){const dS=R.stopT-fz;vt=dS>.05?Math.min(vt,Math.sqrt(2*R.stopA*dS)):0}else vt=0}if(R.creep)vt=1.3;if(R.stopped&&!R.creep)vt=0;
   // 一直不停车：冲过人行横道时算严重错误，系统帮你在路边停下
-  if(!R.everStop&&!R.stopReq&&fz>CW0+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true;R.stopT=fz+R.v*R.v/14;R.stopA=7}      /* 按了停车、正在刹车的不算没停：停在哪里再判断位置 */
+  if(!R.everStop&&!R.stopReq&&fz>SL+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true;R.stopT=fz+R.v*R.v/14;R.stopA=7}      /* 按了停车、正在刹车的不算没停：停在哪里再判断位置 */
   const lim=LIM();      // 前移最远到这里（再往前就进了横路的车道）
   if(fz>lim-.2&&(R.creep||!R.stopReq)){vt=0;if(R.creep){R.creep=false;R.stopReq=true;flash('已经到横路边上了，不能再往前');mk()}}
   if(fz>lim-3&&!R.stopReq&&!R.creep&&!R.stopped)vt=Math.min(vt,Math.sqrt(2*4*Math.max(0,lim-fz)));
@@ -243,9 +250,9 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   R.z+=R.v*dt;
   // 停稳
   if(R.v<.05&&!R.stopped&&R.stopReq){R.stopT=null;R.stopped=true;if(R.stop1==null)R.stop1=t;R.everStop=true;R.lastStop=t;R.v=0;
-   if(R.firstStop){R.firstStop=false;if(!R.ns){if(fz>CW0+.3)ev('stopOnCross');else if(fz<CW0-3)ev('stopFar')}banner(AW4?'停稳了：看左、看右，先停下的车先走':'停稳了：看左、看右；看不清就前移','#ffe27a')}}
+   if(R.firstStop){R.firstStop=false;if(!R.ns){if(fz>SL+.3)ev('stopOnCross');else if(fz<SL-3)ev('stopFar')}banner(AW4?'停稳了：看左、看右，先停下的车先走':'停稳了：看左、看右；看不清就前移','#ffe27a')}}
   if(R.creep&&R.v>.1)R.stopped=false;
-  if(R.sig&&R.sigZ!=null&&!R.ls&&R.sigZ>CW0-15){R.ls=1;ev('lateSig')}
+  if(R.sig&&R.sigZ!=null&&!R.ls&&R.sigZ>SL-15){R.ls=1;ev('lateSig')}
   // 有安全空档、看得清、两边都看过，却一直不走
   if(!AW4&&R.stopped&&((t*4|0)!==(R.lastP||0))){R.lastP=t*4|0;const ok=!pedNear()&&!predict()&&!blind()&&R.lookL>R.lastStop&&R.lookR>R.lastStop;R.safeT=ok?R.safeT+.25:R.safeT;if(R.safeT>10)ev('hesitate')}
  }else{const P=R.turnP;let vt=R.u<P.arcEnd?6:(AW4&&meIn()?7:11);if(AW4){const p0=me();R.A.forEach(a=>{if(a.st==='gone')return;const q=a.P(a.u);if(obbHit([p0[0],p0[1]+2.5,0,2.4,1],[q[0],q[1],q[2],2.3,.95]))vt=0})}      /* 你直行时前面有车挡着：先停（不会穿过去） */
