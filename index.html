@@ -112,6 +112,9 @@ section{display:flex;flex-direction:column;gap:12px}
 .bx i.l{border:0;background:none;color:#333;font-weight:700;font-size:10px}
 .fr.hit .tx{background:#fff8dc}
 .route.crit{border-color:var(--hard)}
+.dq{background:#fff;color:#111;border:2px solid var(--hard);border-radius:8px;padding:10px 14px;font-family:Arial,Helvetica,sans-serif}
+.dq h4{margin:0 0 6px;font-size:13px;letter-spacing:.03em}.dq ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:3px 18px}
+.dq li{display:flex;gap:7px;align-items:baseline;font-size:13.5px;color:#888}.dq li.on{color:#111;font-weight:700}.dq li i{flex:none;width:15px;height:15px;border:1.5px solid #333;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;color:#c8102e;position:relative;top:2px}.dq li small{font-weight:400;color:#666;margin-left:4px}
 details.route summary{cursor:pointer}
 </style>
 
@@ -215,10 +218,10 @@ details.route summary{cursor:pointer}
   </div>
 </div>
 
-<script src="lib/sheet.js?v=1111t"></script>
+<script src="lib/sheet.js?v=1111v"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1111t';
+const V='1111v';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -251,14 +254,15 @@ const STEP={exit:{zh:'出车位、出停车场，左转上大路',en:'Leave the 
  'highway-on':{zh:'上高速',en:'Merge onto the highway'},'highway-off':{zh:'出高速（换进最右出口车道，加速到 110，快到出口再减速）',en:'Exit the highway (move into the exit lane, speed up to 110, slow near the exit)'},
  headin:{zh:'回考场：车头进车位（头进）',en:'Back at the centre: park forward into a stall'}};
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
-function buildSteps(k){const L=k==='g2'?['exit',...shuf(['red-right','green-right','green-left:green','green-left:amber']),'stop-4way','hill-park','three-point','parallel','stop-left',shuf(['green-left:green','green-left:amber'])[0],'stall']
+function buildSteps(k){const GL=shuf(['green-left:green','green-left:amber']);      // G2：绿灯左转一共两次（两种情况各一次），一次在去小区的路上，一次在回考场的路上
+ const L=k==='g2'?['exit',...shuf(['red-right','green-right',GL[0]]),'stop-4way','hill-park','three-point','parallel','stop-left',GL[1],'stall']
   :['exit',...shuf(['red-right','green-right']),'highway-on','highway-off',...shuf(['green-left:green','green-left:amber']),'headin'];
  return L.map(id=>{const [sc,vr]=id.split(':');return Object.assign({s:sc,var:vr||null},STEP[id])})}
 // 首页上显示的路线（红绿灯部分顺序每次随机）
 const ROUTES={
- g2:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'红绿灯路口 4 次：红灯右转、绿灯右转、绿灯左转（等空档）、绿灯左转（变黄灯）——顺序随机；左转后要换到右车道',en:'Four signalled turns: right on red, right on green, left on green (gap), left on green turning amber — random order; keep right after left turns'},
+ g2:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'红绿灯路口 3 次：红灯右转、绿灯右转、绿灯左转（等空档或变黄灯，随机一种）——顺序随机；左转后要换到右车道',en:'Three signalled turns: right on red, right on green, and a left on green (gap or amber) — random order; keep right after the left turn'},
   {zh:'进小区：四面停牌直行',en:'Residential: all-way stop, straight through'},{zh:'坡道停车',en:'Hill parking'},{zh:'三点调头',en:'Three-point turn'},{zh:'平行停车',en:'Parallel parking'},
-  {zh:'出小区：停牌路口左转',en:'Leaving: left turn at a stop sign'},{zh:'回考场路上：绿灯左转',en:'On the way back: left turn on green'},{zh:'回考场：倒车入位（尾进）',en:'Back at the centre: reverse into a stall'}],
+  {zh:'出小区：停牌路口左转',en:'Leaving: left turn at a stop sign'},{zh:'回考场路上：绿灯左转（另一种情况）',en:'On the way back: left turn on green (the other case)'},{zh:'回考场：倒车入位（尾进）',en:'Back at the centre: reverse into a stall'}],
  g:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'红绿灯路口：红灯右转、绿灯右转（顺序随机）',en:'Right on red and right on green (random order)'},
   {zh:'上高速',en:'Merge onto the highway',hw:1},{zh:'出高速：换进最右出口车道，加速到 110，快到出口再减速',en:'Exit: move into the exit lane, speed up to 110, slow near the exit',hw:1},
   {zh:'红绿灯路口：绿灯左转两次（等空档、变黄灯），转完靠右',en:'Two left turns on green (gap, amber), keep right after',hw:0},{zh:'回考场：车头进车位（头进）',en:'Back at the centre: park forward into a stall'}]};
@@ -285,8 +289,8 @@ function result(){view('result');let S=null;try{S=JSON.parse(localStorage.getIte
  box.innerHTML='<div><h2>'+bi('模拟考试成绩单 · '+S.level.toUpperCase()+(S.diff==='hard'?' · 困难':' · 容易'),'Mock '+S.level.toUpperCase()+' test · '+(S.diff==='hard'?'Hard':'Easy'))+'</h2>'
   +'<p class="sub">'+bi((fin?'全部 ':'完成 ')+all.length+' / '+S.steps.length+' 项 · 严重错误 '+ser+' 处 · 扣分 '+mk+' 处','Completed '+all.length+' / '+S.steps.length+' · Critical '+ser+' · Marks '+mk)+'</p></div>'
   +'<header class="sign" style="background:'+(pass?'var(--live)':'var(--hard)')+';border-color:'+(pass?'var(--live)':'var(--hard)')+'"><div><h1>'+(fin?(pass?bi('合格','PASS'):bi('不合格','FAIL')):bi('未完成','Incomplete'))+'</h1><p>'+bi('参考标准：有任何严重错误不合格；扣分 G2 超过 10 处、G 超过 8 处不合格（评分表上每个字母算一处）。真实路考以考官评分为准。','Guide: any critical error fails; more than 10 marks (G2) or 8 marks (G) fails — each letter on the sheet is one mark. Real tests are scored by the examiner.')+'</p></div></header>'
-  +(ser?'<div class="route crit"><b>'+bi('严重错误（Dangerous action）','Critical errors (dangerous action)')+'</b><ol>'+SH.crit.map(c=>'<li>'+c.e.t+' <span class="sub">— '+(LANG==='en'?c.step.en:c.step.zh)+'</span></li>').join('')+'</ol></div>':'')
-  +SH.html
+  +(ser?'<div class="route crit"><b>'+bi('严重错误','Critical errors')+'</b><ol>'+SH.crit.map(c=>'<li>'+c.e.t+' <span class="sub">— '+(LANG==='en'?c.step.en:c.step.zh)+'</span></li>').join('')+'</ol></div>':'')
+  +(fin&&!pass?SH.dq(mk>lim):'')+SH.html
   +'<details class="route"><summary><b>'+bi('每一项的详细说明','Details for each task')+'</b></summary><ol>'+S.steps.map((st,i)=>{const r=S.res[i];if(!r)return '<li style="opacity:.55">'+bi(st.zh,st.en)+' — '+bi('未做','not done')+'</li>';
    return '<li><b>'+bi(st.zh,st.en)+'</b>'+(r.ev.length?'<ul style="margin:4px 0 6px;padding-left:1.1em">'+r.ev.map(e=>'<li><span style="color:'+(e.ser?'var(--hard)':'var(--soon)')+';font-weight:700">'+(e.ser?bi('严重','Critical'):bi('扣分','Mark'))+'</span> '+e.t+(e.x?'<br><span class="sub" style="font-size:13px">'+e.x+'</span>':'')+'</li>').join('')+'</ul>':' <span style="color:var(--live);font-weight:700">'+bi('✓ 没有错误','✓ no errors')+'</span>')+'</li>'}).join('')+'</ol></details>'}
 function show(){if(!LANG){view('lang');return}const h=location.hash.replace('#','')||'home';
