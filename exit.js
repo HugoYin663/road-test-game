@@ -152,11 +152,12 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
    if(!R.p1T&&R.EV.aisle.includes('ped')&&R.z<ZS(-6)+SWD/2+12){R.p1T=1;const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.P1={o,x:-4.6,z:ZS(-6)+SWD/2,v:1.25,ph:0,t0:t};
     R.haz.push(()=>R.P1&&!R.P1.gone?inPath(R.P1.x,R.P1.z,.35):null)}
    if(R.B&&!R.B.st&&R.z<ZS(KB)+12.5&&!(R.AC&&!R.AC.gone&&Math.abs(R.AC.z-ZS(KB))<14)&&!(R.P1&&!R.P1.gone&&Math.abs(R.P1.z-ZS(KB))<5&&R.P1.x<XC)){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
-   if(R.z<-12&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1)}
+   if(R.z<-12&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1);R.insRT=t}
+   if(R.insRT&&!R.sigRon&&t-R.insRT>1.2){R.sigRon=1;setSig('R')}      /* 右转灯由系统来打（考官说完约 1 秒） */
    if(R.EV.ec&&!R.EC&&R.z<ZA+16)ecSpawn();
    if(R.EC&&!R.ecChk&&Math.min(...corners().map(q=>q[1]))<ZA-.3){R.ecChk=1;const E=R.EC,xs=corners().map(q=>q[0]);if(!E.gone&&E.x+LW.HL>Math.min(...xs)-1&&E.x-LW.HL<Math.max(...xs)+12)ev('noYieldEC')}      /* 你转进通道时，左边开过来的车还没过去、离你又不远 */
    if(R.EV.pe&&!R.PE&&R.z<-15.5){const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.PE={o,x:-(XC+1.3),z:ZB-3.5,v:1.3,ph:0,t0:t};R.haz.push(()=>R.PE&&!R.PE.gone?inPath(R.PE.x,R.PE.z,.35):null)}
-   if(R.auto.i>=PATH.i2){R.ph=3;banner('考官：前面左转，上大路（turn left onto the road）','#ffe27a',1)}}
+   if(R.auto.i>=PATH.i2){R.ph=3;if(R.sig==='R')setSig(null);      /* 转完右转灯自己灭 */banner('考官：前面左转，上大路（turn left onto the road）','#ffe27a',1)}}
   pedStep(dt);backStep(dt);ecStep(dt);
   // ---------- 往出口、上大路 ----------
   if(R.ph===3){const fx=frontX();
