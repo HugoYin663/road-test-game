@@ -13,9 +13,9 @@ const HI_TXT={
  noYieldPedIn:["没有让人行道上的行人","进停车场要横过人行道：有行人在走，停在人行道前面让他先过去。"],
  noSigAisle:["左转进车道前没有打左转灯","在停车场里转弯也要打灯：快到车道口时打好左转灯。"],
  noYieldOnc:["左转进车道时没有让对面开过来的车","对面开过来的车在通道上直行，你左转要横过它的车道：先停下让它过去，再转。"],
- brkNoMir:["减速找车位前没有看后视镜","听到考官的指令后，减速之前先看后视镜（按“左侧观察”会看中镜、左镜和左边盲点）。"],
+ brkNoMir:["减速找车位前没有看后视镜","听到考官的指令后，减速之前先看后视镜（按住“左镜”看一眼后面有没有车跟着）。"],
  brkNoSig:["减速找车位前没有打左转灯","要往左边的车位里停：减速之前打好左转灯，让后面和对面的车知道你要停进去。"],
- noShoulderL:["转进车位前没有看左边盲点","往左转进车位之前要转头看左边（按“左侧观察”）：车中间常有行人走出来。"],
+ noShoulderL:["转进车位前没有转头看左边","往左转进车位之前要转头看左边（按住“看左边”）：车中间常有行人走出来，左边车道也可能有车。"],
  backIn:["没有车头朝里停","这个项目要头进：车头朝里开进车位。"],
  notIn:["没有停进车位","车身要全部停在车位的两条线中间，不能压到旁边的车位，车尾也不能留在车道上。"],
  overLine:["压线了","停好后车身要在两条线中间，左右都要留出空间（旁边的车要能开门）。"],
@@ -79,7 +79,7 @@ function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1
   if(o.L==='N'&&R.EC&&R.EC.road&&!R.EC.gone){const g=R.EC.z-o.z;if(g>-.01&&g<5.6){o.z=R.EC.z-5.6;o.v=Math.min(o.v,R.EC.v)}}
   if(inL){const zs=cs.map(q=>q[1]),z0=Math.min(...zs),z1=Math.max(...zs);if(o.dir>0&&o.z+LW.HL>z0-.4&&o.z<z1){o.z=Math.min(o.z,z0-.4-LW.HL);o.v=0}if(o.dir<0&&o.z-LW.HL<z1+.4&&o.z>z0){o.z=Math.max(o.z,z1+.4+LW.HL);o.v=0}}      /* 无论如何不会开进你的车里 */
   place(o.c,o.x,o.z,o.dir>0?0:Math.PI,0);if(Math.abs(o.z-ZC)>230){o.c.visible=false;o.gone=1}})}
-// ---------------- 按键：大路和通道里（系统开）用右转灯；自己停车时换成左侧观察、360° 观察 ----------------
+// ---------------- 按键：大路和通道里（系统开）用右转灯；自己停车时换成看左边、360° 观察 ----------------
 function keys(manual){const sh=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none'};sh('bsigRR',!manual);sh('bsigR',manual);sh('bmir',manual)}
 // ---------------- 场景 ----------------
 const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','backIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,tiltL:true,keepIns:true,pkYaw:-.35,
@@ -92,7 +92,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
   Object.assign(R,{EV:ev0,haz:[],tf:{q:trafPlan(HARD),cars:[]},AC:null,EC:null,PE:null,moves:0,segD:0});
   if(park){Object.assign(R,{x:LXA,z:ZT-9,h:0,gear:'D',ph:3,auto:null,cruise:false});keys(true);
    banner('考官：左边那个空车位（上方有蓝色箭头），车头朝里停进去（park front-in in the spot on your left）','#ffe27a',1);
-   tip('打左转灯，按住油门往前开到合适的位置停住；做左侧观察，方向盘往左打到底，慢慢开进去')}
+   tip('打左转灯，按住油门往前开到合适的位置停住；转头看左边，方向盘往左打到底，慢慢开进去')}
   else{const p=PATH.P[0];Object.assign(R,{x:p[0],z:p[1]+LW.TX,h:0,v:30/3.6,gear:'D',ph:0,auto:{pts:PATH.P,i:0},stopReq:false});keys(false);
    banner('考官：前面右转，进停车场（turn right into the plaza）','#ffe27a',1)}},
  onGear(g){R.gT=R.t;if(R.ph===4&&g==='P'){R.ph=5;R.pT=R.t}else if(R.ph===5&&g!=='P')R.ph=4},      /* 挂 P 又马上换回 R/D：当作误操作，继续 */
@@ -106,7 +106,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
   return v},
  onAutoBtn(R,m){},
  onHandover(R){R.ph=3;keys(true);if(R.EV.ac&&!R.AC)acSpawn(40);      /* 停下准备停车时，车道远处对面有车开过来 */
-  tip('做左侧观察（看镜、看左边盲点），方向盘往左打到底，按住油门慢慢开进车位；和车位线平行时回正')},
+  tip('转头看左边（按住“看左边”），方向盘往左打到底，按住油门慢慢开进车位；和车位线平行时回正')},
  on360Start(R){},
  onSeg(dir,n){if(dir<0&&R.ph>=3&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');
   if(R.ph>=4){if((R.segD||0)>.3)R.moves=(R.moves||0)+1;R.segD=0}},
@@ -128,7 +128,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
   if(R.ph===2&&R.cruise&&!R.stopReq&&R.z>ZT+3&&!R.over){ev('missed');finish();return}
   // ---------- 自己开进车位 ----------
   if(R.ph===3&&R.v>.05&&(R.w<-.3||R.h<-.12)){R.ph=4;      /* 开始往左转进车位（之前直着往前、往后挪位置不算） */
-   R.moves=0;R.segD=0;if(!sawSh('L',10))ev('noShoulderL')}
+   R.moves=0;R.segD=0;if(!(R.oT.XL!=null&&R.t-R.oT.XL<10)&&!sawSh('L',10))ev('noShoulderL')}      /* 往左转之前 10 秒内转头看过左边 */
   if(R.ph>=4)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
   if(R.ph===5&&!R.over){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();finish()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');finish()}}      /* 挂 P、拉手刹以后，停 1.5 秒没有别的操作才算做完 */
   pedStep(dt);ecStep(dt);acStep(dt);trafStep(dt);

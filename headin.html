@@ -78,7 +78,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <button class="b pos" id="bsigL" data-m="sigL">左转灯<small>Signal</small></button>
 <button class="b pos" id="bsigRR" data-m="sigR">右转灯<small>Signal</small></button>
-<button class="b pos" id="bsigR" data-m="obsL" style="background:#7b5bd6">左侧观察<small>两面镜＋左盲点</small></button>
+<button class="b pos" id="bsigR" data-m="lookL" style="background:#7b5bd6">看左边<small>按住一直看</small></button>
 <button class="b pos" id="bmir" data-m="obs360" style="background:#d98a1f;font-size:17px;white-space:nowrap">360°观察<small>四周看一遍</small></button>
 <button class="b pos" id="bshL" data-m="mL" style="background:#3a7d8c">左镜<small>按住看左外后视镜</small></button>
 <button class="b pos" id="bshR" data-m="mR" style="background:#3a7d8c">右镜<small>按住看右外后视镜</small></button>
@@ -93,12 +93,12 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p>你在大路上往北开。考官：<b>前面右转进停车场</b>；进了通道：<b>前面左转进车道</b>；进了车道：<b>左边那个空车位（上方有蓝色箭头），车头朝里停进去</b>。</p>
 <div class="modes"><button class="md" data-diff="easy"><b>练习</b><span>从大路开始：进口可能有行人，对面可能有车开过来</span></button><button class="md" data-diff="park"><b>只练停进车位</b><span>直接从车道里开始，专门练开进车位</span></button><button class="md" data-diff="hard"><b>困难模式</b><span>进口有行人，对面有车，停车时车道上还有车开过来</span></button></div>
 <details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
-<p><b>系统开的时候</b>（大路上、通道里、车道里）：方向由系统控制，右下角的大键是<b>停车</b>／<b>行驶</b>，左边是<b>左转灯</b>、<b>右转灯</b>。快到车位时系统减到很慢，你在想停的地方点<b>停车</b>，停住以后“停车”键变成<b>油门</b>，方向盘和挡位出现，后面自己开；右转灯换成<b>左侧观察</b>（中镜、左镜、左边盲点），还有 <b>360° 观察</b>。</p>
+<p><b>系统开的时候</b>（大路上、通道里、车道里）：方向由系统控制，右下角的大键是<b>停车</b>／<b>行驶</b>，左边是<b>左转灯</b>、<b>右转灯</b>。快到车位时系统减到很慢，你在想停的地方点<b>停车</b>，停住以后“停车”键变成<b>油门</b>，方向盘和挡位出现，后面自己开；右转灯换成<b>看左边</b>（转头看左边：点一下看一眼，按住不松就一直看着左边），还有 <b>360° 观察</b>。</p>
 <p><b>1. 右转进停车场</b>：听到指令就打<b>右转灯</b>（系统减速之前）。进口要横过人行道：有行人走过来，点<b>停车</b>让他过去，再点<b>行驶</b>。</p>
 <p><b>2. 左转进车道</b>：打<b>左转灯</b>。对面（商铺那边）开过来的车直行，你左转要横过它的车道：先<b>停车</b>让它过去，再<b>行驶</b>。</p>
-<p><b>3. 找车位</b>：系统在车道右边开（离左边的车远一点，转进去才有地方）。减速之前<b>看镜</b>（左侧观察）、打好<b>左转灯</b>。</p>
+<p><b>3. 找车位</b>：系统在车道右边开（离左边的车远一点，转进去才有地方）。减速之前<b>看后视镜</b>（按住<b>左镜</b>看一眼后面）、打好<b>左转灯</b>。</p>
 <p><b>4. Position</b>：慢慢开，车头（前保险杠）刚过空车位的<b>第一条线大约半米</b>时停住（这时司机大约对着近处那辆车的车尾中间稍微靠后）。这台车往左打到底时能转进去的范围前后只有约 70 厘米：停早了左边车身会扫到近处那辆车，停晚了右前角会碰到远处那辆车。停下的位置不算对错：觉得不合适可以往前、往后挪一挪再开始转。可以先用<b>只练停进车位</b>多试几次找感觉。</p>
-<p><b>5. 转进去</b>：做<b>左侧观察</b>（看左边盲点：车中间可能有人走出来），方向盘<b>往左打到底</b>，按住油门<b>慢慢</b>开进去（走路的速度）。留意右前角不要碰到远处那辆车、左边车身不要扫到近处那辆车。</p>
+<p><b>5. 转进去</b>：<b>转头看左边</b>（按住“看左边”：车中间可能有人走出来，左边车道也可能有车），方向盘<b>往左打到底</b>，按住油门<b>慢慢</b>开进去（走路的速度）。留意右前角不要碰到远处那辆车、左边车身不要扫到近处那辆车。</p>
 <p><b>6. Straighten</b>：车身和车位线<b>平行</b>时回正方向盘，直着往前开；空车位两边的车都是头进的：开到<b>你的外后视镜和旁边车的外后视镜对齐</b>（镜子对镜子）就停，车尾不要留在车道上，车头不要碰到前面的路缘。</p>
 <p><b>7. Shut-down</b>：挂 <b>P</b>，再点 P 档左边的<b>手刹键 (P)</b>，停 1.5 秒左右没有别的操作，这个项目才算完成。挂了 P 又马上换回 R 或 D，当作误操作，可以继续调整。</p>
 <p>要求：车停在两条线正中间、不压线，车身摆正，和两边的车对齐（前后差 40 厘米以内），方向盘回正。开进去以后最多<b>调整两次</b>（往后、再往前算一次），倒车前要做 360° 观察。不要碰到旁边的车（严重错误）。旁边的车 2.5 米以内时，画面上方会显示距离。<b>困难模式</b>里，你停下准备转进车位时，车道上对面会有车开过来：它离你很近时先停着让它过去。</p>
@@ -112,7 +112,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1109b"></script>
-<script src="lib/lowspeed.js?v=1111a"></script>
+<script src="lib/lowspeed.js?v=1111b"></script>
 <script src="lib/plaza.js?v=1111a"></script>
-<script src="headin.js?v=1111a"></script>
+<script src="headin.js?v=1111b"></script>
 </body></html>
