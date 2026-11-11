@@ -26,7 +26,7 @@ function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.0
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,myPathRaw,cs,ce,UEND,uW,ZC;
 // 西边那条路：对着对面左转专用道的那一段，你这边最里面一条（z 1.1–4.5）画成黄色斜线隔离区，左转后只剩两条车道
-{const L=150-(hwM+8.7),cxw=hwM+8.7+L/2,tx=cv(128,128,(x,w,h)=>{x.clearRect(0,0,w,h);x.strokeStyle='#f2c12e';x.lineWidth=9;for(let k=-2;k<3;k++){x.beginPath();x.moveTo(k*64,h);x.lineTo(k*64+h,0);x.stroke()}});
+{const L=300-(hwM+8.7),cxw=hwM+8.7+L/2,tx=cv(128,128,(x,w,h)=>{x.clearRect(0,0,w,h);x.strokeStyle='#f2c12e';x.lineWidth=9;for(let k=-2;k<3;k++){x.beginPath();x.moveTo(k*64,h);x.lineTo(k*64+h,0);x.stroke()}});
  tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(L/3.4,1);const pl=mesh(new T.PlaneGeometry(L,3.4),new T.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false}),cxw,.071,2.8);pl.rotation.x=-Math.PI/2;scene.add(pl);
  box(L,.02,.16,0xf2c12e,-cxw,.075,4.5)}      // box 用路线坐标（西边是负的）
 {const g=billboard('turn-left');placeBB(g,-70,17,-Math.PI/2)}      // 左转进去的那条路右手边的广告牌
