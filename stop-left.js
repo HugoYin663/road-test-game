@@ -52,9 +52,9 @@ const blades=(g,top)=>{const a=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasic
  const b=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('MAPLE DR'),side:T.DoubleSide}),0,top+.18,0);b.rotation.y=Math.PI;g.add(b)};
 signPost(RW+1.0,(AW4?SL+.4:CW0)-1.4,0,STOPT,.75,.75,1.55,blades);      // 你这边：右边路角
 signPost(-RW-1.0,-(AW4?SL+.4:CW0)+1.4,Math.PI,STOPT,.75,.75,1.55);      // 对面也有停牌（你看到它的背面）
-const AWT=cv(256,96,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#c8102e';x.lineWidth=8;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#c8102e';x.font='bold 52px Arial';x.textAlign='center';x.fillText('ALL-WAY',w/2,66)});      /* 白底红字红边 */
+const AWT=cv(160,80,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#c8102e';x.lineWidth=6;x.strokeRect(6,6,w-12,h-12);x.fillStyle='#c8102e';x.font='bold 40px Arial Narrow,Arial';x.textAlign='center';x.fillText('ALL-WAY',w/2,54,w-24)});      /* 白底红字红边：短小，宽度和下面的条纹牌差不多 */      /* 白底红字红边 */
 const STRT=cv(64,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.fillStyle='#c8102e';for(let i=0;i<5;i++)x.fillRect(4,6+i*50,w-8,26)});      /* 停牌下面红白横条的竖牌 */
-if(AW4)[[RW+1.0,SL-1.0,0],[-RW-1.0,-SL+1.0,Math.PI],[SL-1.0,-(RW+1.0),Math.PI/2],[-SL+1.0,RW+1.0,-Math.PI/2]].forEach((a,i)=>{if(i>=2)signPost(a[0],a[1],a[2],STOPT,.75,.75,1.55);signPost(a[0],a[1],a[2],AWT,.62,.23,1.27);signPost(a[0],a[1],a[2],STRT,.24,.86,.36)});      /* 横路两个方向也有停牌；四个停牌下面都有 ALL WAY 小牌 */
+if(AW4)[[RW+1.0,SL-1.0,0],[-RW-1.0,-SL+1.0,Math.PI],[SL-1.0,-(RW+1.0),Math.PI/2],[-SL+1.0,RW+1.0,-Math.PI/2]].forEach((a,i)=>{if(i>=2)signPost(a[0],a[1],a[2],STOPT,.75,.75,1.55);signPost(a[0],a[1],a[2],AWT,.3,.15,1.36);signPost(a[0],a[1],a[2],STRT,.26,.86,.44)});      /* 横路两个方向也有停牌；四个停牌下面都有 ALL WAY 小牌 */
 {const t=cv(200,280,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);x.font='bold 130px Arial';x.fillText('40',w/2,200)});
  signPost(RW+1.0,-80,0,t,.6,.84,1.6)}
 // ---------- 房子、车道、树、路灯、消防栓、信箱 ----------

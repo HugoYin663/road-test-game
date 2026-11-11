@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0f6b3a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
-<title>下高速 · 3D 路考练习</title>
+<title>出高速 · 3D 路考练习</title>
 <style>
 :root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
@@ -61,14 +61,12 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 .back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
 #rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
 #bn{font-size:14px!important;left:50%!important;top:calc(10px + env(safe-area-inset-top,0px))!important;max-width:60vw;z-index:3;white-space:normal!important;text-align:center}#fl{left:50%!important;top:calc(120px + env(safe-area-inset-top,0px))!important;max-width:46vw;white-space:normal!important;text-align:center}#cf{left:50%!important;font-size:clamp(20px,3.6vw,32px)!important;white-space:normal!important;max-width:46vw}
-#hud{left:calc(50% + 14px)!important;top:calc(56px + env(safe-area-inset-top,0px))!important}      /* 车速表在考官指令下面 */
-#bmi{right:auto!important;left:calc(14px + env(safe-area-inset-left,0px))!important;bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}#bsh{right:auto!important;left:calc(14px + env(safe-area-inset-left,0px))!important;bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}      /* 俯视（左）左边：后视镜、看盲点 */
-#bga,#bbr{left:auto!important;right:calc(14px + env(safe-area-inset-right,0px))!important;width:104px!important}#bga{bottom:calc(166px + env(safe-area-inset-bottom,0px))!important}#bbr{bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}      /* 驾驶视角（右）右边：加速、减速、换线 */
-#bsl,#bsr,#vb{display:none!important}      /* 分屏：转向灯由系统打，右边一直是驾驶视角、左边一直是俯视 */
-#split{position:fixed;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(0,0,0,.55);z-index:1;pointer-events:none}
+#bsr{background:#2f6fe0;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bob{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}      /* 左边：右转灯、右侧观察 */
+#bga,#bbr{left:auto!important;right:calc(14px + env(safe-area-inset-right,0px))!important;width:104px!important}#bga{bottom:calc(166px + env(safe-area-inset-bottom,0px))!important}#bbr{bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}      /* 右边：加速、减速、换线 */
+#bsl,#bmi,#bsh,#vb{display:none!important}
 </style></head><body>
-<div id="split"></div><div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
-<div id="bn">下高速</div><div id="cf"></div><div id="fl"></div>
+<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="bn">出高速</div><div id="cf"></div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
 <div id="btns"><button class="b" id="bgo" data-m="go">换线<small>Go</small></button></div>
 <button class="b pd" id="bbr" data-m="dec" >▼<small>减速</small></button>
@@ -77,13 +75,14 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b" id="bsr" data-m="sigR">右转灯<small>Signal</small></button>
 <button class="b" id="bmi" data-m="mir">后视镜<small>Mirror</small></button>
 <button class="b" id="bsh" data-m="sho">看盲点<small>Shoulder check</small></button>
+<button class="b" id="bob" data-m="obs">右侧观察<small>中镜·右镜·盲点</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html#practice">← 全部项目</a>
-<h2>下高速 · 3D</h2>
-<p>你在 401 高速往东的<b>右数第二条车道</b>，这条车道车多，大家只开 80 左右。考官会让你从下一个出口（EXIT 342 Maple Rd）下高速。屏幕分两半：<b>左边是俯视，右边是驾驶视角</b>。</p>
+<h2>出高速 · 3D</h2>
+<p>你在 401 高速往东的<b>右数第二条车道</b>，这条车道车多，大家只开 80 左右。考官会让你从下一个出口（EXIT 342 Maple Rd）出高速。画面是<b>全屏驾驶视角</b>。左边按键：<b>右转灯</b>、<b>右侧观察</b>（中镜 → 右镜 → 右盲点）；右边：<b>加速</b>、<b>减速</b>、<b>换线</b>。</p>
 <div class="modes"><button class="md" data-diff="easy"><b>开始练习</b><span>换一次线进最右车道（出口专用道）→ 加速到 110 → 快到出口再减速 → 匝道弯道</span></button></div>
 <details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
-<p>1. <b>提早换进最右车道</b>：你右边就是最右车道，它是<b>出口专用道</b>，前面直接分出去变成出口匝道，只要换这一次线。看到“EXIT 342 · 1 km”预告牌后，按 SMOG 换过去：先按<b>后视镜</b>（右转灯自动打开），再按<b>看盲点</b>，空档合适马上按<b>换线</b>。最右车道的车一团一团的，比你快：等一团车从后面超过去、空档到了你旁边再换。拖到快到出口还没换会扣分；过了分岔口还没换进去，就错过了出口（严重错误）。</p>
+<p>1. <b>提早换进最右车道</b>：你右边就是最右车道，它是<b>出口专用道</b>，前面直接分出去变成出口匝道，只要换这一次线。看到“EXIT 342 · 1 km”预告牌后，按 SMOG 换过去：先打<b>右转灯</b>，再按<b>右侧观察</b>（看中镜、右镜，再回头看右盲点），空档合适马上按<b>换线</b>（转向灯至少闪 3 秒）。最右车道的车一团一团的，比你快：等一团车从后面超过去、空档到了你旁边再换。拖到快到出口还没换会扣分；过了分岔口还没换进去，就错过了出口（严重错误）。</p>
 <p>2. <b>换过去后加速</b>：最右车道的车开 108 左右，刚换进去时离出口还很远：要<b>按住加速</b>，跟上车流开到 110 左右（限速 110，不要超过）。一直只开 80 会扣分。也不要还在原来的车道上就减速。</p>
 <p>3. <b>快到出口再减速</b>：看到带斜箭头的 EXIT 牌、离分岔口约 300 米时，按<b>减速</b>，在出口车道里把车速降下来。</p>
 <p>4. <b>匝道</b>：分岔后匝道往右转。黄牌建议速度 50 km/h：快到出口时就在出口车道里把车速降下来，进弯时超过约 68 会扣分。开到弯道，这个项目就结束了（后面接城市道路）。</p>
@@ -103,6 +102,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/ads.js?v=1104c"></script>
 <script src="lib/billboard.js?v=1110o"></script>
 <script src="lib/road2.js?v=1110o"></script>
-<script src="highway-off.js?v=1111n"></script>
+<script src="highway-off.js?v=1111r"></script>
 <script src="lib/mock.js?v=1111m"></script>
 </body></html>
