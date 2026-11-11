@@ -173,8 +173,14 @@ function npcClear(x,z,h,dir,self){const s=Math.sin(h),c=Math.cos(h);let best=99;
 const AX=1.8;
 function acSpawn(){const c=car([0x8e2b2b,0x23324f,0xb9bec4][Math.random()*3|0]);live.push(c);R.AC={c,x:AX,z:R.z-24,h:0,v:0,t0:R.t,seen:false};R.haz.push(()=>{const A=R.AC;if(!A||A.gone)return null;return inPath(A.x,A.z,1.0)})}
 function acStep(dt){const A=R.AC;if(!A||A.gone)return;if(sawScan(1.5)||((R.oT.XL||-99)>A.t0+.3))A.seen=true;
- const cl=npcClear(A.x,A.z,A.h,1,'AC'),vt=cl<2.5?0:Math.min(3.2,(cl-2.5)*1.2);A.v=vt<A.v?Math.max(vt,A.v-6*dt):Math.min(vt,A.v+1.5*dt);      // 前面有人、有车就停住等（离 2.5 米）
- const fx=frontX(),zs=corners().map(q=>q[1]);if(A.v<.1&&cl<3&&!A.honk&&fx<AX+LW.HW+.5&&R.ph<=1){A.honk=1;honk()}
+ const fx=frontX(),zs=corners().map(q=>q[1]);
+ // 你的车头稍微伸到车道上：它往左边让一让，从你车头前面绕过去（车道够宽）；你挡得太多才停下来等
+ const ahead=Math.max(...zs)>A.z-LW.HL&&Math.min(...zs)<A.z+LW.HL+14;const tx=ahead?Math.max(-2.3,Math.min(AX,fx-.6-LW.HW)):AX;
+ const cl=npcClear(tx,A.z,0,1,'AC'),vt=cl<2.5?0:Math.min(3.2,(cl-2.5)*1.2);A.v=vt<A.v?Math.max(vt,A.v-6*dt):Math.min(vt,A.v+1.5*dt);      // 前面有人、有车就停住等（离 2.5 米）
+ if(A.v>.3){const dx=Math.max(-1.2*dt,Math.min(1.2*dt,tx-A.x));A.x+=dx;A.h=Math.atan2(dx,A.v*dt)}else A.h*=.9;
+ if(A.v<.1&&cl<3&&!A.honk&&R.ph<=1&&R.v>.05){A.honk=1;honk()}      /* 只有你在往外开、挡住它的时候才按喇叭 */
+ // 你停着让它、它也停着（你的车挡住了）：它不会一直不动——等 2 秒，慢慢从你车头前面绕过去
+ if(A.v<.05&&R.v<.05&&ahead){A.waitT=(A.waitT||0)+dt;if(A.waitT>2&&fx-LW.HW-.4>-2.3){A.x+=Math.max(-.8*dt,(fx-.5-LW.HW-A.x));A.z+=.6*dt}}else A.waitT=0;
  A.z+=A.v*dt;place(A.c,A.x,A.z,A.h,0);
  if(R.ph<=1){const near=A.z+LW.HL>Math.min(...zs)-12&&A.z-LW.HL<Math.max(...zs)+1;if(near&&R.v>.1&&fx<AW+.2)ev('noYieldCar');
   if(!A.done&&A.z-LW.HL>Math.max(...zs)+1){A.done=true;if(!R.ev.some(e=>e.key==='noYieldCar')){if(A.seen)banner('看到车道上的车，停下让它先过去：正确','#7ee787');else ev('noSeeCar')}}}
