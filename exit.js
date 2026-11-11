@@ -65,6 +65,7 @@ for(let x=-6;x<XC+20;x+=10+Math.random()*3)hTree(x,ZB-4-Math.random()*2,0);
  [9.25,9.6].forEach(y=>[-.8,.8].forEach(dx=>{const w=mesh(new T.BoxGeometry(.03,.03,400),M(0x2a2a2a),-(XW-2.6+dx),y,0);scene.add(w)}));
  const X0=XW-18,X1=X0-26;box(X0-X1,7,46,LOT.WH,(X0+X1)/2,3.5,-30);box(.1,4.2,40,LOT.GLS,X0+.05,3.2,-30);box(X0-X1+.4,.4,46.4,LOT.GRY,(X0+X1)/2,7.2,-30);
  const sg=mesh(new T.PlaneGeometry(9,1.6),new T.MeshBasicMaterial({map:cv(512,90,(x,w,h)=>{x.fillStyle='#ffffff';x.fillRect(0,0,w,h);x.fillStyle='#c62828';x.font='bold 58px sans-serif';x.textAlign='center';x.fillText('AUTO  SALES',w/2,66)})}),-(X0+.12),6.1,-30);sg.rotation.y=-Math.PI/2;scene.add(sg);
+ {box(.12,3.4,2.7,M(0x1d2a44),X0+.06,5.2,-36.5);const lg=mesh(new T.PlaneGeometry(1.75,2.9),new T.MeshBasicMaterial({map:new T.TextureLoader().load('assets/logo.png'),transparent:true}),-(X0+.14),5.2,-36.5);lg.rotation.y=-Math.PI/2;scene.add(lg)}      // 方向盘上的 HY 标志：深蓝底板，在 AUTO SALES 招牌左边（从出口看过去）
  box(14,.12,60,LOT.ASF,X0+7,.02,-30);
  for(let i=0;i<9;i++){const c=car([0xf4f6f8,0xd9483b,0x1f2328,0x2f6fe0,0xb9bec4][i%5]);c.position.set(-(X0+4),0,-52+i*5.2);c.rotation.y=Math.PI/2;
   const c2=car([0xb9bec4,0xf4f6f8,0x23324f][i%3]);c2.position.set(-(X0+10),0,-50+i*5.2);c2.rotation.y=Math.PI/2}}
