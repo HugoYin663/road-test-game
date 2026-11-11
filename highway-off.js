@@ -74,10 +74,10 @@ post(-1180,ZA-5.7,-Math.PI/2,3.4,2.4,EXS('1 km'),2.0,HY-.3);post(XT0-40,ZA-5.7,-
 {const t=cv(256,180,(x,w,h)=>{x.fillStyle='#0f6b3a';x.fillRect(0,0,w,h);x.strokeStyle='#fff';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#fff';x.font='bold 64px Arial';x.textAlign='center';x.fillText('EXIT',w/2,82);
   x.strokeStyle='#fff';x.lineWidth=12;x.beginPath();x.moveTo(100,160);x.lineTo(150,110);x.stroke();x.beginPath();x.moveTo(166,92);x.lineTo(128,98);x.lineTo(160,130);x.closePath();x.fill()});
  const q=P(UG+34);post(q[0]+1,(q[1]+ZA+1.9)/2+.6,-Math.PI/2,1.0,.7,t,1.4,HY)}
-// 黄底黑字建议速度 50 km/h（匝道右边，第一个弯之前）
+// 黄底黑字建议速度 60 km/h（匝道右边，第一个弯之前）
 const ADV=cv(200,300,(x,w,h)=>{const rr=(a,b,ww,hh,r)=>{x.beginPath();x.moveTo(a+r,b);x.arcTo(a+ww,b,a+ww,b+hh,r);x.arcTo(a+ww,b+hh,a,b+hh,r);x.arcTo(a,b+hh,a,b,r);x.arcTo(a,b,a+ww,b,r);x.closePath()};
  x.clearRect(0,0,w,h);rr(2,2,w-4,h-4,14);x.fillStyle='#f6c71b';x.fill();x.lineWidth=5;x.strokeStyle='#111';rr(9,9,w-18,h-18,10);x.stroke();
- x.fillStyle='#111';x.fillRect(9,h-76,w-18,67);x.textAlign='center';x.font='bold 140px Arial';x.fillText('50',w/2,170);x.fillStyle='#f6c71b';x.font='bold 50px Arial';x.fillText('km/h',w/2,h-24)});
+ x.fillStyle='#111';x.fillRect(9,h-76,w-18,67);x.textAlign='center';x.font='bold 140px Arial';x.fillText('60',w/2,170);x.fillStyle='#f6c71b';x.font='bold 50px Arial';x.fillText('km/h',w/2,h-24)});
 {const u=UG+12,q=P(u),rx=Math.cos(q[2]),rz=-Math.sin(q[2]),o=Lw(u)+2.2;post(q[0]+rx*o,q[1]+rz*o,-q[2],.6,.9,ADV,1.6,yP(u))}
 // 停车标志（红色八角形 STOP），在停车线右边
 {const t=cv(256,256,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,128);x.beginPath();for(let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;x.lineTo(Math.cos(a)*124,Math.sin(a)*124)}x.closePath();x.fillStyle='#fff';x.fill();
@@ -87,7 +87,7 @@ const ADV=cv(200,300,(x,w,h)=>{const rr=(a,b,ww,hh,r)=>{x.beginPath();x.moveTo(a
 {const t=cv(200,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);
   x.font='bold 120px Arial';x.fillText('110',w/2,190);x.fillRect(8,h-70,w-16,62);x.fillStyle='#fff';x.font='bold 46px Arial';x.fillText('km/h',w/2,h-22)});
  [-1600,-1000].forEach(x=>post(x,ZA-5.5,-Math.PI/2,1.0,1.5,t,1.6,HY-.28))}
-BB2.visible=false;placeBB(BB1,XG-340,ZA-16,Math.PI/2,0);      /* 快到出口的地方，右边路堤下面一块广告牌 */
+BB2.visible=false;BB1.add(mesh(new T.BoxGeometry(.5,3,.5),M(0x3a3f47),0,-1.5,0));placeBB(BB1,XG-150,ZA-16,Math.PI/2,3);      /* 快到出口、离弯道不远的地方，右边路堤下面一块高一些的广告牌（立柱加长 3 米） */
 // ---------- 状态 ----------
 const mine=car(C[0]);
 let R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=0,ly=0,DIFF='easy';
@@ -105,7 +105,7 @@ const TXT={
  noLane:["出口车道还没开始就往右并","出口减速车道从渐宽的地方（虚线开始）才有。之前右边是路肩，不能往右开。"],
  missExit:["错过了出口","要提早按 后视镜 → 看盲点 → 换线 换进最右车道，这条车道前面直接分出去就是出口匝道。过了分岔口还在主路上，就只能开到下一个出口。"],
  slowHwy:["还在高速主路上就开始减速","出高速要先换进最右的出口车道，快到出口时再在出口车道和匝道上减速。在主路上就减速，后面的车只能跟着急刹，非常危险。"],
- rampFast:["匝道弯道上太快","出口匝道弯道的建议速度是 50 km/h。快到出口时就在出口车道里把车速降下来，进弯前降到 50 左右。"],
+ rampFast:["匝道弯道上太快","出口匝道弯道的建议速度是 60 km/h。快到出口时就在出口车道里把车速降下来，进弯前降到 60 左右。"],
  noStop:["没有在停车线前停车","匝道尽头有停车标志（STOP），要在停车线前完全停住（车速为 0），再观察路口。"],
  farStop:["停车离停车线太远","要停在停车线后面、车头接近停车线的地方。停得太远，看不清路口的车，也容易让别人误会你的意图。"],
  tooClose:["跟前车太近","高速上要和前车保持约 2 秒的距离。一直贴得很近（不到 0.7 秒，比如 100 km/h 时不到 20 米）就扣分。"],
@@ -113,7 +113,7 @@ const TXT={
  crash:["和别的车相撞","换线前一定要看后视镜和回头看盲点，确认有足够的空档。"],
  speedF:["高速上超速","这段高速限速 110，不要超过限速。"],
  stay80:["换到最右车道后一直只开 80","原来的车道车多才开 80；换进最右车道时离出口还很远，前面也没有慢车，应该跟上车流加速到 110 左右，快到出口（看到带箭头的 EXIT 牌）再减速。一直只开 80，后面的车只能跟着你或者急着超你。"],
- rampFastC:["进匝道弯道时车速太快","匝道弯道建议 50 km/h。快到出口时就要在出口车道里把车速降下来，进弯前降到 50～60 左右。"]};
+ rampFastC:["进匝道弯道时车速太快","匝道弯道建议 60 km/h。快到出口时就要在出口车道里把车速降下来，进弯前降到 60 左右。"]};
 const SER=['unsafeB','unsafeR','unsafeF','crash','missExit','noStop'];
 // 其他车：road A＝城市道路（往北，s＝z，lane＝x），F＝高速往东（s＝x，lane＝z），W＝高速往西，P＝最右的出口专用道（沿你的路线 P，s＝u，分岔后走匝道）
 function carPos(c){if(c.road==='P'){const q=P(c.s);return[q[0],q[1],q[2]]}if(c.road==='A')return[c.lane,c.s,c.lane<0?Math.PI:0];if(c.road==='F')return[c.s,c.lane,Math.PI/2];return[c.s,c.lane,-Math.PI/2]}
@@ -181,9 +181,9 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  if(!R.b0&&t>=.6){R.b0=1;banner('考官：从下一个出口（342 Maple Rd）出高速','#ffe27a',1)}
  if(R.ph===1&&R.d<.5&&!R.lc){R.ph=2;banner(p[0]<XG-300?'进了最右车道（出口专用道）：离出口还远，跟上车流加速到 110':'进了最右车道（出口专用道）','#ffe27a')}
  if(R.ph===1&&!R.lr&&R.d>1.8&&!(R.lc&&R.lc.d1<1)&&p[0]>XG-450){R.lr=1;ev('lateRight')}
- if(R.ph<=2&&p[0]>=XG-300&&(R.ph===2||R.d<.5)){R.ph=3;banner('快到出口：现在开始减速，匝道弯道建议 50 km/h','#ffe27a')}
- if(R.ph<=3&&R.u>=UG){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missExit');R.ph=9;R.miss=t;R.mx=p[0];R.mz=p[1];R.lc=null;R.hd=0;setSig(null)}else{R.ph=4;banner('匝道：前方弯道，建议 50 km/h','#ffe27a')}}
- if(R.ph===4&&R.u>=UC1+2){if(R.v*3.6>68)ev('rampFastC',{add:'（进弯时 '+Math.round(R.v*3.6)+' km/h）'});R.ph=5;R.p5=t;banner('出高速完成','')}      /* 开到匝道第一个弯就结束（后面接城市道路） */
+ if(R.ph<=2&&p[0]>=XG-300&&(R.ph===2||R.d<.5)){R.ph=3;banner('快到出口：现在开始减速，匝道弯道建议 60 km/h','#ffe27a')}
+ if(R.ph<=3&&R.u>=UG){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missExit');R.ph=9;R.miss=t;R.mx=p[0];R.mz=p[1];R.lc=null;R.hd=0;setSig(null)}else{R.ph=4;banner('匝道：前方弯道，建议 60 km/h','#ffe27a')}}
+ if(R.ph===4&&R.u>=UC1+2){if(R.v*3.6>76)ev('rampFastC',{add:'（进弯时 '+Math.round(R.v*3.6)+' km/h）'});R.ph=5;R.p5=t;banner('出高速完成','')}      /* 开到匝道第一个弯就结束（后面接城市道路） */
  if(R.ph===9&&t>R.miss+3){finish();return}
  // 停车线：车头＝车中心往前 2.3 米
  if(false){const front=R.u+2.3,dist=US-front;
@@ -205,7 +205,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  if(onHwy()&&R.ph<9){R.sH=R.d>1.8&&kmh<72&&!(FG<45&&FV*3.6<80)?(R.sH||0)+dt:0;if(R.sH>2)ev('slowHwy')}      /* 主路上（还没进出口车道）就减速；前车慢逼你慢的不算 */
  {const inR=Math.abs(R.d)<.4&&!R.lc&&R.ph<9,far=p[0]<XG-300,free=!(FG<80&&FV*3.6<100);R.s80=inR&&far&&free&&kmh<96?(R.s80||0)+dt:0;if(R.s80>7)ev('stay80')}      /* 在最右车道、离分岔口还有 300 米以上、前面没有慢车：7 秒还没加速到 96 以上 */
  R.spF=onHwy()&&kmh>122?(R.spF||0)+dt:0;if(R.spF>2)ev('speedF');
- R.rf=R.ph<5&&((R.u>UC1+5&&R.u<UC2)||(R.u>UC3+5&&R.u<UC4))&&kmh>65?(R.rf||0)+dt:0;if(R.rf>1)ev('rampFast');
+ R.rf=R.ph<5&&((R.u>UC1+5&&R.u<UC2)||(R.u>UC3+5&&R.u<UC4))&&kmh>73?(R.rf||0)+dt:0;if(R.rf>1)ev('rampFast');
  if(FG<200&&t-R.lastDone>4&&!R.lc){const g=FG,lv=FV,h=g/Math.max(1,R.v);
   if(R.v>lv+.5&&(R.v*R.v-lv*lv)/(2*Math.max(1,g-4))>4.5)ev('hardBrake',{ah:g+4.6,add:`（当时你 ${Math.round(kmh)} km/h，前车 ${Math.round(lv*3.6)} km/h，车距约 ${Math.max(0,Math.round(g))} 米）`});
   R.tc=h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(kmh)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}
@@ -221,7 +221,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  // 其他车：保持速度、跟前车；你在它车道上时把你当前车；你切到它前面太近时它刹车、按喇叭
  R.cars.forEach(c=>{if(c.gone)return;if(c.crash){c.cv*=Math.max(0,1-3*dt);c.s+=c.cv*dt;return}
   const sg=Math.sign(c.vd)||1;let vt=Math.abs(c.vd);
-  if(c.road==='P'){if(c.s>UC2+40){c.gone=true;return}if(c.s>UG-320)vt=Math.min(vt,Math.sqrt(13.5*13.5+2*2.2*Math.max(0,UC1-c.s)));      /* 出口车道的车：快到出口减速，匝道弯道约 50 */
+  if(c.road==='P'){if(c.s>UC2+40){c.gone=true;return}if(c.s>UG-320)vt=Math.min(vt,Math.sqrt(16.5*16.5+2*2.2*Math.max(0,UC1-c.s)));      /* 出口车道的车：快到出口减速，匝道弯道约 50 */
    if(R.mz==null&&Math.abs(R.d)<2.7){const g=R.u-c.s-4.6;if(g>-1&&g<80){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}}}}}
   R.cars.forEach(o=>{if(o===c||o.gone||o.road!==c.road||o.lane!==c.lane)return;const g=(o.s-c.s)*sg-4.6;if(g>-1&&g<80)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
   if(c.road==='F'&&onHwy()&&Math.abs(p[1]-c.lane)<2.7){const g=(p[0]-c.s)-4.6;if(g>-1&&g<80){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}}}}
