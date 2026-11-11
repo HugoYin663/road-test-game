@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="路考练习">
+<meta name="theme-color" content="#0f6b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>停车场头进 · 3D 路考练习</title>
+<style>
+:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
+:root[data-theme="dark"]{--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}
+html,body{height:100%;margin:0;overflow:hidden;background:#111418;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!important;z-index:0}      /* 铺满整个屏幕（包括刘海两侧） */
+#hud,#bn,#fl,#vb,#hm,#fs,#btns,.b,.ov,#rot{z-index:2}      /* 按钮和提示要盖在画面上面 */
+#hud{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center}
+#hud b{font-size:26px}#lt{width:16px;height:16px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+#bn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 16px;border-radius:10px;font-size:15px;white-space:nowrap}
+#fl{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(214,45,45,.92);padding:8px 18px;border-radius:10px;font-size:18px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#fs{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#hm{position:fixed;right:calc(92px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#vb{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
+.b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
+.b small{display:block;font-size:11px;font-weight:400;opacity:.85}
+.b{width:96px;height:62px;font-size:18px}
+.pos{position:fixed}
+#bsigL,#bsigR{background:#2f6fe0}#bmir{background:#d98a1f}#bshL,#bshR{background:#7b5bd6}#bback{background:#5b6b80}
+#bsigRR{background:#2f6fe0;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+#bsigL{left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+#bsigR{left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+#bmir{left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bshL{left:calc(114px + env(safe-area-inset-left,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+#bshR{left:calc(114px + env(safe-area-inset-left,0px));bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+#bback{left:calc(114px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bgas{background:#2aa24a;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));height:130px}
+#bwr{background:#3a4352;right:calc(114px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:26px}
+#bwl{background:#3a4352;right:calc(216px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:26px}
+#gears{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(152px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;z-index:2}
+#gears .b{width:50px;height:50px;font-size:22px;background:#2b2f36;padding:0}#gears .b.cur{background:#f2c12e;color:#111}
+#wind{position:fixed;right:calc(122px + env(safe-area-inset-right,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));width:190px;display:flex;align-items:center;gap:8px;color:#fff;background:rgba(0,0,0,.45);border-radius:12px;padding:4px 10px;z-index:2;font-size:15px;font-weight:700}
+#whl{width:34px;height:34px;border:5px solid #ddd;border-radius:50%;position:relative;box-sizing:border-box}#whl:after{content:"";position:absolute;left:50%;top:0;width:4px;height:12px;margin-left:-2px;background:#f2c12e}
+#cgap{position:fixed;left:50%;transform:translateX(-50%);top:calc(56px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:8px;font-size:13px;z-index:2;white-space:nowrap}
+#split{display:none}#cgap{top:calc(104px + env(safe-area-inset-top,0px))!important}#fl{top:calc(140px + env(safe-area-inset-top,0px))!important}      /* 平行停车只有驾驶视角，不分屏 */
+#bn{left:50%!important;max-width:64vw;white-space:normal!important;text-align:center;font-size:14px;z-index:3}#fl{left:50%!important;top:calc(104px + env(safe-area-inset-top,0px))!important;white-space:normal!important;max-width:60vw;text-align:center}
+#cf{font-size:clamp(20px,3.6vw,30px)!important;white-space:normal!important;max-width:80vw;text-align:center}
+#vb{display:none!important}
+#split{position:fixed;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(0,0,0,.55);z-index:1;pointer-events:none}
+#cf{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,5.2vw,40px);font-weight:800;color:#ffe27a;background:rgba(0,0,0,.6);padding:14px 28px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3}
+#cf.go{animation:cfz 3.2s ease forwards}
+@keyframes cfz{0%{opacity:0;top:40%;transform:translate(-50%,-50%) scale(.85)}6%{opacity:1;transform:translate(-50%,-50%) scale(1)}16%{opacity:1}22%{opacity:.1}30%{opacity:1}40%{opacity:1}46%{opacity:.1}54%{opacity:1}68%{opacity:1;top:40%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;top:5%;transform:translate(-50%,-50%) scale(.45)}}
+.b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
+.pn h2{margin:0 0 8px;font-size:20px}.pn p{margin:6px 0;font-size:14px;line-height:1.55}.pn .mu{color:var(--mu);font-size:12px}
+.pn button{margin-top:10px;padding:10px 28px;font-size:17px;border:0;border-radius:10px;background:#2f6fe0;color:#fff;font-weight:700;cursor:pointer}
+.st{font-size:28px;color:#f5b301;letter-spacing:4px}
+.cards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.card{background:var(--cd);border-radius:10px;padding:8px;width:250px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.card img{width:100%;border-radius:6px}.card b{font-size:15px;color:#d62d2d}.card span{font-size:12.5px;line-height:1.5}
+
+.modes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.pn button.md{margin:0;padding:10px 14px;width:200px;display:flex;flex-direction:column;gap:4px;align-items:center;background:#2f6fe0}
+.pn button.md:nth-child(2){background:#2aa24a}.pn button.md:nth-child(3){background:#c0392b}
+.md b{font-size:17px}.md span{font-size:12px;font-weight:400;line-height:1.4;opacity:.92}
+details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-weight:700}
+.sc{font-size:44px;font-weight:800;margin:4px 0}.pass{color:#2aa24a}.fail{color:#d62d2d}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px;color:#fff;background:#d98a1f}.tag.s{background:#d62d2d}
+.back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
+#rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:9}
+#gears .b#gPB.on{background:#2fd1b3;color:#0d2b26!important}      /* 手刹拉上：亮起来 */
+</style></head><body>
+<div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">0</b> km/h</div><div id="gear" style="font-size:24px;font-weight:800;color:#f2c12e">D</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
+<div id="bn">停车场头进</div><div id="cf"></div><div id="fl"></div><div id="cgap" style="display:none"></div><div id="split"></div>
+<button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
+<button class="b pos" id="bsigL" data-m="sigL">左转灯<small>Signal</small></button>
+<button class="b pos" id="bsigRR" data-m="sigR">右转灯<small>Signal</small></button>
+<button class="b pos" id="bsigR" data-m="obsL" style="background:#7b5bd6">左侧观察<small>两面镜＋左盲点</small></button>
+<button class="b pos" id="bmir" data-m="obs360" style="background:#d98a1f;font-size:17px;white-space:nowrap">360°观察<small>四周看一遍</small></button>
+<button class="b pos" id="bshL" data-m="mL" style="background:#3a7d8c">左镜<small>按住看左外后视镜</small></button>
+<button class="b pos" id="bshR" data-m="mR" style="background:#3a7d8c">右镜<small>按住看右外后视镜</small></button>
+<div id="gears"><button class="b" id="gPB" data-m="pb" title="Parking Brake" style="color:#2fd1b3;font-size:20px;letter-spacing:-1px">(<span style="display:inline-block;width:22px;height:22px;line-height:20px;border:2.5px solid currentColor;border-radius:50%;font-size:15px;font-weight:800;margin:0 1px">P</span>)</button><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gD" data-m="gD">D</button></div>
+<div id="wind"><div id="whl"></div><span>方向盘 <span id="wtx">正</span></span></div>
+<button class="b pos" id="bwl" data-m="wl">⟲<small>往左打</small></button>
+<button class="b pos" id="bwr" data-m="wr">⟳<small>往右打</small></button>
+<button class="b pos" id="bgas" data-m="gas">油门<small>按住走<br>松开就停</small></button>
+<div class="ov" id="ov"><div class="pn">
+<a class="back" href="index.html">← 全部项目</a>
+<h2>停车场头进（车头朝里停车）· 3D</h2>
+<p>你在大路上往北开。考官：<b>前面右转进停车场</b>；进了通道：<b>前面左转进车道</b>；进了车道：<b>左边那个空车位（上方有蓝色箭头），车头朝里停进去</b>。</p>
+<div class="modes"><button class="md" data-diff="easy"><b>练习</b><span>从大路开始：进口可能有行人，对面可能有车开过来</span></button><button class="md" data-diff="park"><b>只练停进车位</b><span>直接从车道里开始，专门练开进车位</span></button><button class="md" data-diff="hard"><b>困难模式</b><span>进口有行人，对面有车，停车时车道上还有车开过来</span></button></div>
+<details><summary>操作和规则（第一次玩请先看）</summary><div style="text-align:left">
+<p><b>系统开的时候</b>（大路上、通道里、车道里）：方向由系统控制，右下角的大键是<b>停车</b>／<b>行驶</b>，左边是<b>左转灯</b>、<b>右转灯</b>。快到车位时系统减到很慢，你在想停的地方点<b>停车</b>，停住以后“停车”键变成<b>油门</b>，方向盘和挡位出现，后面自己开；右转灯换成<b>左侧观察</b>（中镜、左镜、左边盲点），还有 <b>360° 观察</b>。</p>
+<p><b>1. 右转进停车场</b>：听到指令就打<b>右转灯</b>（系统减速之前）。进口要横过人行道：有行人走过来，点<b>停车</b>让他过去，再点<b>行驶</b>。</p>
+<p><b>2. 左转进车道</b>：打<b>左转灯</b>。对面（商铺那边）开过来的车直行，你左转要横过它的车道：先<b>停车</b>让它过去，再<b>行驶</b>。</p>
+<p><b>3. 找车位</b>：系统在车道右边开（离左边的车远一点，转进去才有地方）。减速之前<b>看镜</b>（左侧观察）、打好<b>左转灯</b>。</p>
+<p><b>4. Position</b>：慢慢开，车头（前保险杠）刚过空车位的<b>第一条线大约半米</b>时停住（这时司机大约对着近处那辆车的车尾中间稍微靠后）。这台车往左打到底时能转进去的范围前后只有约 70 厘米：停早了左边车身会扫到近处那辆车，停晚了右前角会碰到远处那辆车。停下的位置不算对错：觉得不合适可以往前、往后挪一挪再开始转。可以先用<b>只练停进车位</b>多试几次找感觉。</p>
+<p><b>5. 转进去</b>：做<b>左侧观察</b>（看左边盲点：车中间可能有人走出来），方向盘<b>往左打到底</b>，按住油门<b>慢慢</b>开进去（走路的速度）。留意右前角不要碰到远处那辆车、左边车身不要扫到近处那辆车。</p>
+<p><b>6. Straighten</b>：车身和车位线<b>平行</b>时回正方向盘，直着往前开；空车位两边的车都是头进的：开到<b>你的外后视镜和旁边车的外后视镜对齐</b>（镜子对镜子）就停，车尾不要留在车道上，车头不要碰到前面的路缘。</p>
+<p><b>7. Shut-down</b>：挂 <b>P</b>，再点 P 档左边的<b>手刹键 (P)</b>，停 1.5 秒左右没有别的操作，这个项目才算完成。挂了 P 又马上换回 R 或 D，当作误操作，可以继续调整。</p>
+<p>要求：车停在两条线正中间、不压线，车身摆正，和两边的车对齐（前后差 40 厘米以内），方向盘回正。开进去以后最多<b>调整两次</b>（往后、再往前算一次），倒车前要做 360° 观察。不要碰到旁边的车（严重错误）。旁边的车 2.5 米以内时，画面上方会显示距离。<b>困难模式</b>里，你停下准备转进车位时，车道上对面会有车开过来：它离你很近时先停着让它过去。</p>
+</div></details>
+<p class="mu">参考 90 DEGREE PARKING (FORWARD) 的步骤。仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
+<div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="lib/core.js?v=1031a"></script>
+<script src="lib/actors.js?v=1105h"></script>
+<script src="lib/cockpit.js?v=1109i"></script>
+<script src="lib/ui.js?v=1030c"></script>
+<script src="lib/houses.js?v=1106i"></script>
+<script src="lib/hood.js?v=1109b"></script>
+<script src="lib/lowspeed.js?v=1111a"></script>
+<script src="lib/plaza.js?v=1111a"></script>
+<script src="headin.js?v=1111a"></script>
+</body></html>
