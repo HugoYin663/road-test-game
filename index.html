@@ -93,6 +93,26 @@ section{display:flex;flex-direction:column;gap:12px}
 .langs .tile{align-items:flex-start}
 .langs .tile .k{font-size:30px}
 .later{color:var(--mute);font-size:13px}
+/* 评分表 */
+.sheet{background:#fff;color:#111;border:2px solid #222;border-radius:4px;padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.3}
+.sheet .shh{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;border-bottom:1.5px solid #222;padding-bottom:6px;margin-bottom:6px}
+.sheet .shh b{font-size:14px}.sheet small{color:#555;font-size:11px}
+.sheet .lg{margin-left:auto;font-size:11px;color:#444;display:flex;align-items:center;gap:4px}
+.sheet .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:0 18px}
+.fm{border-top:1.5px solid #5b8bd0;padding:4px 0 6px}
+.fm h4{margin:2px 0 4px;font-size:12.5px;letter-spacing:.02em}
+.fr{display:flex;align-items:flex-start;gap:6px;padding:1.5px 0}
+.fr .no{width:16px;flex:none;text-align:right;color:#333}
+.fr .tx{flex:1;min-width:0}.fr .tx small{display:block}
+.fr.sh .tx{font-weight:700;padding-top:3px}
+.fr.hd .tx{flex:1}.fr .lab{font-size:10.5px;font-weight:700;white-space:nowrap}
+.bx{display:inline-flex;gap:2px;flex:none}
+.bx i{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border:1.2px solid #333;font-style:normal;font-weight:800;font-size:11px;color:#c8102e;background:#fff}
+.bx i.f{background:#fff3c4;border-color:#b07a00}.bx i.f.s{background:#c8102e;color:#fff;border-color:#c8102e}
+.bx i.l{border:0;background:none;color:#333;font-weight:700;font-size:10px}
+.fr.hit .tx{background:#fff8dc}
+.route.crit{border-color:var(--hard)}
+details.route summary{cursor:pointer}
 </style>
 
 <div class="wrap">
@@ -195,9 +215,10 @@ section{display:flex;flex-direction:column;gap:12px}
   </div>
 </div>
 
+<script src="lib/sheet.js?v=1111t"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1111r';
+const V='1111t';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -239,7 +260,7 @@ const ROUTES={
   {zh:'进小区：四面停牌直行',en:'Residential: all-way stop, straight through'},{zh:'坡道停车',en:'Hill parking'},{zh:'三点调头',en:'Three-point turn'},{zh:'平行停车',en:'Parallel parking'},
   {zh:'出小区：停牌路口左转',en:'Leaving: left turn at a stop sign'},{zh:'回考场路上：绿灯左转',en:'On the way back: left turn on green'},{zh:'回考场：倒车入位（尾进）',en:'Back at the centre: reverse into a stall'}],
  g:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'红绿灯路口：红灯右转、绿灯右转（顺序随机）',en:'Right on red and right on green (random order)'},
-  {zh:'上高速',en:'Merge onto the highway',hw:1},{zh:'出高速：换到右车道，加速跟上车流，出口车道再减速',en:'Exit: move right, keep up with traffic, slow in the exit lane',hw:1},
+  {zh:'上高速',en:'Merge onto the highway',hw:1},{zh:'出高速：换进最右出口车道，加速到 110，快到出口再减速',en:'Exit: move into the exit lane, speed up to 110, slow near the exit',hw:1},
   {zh:'红绿灯路口：绿灯左转两次（等空档、变黄灯），转完靠右',en:'Two left turns on green (gap, amber), keep right after',hw:0},{zh:'回考场：车头进车位（头进）',en:'Back at the centre: park forward into a stall'}]};
 // ---------- 语言 ----------
 const bi=(z,e)=>'<span class="zh">'+z+'</span><span class="en">'+e+'</span>';
@@ -260,12 +281,14 @@ function alertBox(){document.getElementById('soon').innerHTML=bi('这个浏览�
 // 成绩单
 function result(){view('result');let S=null;try{S=JSON.parse(localStorage.getItem('rt_mock')||'null')}catch(e){}const box=document.getElementById('resBox');
  if(!S||!S.res||!S.res.length){box.innerHTML='<h2>'+bi('还没有考试成绩','No test results yet')+'</h2>';return}
- const all=S.res.filter(Boolean),ser=all.reduce((n,r)=>n+r.ev.filter(e=>e.ser).length,0),mk=all.reduce((n,r)=>n+r.ev.filter(e=>!e.ser).length,0),fin=S.i>=S.steps.length,pass=fin&&ser===0&&mk<=(S.level==='g'?8:10);
+ const all=S.res.filter(Boolean),fin=S.i>=S.steps.length,SH=renderSheet(S,LANG!=='en'),ser=SH.crit.length,mk=SH.marks,lim=S.level==='g'?8:10,pass=fin&&ser===0&&mk<=lim;
  box.innerHTML='<div><h2>'+bi('模拟考试成绩单 · '+S.level.toUpperCase()+(S.diff==='hard'?' · 困难':' · 容易'),'Mock '+S.level.toUpperCase()+' test · '+(S.diff==='hard'?'Hard':'Easy'))+'</h2>'
-  +'<p class="sub">'+bi((fin?'全部 ':'完成 ')+all.length+' / '+S.steps.length+' 项 · 严重错误 '+ser+' 处 · 扣分项 '+mk+' 处','Completed '+all.length+' / '+S.steps.length+' · Critical '+ser+' · Marks '+mk)+'</p></div>'
-  +'<header class="sign" style="background:'+(pass?'var(--live)':'var(--hard)')+';border-color:'+(pass?'var(--live)':'var(--hard)')+'"><div><h1>'+(fin?(pass?bi('合格','PASS'):bi('不合格','FAIL')):bi('未完成','Incomplete'))+'</h1><p>'+bi('参考标准：有任何严重错误不合格；扣分项 G2 超过 10 处、G 超过 8 处不合格。真实路考以考官评分为准。','Guide: any critical error fails; more than 10 marks (G2) or 8 marks (G) fails. Real tests are scored by the examiner.')+'</p></div></header>'
-  +'<div class="route"><ol>'+S.steps.map((st,i)=>{const r=S.res[i];if(!r)return '<li style="opacity:.55">'+bi(st.zh,st.en)+' — '+bi('未做','not done')+'</li>';
-   return '<li><b>'+bi(st.zh,st.en)+'</b>'+(r.ev.length?'<ul style="margin:4px 0 6px;padding-left:1.1em">'+r.ev.map(e=>'<li><span style="color:'+(e.ser?'var(--hard)':'var(--soon)')+';font-weight:700">'+(e.ser?bi('严重','Critical'):bi('扣分','Mark'))+'</span> '+e.t+(e.x?'<br><span class="sub" style="font-size:13px">'+e.x+'</span>':'')+'</li>').join('')+'</ul>':' <span style="color:var(--live);font-weight:700">'+bi('✓ 没有错误','✓ no errors')+'</span>')+'</li>'}).join('')+'</ol></div>'}
+  +'<p class="sub">'+bi((fin?'全部 ':'完成 ')+all.length+' / '+S.steps.length+' 项 · 严重错误 '+ser+' 处 · 扣分 '+mk+' 处','Completed '+all.length+' / '+S.steps.length+' · Critical '+ser+' · Marks '+mk)+'</p></div>'
+  +'<header class="sign" style="background:'+(pass?'var(--live)':'var(--hard)')+';border-color:'+(pass?'var(--live)':'var(--hard)')+'"><div><h1>'+(fin?(pass?bi('合格','PASS'):bi('不合格','FAIL')):bi('未完成','Incomplete'))+'</h1><p>'+bi('参考标准：有任何严重错误不合格；扣分 G2 超过 10 处、G 超过 8 处不合格（评分表上每个字母算一处）。真实路考以考官评分为准。','Guide: any critical error fails; more than 10 marks (G2) or 8 marks (G) fails — each letter on the sheet is one mark. Real tests are scored by the examiner.')+'</p></div></header>'
+  +(ser?'<div class="route crit"><b>'+bi('严重错误（Dangerous action）','Critical errors (dangerous action)')+'</b><ol>'+SH.crit.map(c=>'<li>'+c.e.t+' <span class="sub">— '+(LANG==='en'?c.step.en:c.step.zh)+'</span></li>').join('')+'</ol></div>':'')
+  +SH.html
+  +'<details class="route"><summary><b>'+bi('每一项的详细说明','Details for each task')+'</b></summary><ol>'+S.steps.map((st,i)=>{const r=S.res[i];if(!r)return '<li style="opacity:.55">'+bi(st.zh,st.en)+' — '+bi('未做','not done')+'</li>';
+   return '<li><b>'+bi(st.zh,st.en)+'</b>'+(r.ev.length?'<ul style="margin:4px 0 6px;padding-left:1.1em">'+r.ev.map(e=>'<li><span style="color:'+(e.ser?'var(--hard)':'var(--soon)')+';font-weight:700">'+(e.ser?bi('严重','Critical'):bi('扣分','Mark'))+'</span> '+e.t+(e.x?'<br><span class="sub" style="font-size:13px">'+e.x+'</span>':'')+'</li>').join('')+'</ul>':' <span style="color:var(--live);font-weight:700">'+bi('✓ 没有错误','✓ no errors')+'</span>')+'</li>'}).join('')+'</ol></details>'}
 function show(){if(!LANG){view('lang');return}const h=location.hash.replace('#','')||'home';
  if(h==='mock/result')result();else if(h==='mock')view('mock');else if(h==='mock/g2'||h==='mock/g')level(h.split('/')[1]);else if(h==='practice')view('practice');else if(h==='lang')view('lang');else view('home')}
 function view(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+id);
