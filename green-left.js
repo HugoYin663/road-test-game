@@ -24,7 +24,8 @@ function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.0
  return{pts,len:L,p,cs,ce,uW:at(zW-.05),ZC}}
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,cs,ce,UEND,uW,ZC;
-function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPath=P.p;cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+16}
+{const g=billboard('turn-left');placeBB(g,-70,17,-Math.PI/2)}      // 左转进去的那条路右手边的广告牌
+function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPath=P.p;cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+48}      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 usePath('N');
 const ZC0=PK.S.ZC,AB=4;      // 排车流时间表用的位置
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};

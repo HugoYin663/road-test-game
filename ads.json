@@ -1,8 +1,17 @@
 {
   "_说明": "路边广告牌的广告设置。slots 里每个广告位可以放一条或几条广告（几条时每次随机放一条）。image：图片地址（放在 ads/ 文件夹里最简单，建议 1280×640 横图）；from/to：投放开始、结束日期（含当天，可以不写）；sponsor：广告主名字（显示在练习结束的总结页）；link：点名字打开的网址（可以不写）。某个广告位没有广告、或广告都不在投放日期内，就显示默认的 G1+ 广告。",
-  "_例子": {"image": "ads/abc-driving-school.jpg", "from": "2026-12-01", "to": "2026-12-31", "sponsor": "ABC 驾校", "link": "https://example.com"},
+  "_例子": {
+    "image": "ads/abc-driving-school.jpg",
+    "from": "2026-12-01",
+    "to": "2026-12-31",
+    "sponsor": "ABC 驾校",
+    "link": "https://example.com"
+  },
   "slots": {
     "lane-change/1": [],
-    "lane-change/2": []
+    "lane-change/2": [],
+    "turn-right": [],
+    "turn-left": [],
+    "exit-left": []
   }
 }

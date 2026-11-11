@@ -13,7 +13,8 @@ const myPath=u=>MP(u);      // 平时走原路线（在虚线末端借用一点�
 let cs=0,ce=0;for(let i=1;i<=41;i++){ce+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===1)cs=ce}
 const vOf=u=>7-2.8*ss(cs-18,cs+6,u)+2.8*ss(ce-6,ce+14,u);
 // ================= 游戏逻辑（第一步）=================
-const AB=5,U0=60,UEND=ce+14;      // U0：平时从停车线前约 30 米出发
+const AB=5,U0=60,UEND=ce+44;      // 转完弯以后再往前开 30 米（经过路边的广告牌）
+{const g=billboard('turn-right');placeBB(g,54,-17,Math.PI/2)}      // 转进去的那条路右手边的广告牌      // U0：平时从停车线前约 30 米出发
 const mine=car(C[0]);
 let uS=0;for(let u=0;u<myLen;u+=.05){if(myPath(u)[1]>=-19.3){uS=u;break}}   // 停车位置（停车线前）
 // 对面车流、同向车流、横向等红灯的车（只作场景，不参与判定）

@@ -77,6 +77,7 @@ for(let x=-6;x<XC+6;x+=10+Math.random()*3)hTree(x,ZB-4-Math.random()*2,0);
  box(14,.12,60,LOT.ASF,X0+7,.02,-30);
  for(let i=0;i<9;i++){const c=car([0xf4f6f8,0xd9483b,0x1f2328,0x2f6fe0,0xb9bec4][i%5]);c.position.set(-(X0+4),0,-52+i*5.2);c.rotation.y=Math.PI/2;
   const c2=car([0xb9bec4,0xf4f6f8,0x23324f][i%3]);c2.position.set(-(X0+10),0,-50+i*5.2);c2.rotation.y=Math.PI/2}}
+{const g=billboard('exit-left');placeBB(g,XW-6,-100,Math.PI)}      // 上了大路往南开，右手边的广告牌
 // 停着的车：右边一排 k＝-8～22（你在第 0 个），左边一排 k＝-7～22；右边第 -5 个可能是要倒车出来的车
 const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x23324f,0x4a4f57,0x8e2b2b,0xeceff1];
 const KB=-5;
@@ -171,7 +172,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
     if(bad)ev('cutOff','（'+(bad.o.dir>0?'左边':'右边')+'那辆车离你只有约 '+Math.max(0,bad.t).toFixed(1)+' 秒）')}}
   if(R.ph===3&&R.v===0)R.lastStopD=frontX()-XR;
   trafStep(dt);
-  if(R.ph===4){if(R.sig==='L'&&Math.abs(normA(R.h-Math.PI))<.12)setSig(null);if(R.auto.i>=PATH.i4+20&&!R.endT)R.endT=t;if(R.endT&&t-R.endT>2.5)finish()}
+  if(R.ph===4){if(R.sig==='L'&&Math.abs(normA(R.h-Math.PI))<.12)setSig(null);if(R.z<-108&&!R.endT)R.endT=t;if(R.endT&&t-R.endT>.5)finish()      /* 上了大路开过路边的广告牌再结束 */}
   if(t>300&&!R.over)finish()},
  draw(R){},
  topCam(R){return[R.x,R.z-4,30]}};

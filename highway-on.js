@@ -186,7 +186,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('匝道','');spawnF1()}}
  if(R.ph===9&&t>R.miss+3){finish();return}
  if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速找空档，看后视镜 → 看盲点 → 换线','#ffe27a');setSig('L')}      /* 转向灯由系统打 */
- if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','')}
+ if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','');{const p=me();placeBB(BB2,p[0]+130,ZA-9,Math.PI/2,HY-.6);BB2.fadeT=R.t;BB2.children.forEach(m=>{m.material.transparent=true;m.material.opacity=0})}}      /* 并进去以后：前面 160 米、右边路外慢慢出现一块广告牌 */      /* 并进去以后：前面右边出现一块广告牌 */
  if(R.ph===4&&t>R.p4+7){finish();return}
  {const q=me();if(R.ph===3&&!R.merged&&q[0]>XEND&&q[1]-.95<ZA-1.8+3.6*Math.min(1,(q[0]-XEND)/(XTAP-XEND)))ev('onShoulder')}      /* 收窄段可以并线，但车身右边不能压过右边线进到路肩 */
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
@@ -245,7 +245,7 @@ MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
 function placeMine(){const p=me();place(mine,p[0],p[1],p[2],myY());mine.userData.bl.forEach(m=>{m.position.x=R.sig==='R'?-.88:.88})}
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;const p=me();
  R.cars.forEach(c=>{const q=carPos(c);place(c.c,q[0],q[1],q[2]+(c.spin||0),carY(c));c.c.visible=!c.gone&&Math.hypot(q[0]-p[0],q[1]-p[1])<420});
- placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
+ placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);fadeBB(BB2);
  sunFollow(p[1]+10,-p[0]);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;

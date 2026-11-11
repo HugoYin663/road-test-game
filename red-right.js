@@ -7,7 +7,8 @@ const myPts=[[6.25,-110],[6.25,-30],...Array.from({length:40},(_,i)=>bz((i+1)/40
 const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i-1][1]):0,0);
 const myPath=path(myPts);
 let cs=0,ce=0;for(let i=1;i<=41;i++){ce+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===1)cs=ce}
-const AB=5,U0=60,UEND=ce+14;
+const AB=5,U0=60,UEND=ce+44;      // 转完弯以后再往前开 30 米（经过路边的广告牌）
+{const g=billboard('turn-right');placeBB(g,54,-17,Math.PI/2)}      // 转进去的那条路右手边的广告牌
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
 const uS=uAt(-19.3)-1.7,      // 停车线后的停车位置（车头离停车线约 0.6 米）
       uC=uAt(-17.7);          // 慢慢前移的最远位置：车头到人行横道边
