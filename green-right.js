@@ -9,11 +9,11 @@ const pathN=path(myPts);
 // 让自行车时的路线：停车线以前完全不碰自行车道虚线，过了停车线再转（转弯半径稍大）
 const bzK=t=>{const u=1-t,P=[[6.25,-16.5],[6.25,-8],[9,-6.25],[17,-6.25]];return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
 const pathK=path([[6.25,-110],[6.25,-16.5],...Array.from({length:40},(_,i)=>bzK((i+1)/40)),[70,-6.25]]);let MP=pathN;
-const myPath=u=>MP(u);      // 平时走原路线（在虚线末端借用一点虚线转弯）；事先发现了右后方的自行车，就换成不碰虚线的路线
+const myPath=u=>u<0?[6.25,-110+u,0]:MP(u);      // u<0：起点再往后的直路（现在从更远的地方开过来）      // 平时走原路线（在虚线末端借用一点虚线转弯）；事先发现了右后方的自行车，就换成不碰虚线的路线
 let cs=0,ce=0;for(let i=1;i<=41;i++){ce+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===1)cs=ce}
 const vOf=u=>7+4*(1-ss(cs-48,cs-30,u))-2.8*ss(cs-18,cs+6,u)+2.8*ss(ce-6,ce+14,u);      // 远处约 40 km/h，离停车线约 45 米开始慢下来
 // ================= 游戏逻辑（第一步）=================
-const AB=5,U0=60,U0N=22,UEND=ce+44;      // U0N：现在从更远的地方开过来（离停车线约 70 米），场景里的行人等时间往后推 LEADG 秒      // 转完弯以后再往前开 30 米（经过路边的广告牌）
+const AB=5,U0=60,U0N=-18,UEND=ce+44;      // U0N：现在从更远的地方开过来（离停车线约 110 米），场景里的行人等时间往后推 LEADG 秒      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 {const g=billboard('turn-right');placeBB(g,105,-17,Math.PI/2)}      // 广告牌在结束位置（x≈60）前方约 45 米：转完弯后最后 2～3 秒看得到      // 转进去的那条路右手边的广告牌      // U0：平时从停车线前约 30 米出发
 const mine=car(C[0]);
 let uS=0;for(let u=0;u<myLen;u+=.05){if(myPath(u)[1]>=-19.3){uS=u;break}}   // 停车位置（停车线前）
@@ -247,7 +247,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  R.peds.forEach(p=>{if(p.hit||!p.o.visible||p.hide)return;const c=pedPos(p,R.t),a=myPath(u),dx=c[0]-a[0],dz=c[1]+(p.oz||0)-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
   if(Math.abs(fw)<2.45&&Math.abs(lat)<(p.bike?1.1:1.0)&&v>.4){p.hit=true;p.dd=pedD(p,R.t);p.sg=[{t:0,v:0}];if(p.bike){const h=R.ev.findIndex(e=>e.key==='hook'),tk=(h>=0?R.ev[h].tk==='hookB':R.chk)?'hitBB':'hitBA';if(h>=0)R.ev.splice(h,1);ev('hitB',tk)}else ev('hitP');R.mode=m='stop';R.stopA=7;R.stopT=u+v*v/14;R.hitT=R.t;mk()}});   // 撞到行人或自行车：倒地，你的车急停
  if(R.hitT!=null&&R.t-R.hitT>3){finish();return}
- if(R.lane==null&&pathN(u)[1]>=-36){const bike=R.peds.some(p=>p.bike&&!p.hit);R.lane=bike&&(R.lookT>=0||(R.lastLook!=null&&R.t-R.lastLook<5))?'K':'N';MP=R.lane==='K'?pathK:pathN;R.laneT=R.t}
+ if(R.lane==null&&(u<0?[6.25,-110+u,0]:pathN(u))[1]>=-36){const bike=R.peds.some(p=>p.bike&&!p.hit);R.lane=bike&&(R.lookT>=0||(R.lastLook!=null&&R.t-R.lastLook<5))?'K':'N';MP=R.lane==='K'?pathK:pathN;R.laneT=R.t}
  {const a=myPath(u),fx=a[0]+2.35*Math.sin(a[2]);if(R.lane&&!R.llc&&fx>=11.5&&a[1]>-12){R.llc=true;if(R.light==='green'&&!(R.lastLook>=R.laneT)&&!R.ev.some(e=>e.key==='noLook2'))ev('noLastLook')}}   // 车头进入右侧人行横道前，要做过最后一次右后观察
  if(!R.sigChk&&u>=cs+6){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-15)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
