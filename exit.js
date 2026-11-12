@@ -117,7 +117,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
     if(bad)ev('cutOff','（'+(bad.o.dir>0?'左边':'右边')+'那辆车离你只有约 '+Math.max(0,bad.t).toFixed(1)+' 秒）')}}
   if(R.ph===3&&R.v===0)R.lastStopD=frontX()-XR;
   trafStep(dt);
-  if(R.ph===4){if(R.sig==='L'&&Math.abs(normA(R.h-Math.PI))<.12)setSig(null);if(R.z<-108&&!R.endT)R.endT=t;if(R.endT&&t-R.endT>.5)finish()      /* 上了大路开过路边的广告牌再结束 */}
+  if(R.ph===4){if(R.sig==='L'&&Math.abs(normA(R.h-Math.PI))<.12)setSig(null);if(R.z<-62&&!R.endT)R.endT=t;if(R.endT&&t-R.endT>.5)finish()      /* 上了大路，广告牌还在前面约 35 米时结束（最后 2～3 秒看得到） */}
   if(t>300&&!R.over)finish()},
  draw(R){},
  topCam(R){return[R.x,R.z-4,30]}};

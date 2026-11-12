@@ -87,7 +87,7 @@ const ADV=cv(200,300,(x,w,h)=>{const rr=(a,b,ww,hh,r)=>{x.beginPath();x.moveTo(a
 {const t=cv(200,300,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);
   x.font='bold 120px Arial';x.fillText('110',w/2,190);x.fillRect(8,h-70,w-16,62);x.fillStyle='#fff';x.font='bold 46px Arial';x.fillText('km/h',w/2,h-22)});
  [-1600,-1000].forEach(x=>post(x,ZA-5.5,-Math.PI/2,1.0,1.5,t,1.6,HY-.28))}
-BB2.visible=false;BB1.add(mesh(new T.BoxGeometry(.5,3,.5),M(0x3a3f47),0,-1.5,0));placeBB(BB1,XG-150,ZA-16,Math.PI/2,3);      /* 快到出口、离弯道不远的地方，右边路堤下面一块高一些的广告牌（立柱加长 3 米） */
+BB2.visible=false;BB1.add(mesh(new T.BoxGeometry(.5,3,.5),M(0x3a3f47),0,-1.5,0));{const q=P(UC1+45),h=q[2];placeBB(BB1,q[0]+Math.cos(h)*11,q[1]-Math.sin(h)*11,Math.PI/2+.5,0)}      /* 匝道弯道里边、前方约 45 米：开到弯道（结束前 2～3 秒）正好在前面 */      /* 快到出口、离弯道不远的地方，右边路堤下面一块高一些的广告牌（立柱加长 3 米） */
 // ---------- 状态 ----------
 const mine=car(C[0]);
 let R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=0,ly=0,DIFF='easy';

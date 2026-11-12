@@ -186,8 +186,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(R.ph<=1&&R.u>=UDIV){if(R.d>1.8&&!(R.lc&&R.lc.d1<1)){ev('missRamp');R.ph=9;R.miss=t;const q=me();R.mx=q[0];R.mz=q[1];R.lc=null;R.hd=0}else{R.ph=2;banner('匝道','');spawnF1()}}
  if(R.ph===9&&t>R.miss+3){finish();return}
  if(R.ph===2&&R.u>=UARC1){R.ph=3;banner('加速车道：提速找空档，看后视镜 → 看盲点 → 换线','#ffe27a');setSig('L')}      /* 转向灯由系统打 */
- if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','');{const p=me();placeBB(BB2,p[0]+130,ZA-9,Math.PI/2,HY-.6);BB2.fadeT=R.t;BB2.children.forEach(m=>{m.material.transparent=true;m.material.opacity=0})}}      /* 并进去以后：前面 160 米、右边路外慢慢出现一块广告牌 */      /* 并进去以后：前面右边出现一块广告牌 */
- if(R.ph===4&&t>R.p4+7){finish();return}
+ if(R.ph===3&&R.merged){R.ph=4;R.p4=t;banner('已并入高速','');{const p=me();placeBB(BB2,p[0]+175,ZA-9,Math.PI/2,HY-.6);BB2.fadeT=R.t;BB2.children.forEach(m=>{m.material.transparent=true;m.material.opacity=0})}}      /* 并进去以后：前面 160 米、右边路外慢慢出现一块广告牌 */      /* 并进去以后：前面右边出现一块广告牌 */
+ if(R.ph===4&&t>R.p4+4){finish();return}      /* 并入 4 秒后结束：广告牌还在前面 */
  {const q=me();if(R.ph===3&&!R.merged&&q[0]>XEND&&q[1]-.95<ZA-1.8+3.6*Math.min(1,(q[0]-XEND)/(XTAP-XEND)))ev('onShoulder')}      /* 收窄段可以并线，但车身右边不能压过右边线进到路肩 */
  if(R.ph===3&&!R.lc&&me()[0]>XTAP-24){if(R.v<.2&&!R.stopT)R.stopT=t;if(R.stopT&&t>R.stopT+1.5){ev('noMerge');finish();return}}
  // 你的车速：城市道路 60（前面有车跟车）；匝道减到 50；加速车道提速到 100；没并进去就在加速车道尽头停下
