@@ -218,10 +218,11 @@ details.route summary{cursor:pointer}
   </div>
 </div>
 
+<script src="lib/mockfx.js?v=1112h"></script>
 <script src="lib/sheet.js?v=1112b"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1112g';
+const V='1112h';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -268,9 +269,9 @@ const ROUTES={
   {zh:'红绿灯路口：绿灯左转两次（等空档、变黄灯），转完靠右',en:'Two left turns on green (gap, amber), keep right after',hw:0},{zh:'回考场：车头进车位（头进）',en:'Back at the centre: park forward into a stall'}]};
 // ---------- 语言 ----------
 const bi=(z,e)=>'<span class="zh">'+z+'</span><span class="en">'+e+'</span>';
-let LANG=null;try{LANG=localStorage.getItem('rt_lang')}catch(e){}
+let LANG=MST.lang();
 {const q=new URLSearchParams(location.search).get('lang');if(q==='zh'||q==='en')LANG=q}
-function setLang(l){LANG=l;try{localStorage.setItem('rt_lang',l)}catch(e){}apply()}
+function setLang(l){LANG=l;MST.lang(l);apply()}
 function apply(){document.documentElement.lang=LANG==='en'?'en':'zh-CN';document.title=LANG==='en'?'Ontario Road Test Practice':'安省路考练习场';
  const b=document.getElementById('langBtn');b.textContent=LANG==='en'?'中文':'English'}
 // ---------- 单项列表 ----------
@@ -279,11 +280,11 @@ document.getElementById('groups').innerHTML=GROUPS.map(g=>'<section class="group
 // ---------- 页面切换（用网址 # 记住在哪一页，手机的返回键也能用） ----------
 let DIFF='easy',LVL='g2';
 // 开始考试：路线存起来，打开第一项
-document.getElementById('startBtn').onclick=()=>{const S={level:LVL,diff:DIFF,lang:LANG,v:V,steps:buildSteps(LVL),i:0,res:[],t0:Date.now()};try{localStorage.setItem('rt_mock',JSON.stringify(S))}catch(e){alertBox();return}
+document.getElementById('startBtn').onclick=()=>{const S={level:LVL,diff:DIFF,lang:LANG,v:V,steps:buildSteps(LVL),i:0,res:[],t0:Date.now()};if(!MST.set(S)){alertBox();return}
  const st=S.steps[0];location.href=st.s+'.html?mock=1&v='+V+(st.var?'&var='+st.var:'')};
 function alertBox(){document.getElementById('soon').innerHTML=bi('这个浏览器不能保存考试进度（可能是无痕模式），没法串联考试。','This browser can’t save test progress (private mode?), so the chained test can’t run.')}
 // 成绩单
-function result(){view('result');let S=null;try{S=JSON.parse(localStorage.getItem('rt_mock')||'null')}catch(e){}const box=document.getElementById('resBox');
+function result(){view('result');let S=MST.get();const box=document.getElementById('resBox');
  if(!S||!S.res||!S.res.length){box.innerHTML='<h2>'+bi('还没有考试成绩','No test results yet')+'</h2>';return}
  const all=S.res.filter(Boolean),fin=S.i>=S.steps.length,SH=renderSheet(S,LANG!=='en'),ser=SH.crit.length,mk=SH.marks,lim=S.level==='g'?8:10,pass=fin&&ser===0&&mk<=lim;
  box.innerHTML='<div><h2>'+bi('模拟考试成绩单 · '+S.level.toUpperCase()+(S.diff==='hard'?' · 困难':' · 容易'),'Mock '+S.level.toUpperCase()+' test · '+(S.diff==='hard'?'Hard':'Easy'))+'</h2>'
