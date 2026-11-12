@@ -9,7 +9,7 @@
 // 路线坐标：x 向东（右）为正，z 向北为正；你沿车道往北开，车位在右边（东边），车位里的车头朝东或朝西
 const HOOD={drives:[]};      // 停车场没有车道口（lowspeed 里有用到）
 const AW=3.6,SD=5.5,SWD=2.75,XC=AW+SD;      // 车道半宽 3.6（车道 7.2 米宽）；车位深 5.5 米、宽 2.75 米；车位尽头的路缘在 x＝9.1
-const ZS=k=>k*SWD;      // 第 k 个车位的中心；空车位是第 0 个，参考车（白车）在第 1 个
+const ZS=k=>k*SWD;      // 第 k 个车位的中心；空车位是第 0 个，参考车（绿车）在第 1 个
 const PCX=XC-.55-LW.HL;      // 停着的车的中心离路缘：车头（或车尾）离路缘约 55 厘米
 const ST_TXT={
  frontIn:["没有倒车入位","这个项目要尾进：车尾朝里倒进车位，车头朝着车道。"],
@@ -48,13 +48,13 @@ for(let k=-30;k<=30;k++)[-1,1].forEach(s=>{const p=mesh(SLINE,LOT.YEL,-(s*(AW+SD
 {for(let z=-150;z<150;z+=9+Math.random()*3)hTree(-(XC+4+Math.random()*1.5),z,0);
  hSlab(0,-XC-16,-XC-8,-300,300,-.02,LOT.ASF);box(30,6,160,LOT.BRK2,-(XC+40),3,0);box(30.4,.5,160.4,LOT.TAN,-(XC+40),6.2,0)}
 // 停着的车：右边一排、左边一排；空车位是第 0 个；参考车（白车）在第 1 个
-const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x23324f,0x4a4f57,0x8e2b2b,0xeceff1];
+const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x23324f,0x4a4f57,0x5c6b7a,0xeceff1];
 const PARKS=[],LX=PCX-LW.HL-2.2-LW.HW;      // 开过来时离参考车的车头（车道边）约 2.2 米
 for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
  if(s>0&&k===0)return;      // 空车位
  const near=s>0&&Math.abs(k)<=1;      // 除了指定的车位，其他车位都停满（不留空车位，免得停错）
  const nose=near?false:Math.random()<.75,h=(s>0)===nose?Math.PI/2:-Math.PI/2;      /* 空车位两边的两辆车都是尾进（车头朝车道），能看到它们的外后视镜 */      // 大多数车头朝里停（尾朝车道）
- const col=s>0&&k===1?0xf4f6f8:PCOLS[Math.random()*PCOLS.length|0];
+ const NCOL=[0x2e9d4f,0xe8802a,0xc8352c],col=s>0&&Math.abs(k)<=3?NCOL[Math.abs(k)-1]:PCOLS[Math.random()*PCOLS.length|0];      /* 空车位两边各三辆：绿、橙、红（两边对称），数车位时不会数错；参考车是前面那辆绿车 */
  const jz=near?0:(Math.random()-.5)*.25,jh=near?0:(Math.random()-.5)*.05;
  PARKS.push([s*PCX,ZS(k)+jz,h+jh,col])});
 const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,tiltL:true,

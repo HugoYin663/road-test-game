@@ -79,7 +79,7 @@ const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,ke
  obst:[[-PX,PZA,Math.PI],[-PX,PZB,Math.PI]],
  exam:EX_HP,stpLabel:'刹车<small>点一下<br>减速靠边</small>',
  okText:'坡道停车、三点调头、平行停车都做得很好：每一步之前都做了观察、打了灯，停车位置准确。',
- setup(R){SCN.exam=EX_HP;SCN.stpLabel='刹车<small>点一下<br>减速靠边</small>';SCN.vmax=2.2;R.task='hp';setBtns('hp');
+ setup(R){if(typeof PKARW!=='undefined')PKARW.visible=false;SCN.exam=EX_HP;SCN.stpLabel='刹车<small>点一下<br>减速靠边</small>';SCN.vmax=2.2;R.task='hp';setBtns('hp');
   if(!R.trc){const c=car(C[1+Math.random()*8|0]);live.push(c);c.visible=false;R.trc=c}R.tr=null;R.trT=1e9;
   },
  onStopReq(R){if(R.task==='hp'){if(R.sig!=='R')E('noSigR');if(!sawMir(12))E('noMirror');if(!sawSh('R',10))E('noShoulderR')}},
@@ -91,7 +91,7 @@ const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,ke
  peekR:R=>R.task==='pk'&&R.ph>=1,
  on360Start(R){if(R.task==='pk'&&HARD&&!R.bk&&R.ph>=1&&(R.n360||0)-(R.n360b||0)+1>=R.bkK){bikeSpawn(R,26);R.bk.seen=true}},
  autoV(R,dt){return pkAutoV(R,dt)},
- step(R,dt){if(R.insAt!=null&&R.t>=R.insAt){banner(R.insTxt,'#ffe27a',1);R.insAt=null}
+ step(R,dt){if(R.insAt!=null&&R.t>=R.insAt){banner(R.insTxt,'#ffe27a',1);R.insAt=null;if(R.task==='pk')PKARW.visible=true}
   if(R.task==='hp')hpStep(R,dt);else if(R.task==='tp')tpStep(R,dt);else if(R.task==='pk')pkStep(R,dt);
   if(R.t>420&&!R.over)finish()},
  topCam(R){return[R.x-3,R.z+2,22]}};
@@ -179,7 +179,7 @@ function pkDone(){const g=pkGap(),lz=-R.z,fA=(PAl-LW.HL)-(lz+LW.HL),rB=(lz-LW.HL
  if((R.n360||0)-(R.n360b||0)<3)ev('pk_few360','（停下以后一共做了 '+((R.n360||0)-(R.n360b||0))+' 次，要 3 次：倒车前、车身斜着回正时、往左打方向前）')}
 // 路边停着的两辆车、参考车上方的箭头
 const PARKC=[];[[PZA,0xf4f6f8],[PZB,[0x7b8794,0x1f2328,0x4a4f57,0x8e2b2b][Math.random()*4|0]]].forEach(([z,col])=>{const c=car(col);place(c,-PX,z,Math.PI,YF(z));scene.add(c);PARKC.push(c)});
-{const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(PX,3.2+YF(PZA),PZA);scene.add(a)}
+const PKARW=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));PKARW.rotation.x=Math.PI;PKARW.position.set(PX,3.2+YF(PZA),PZA);PKARW.visible=false;scene.add(PKARW);      // 考官发平行停车指令时才出现
 function obsLbl(p){const b=document.querySelector('[data-m="obsR"]');if(b&&R.task==='pk')b.innerHTML=p?'看右前方<small>按住看 A 柱和右镜</small>':'右侧观察<small>两面镜＋右盲点</small>'}
 // 困难模式：自行车从后面（北边）骑过来，从你车的左边（东边）骑过去
 function bikeSpawn(R,d){const c=cyclist(0x2e86de);live.push(c);const zMax=Math.max(...corners().map(q=>q[1]));R.bk={c,x:1.6,z:zMax+d,v:5,t0:R.t,phase:0}}
