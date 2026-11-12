@@ -18,7 +18,7 @@ function turnShape(D,TH){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;con
 function turnPts(x0){let best=null;for(let d=60;d<=82;d+=.5){const TH=d*Math.PI/180,a=turnShape(0,TH);let D=(TZ-TURN.Z0-a[a.length-1][1])/Math.cos(TH);if(D<0)continue;let b=turnShape(D,TH);D+=(TZ-TURN.Z0-b[b.length-1][1])/Math.cos(TH);b=turnShape(D,TH);const e=Math.abs(x0+b[b.length-1][0]-TURN.END);if(!best||e<best.e)best={e,b}}
  return best.b.map(q=>[x0+q[0],TURN.Z0+q[1]])}
 function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // Zig-Zag 做完停在等候点；起步后先直走一小段再转
- const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-280,TZ]],p=path(pts);
+ const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-420,TZ]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-1.75,-5.25,-8.75,-11.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
@@ -26,9 +26,7 @@ function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.0
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,myPathRaw,cs,ce,UEND,uW,ZC;
 // 广告牌原则：任务做完、结束前的 2～3 秒里玩家看得到——换到右车道以后，前方约 120 米右边路边慢慢出现一块，结束时它还在前面
-const BBK=billboard('turn-left');BBK.visible=false;
-function showBBK(x){placeBB(BBK,x,17.5,-Math.PI/2);BBK.visible=true;BBK.fadeT=R.t;BBK.traverse(m=>{if(m.material){m.material.transparent=true;m.material.opacity=0}})}
-function fadeBBK(){if(BBK.fadeT==null)return;const o=Math.min(1,(R.t-BBK.fadeT)/1.5);BBK.traverse(m=>{if(m.material)m.material.opacity=o});if(o>=1){BBK.fadeT=null;BBK.traverse(m=>{if(m.material)m.material.transparent=false})}}      // 左转进去的那条路右手边的广告牌
+const BBX=-320,BBK=billboard('turn-left');placeBB(BBK,BBX,17.5,-Math.PI/2);      // 一直立在那里：转完弯就能远远看见，换完线后越来越近，结束时还在前面 40 多米
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPathRaw=P.p;myPath=u=>latPath(P.p,u);cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+215}      // 转完弯以后再往前开约 190 米：在这一段里要换到右车道      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 // 转完弯后换车道：在路线上加一个往右（+z）的横向偏移，按走过的距离平顺地过去
 const qn=k=>k*k*k*(10-15*k+6*k*k),qd=k=>30*k*k*(1-k)*(1-k);
@@ -80,7 +78,7 @@ function stepOA(Ls,t,dt,us){Ls.forEach((L,k)=>{if(L.gone)return;const q=BKP(L.u)
   if(L.hold)vt=Math.min(vt,Math.sqrt(2*3*Math.max(0,us-.3-L.u)));L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+2.2*dt);L.u+=L.v*dt;if(ocBlock(BKP(L.u))){L.u-=L.v*dt;L.v=0}if(q[0]>150)L.gone=true})}
 const PN=()=>PK.N,uOfZ=zz=>{const P=PK.N;for(let u=0;u<P.len;u+=.05)if(P.p(u)[1]>=zz)return u;return 0},frontZ=u=>{const q=PK.N.p(u);return q[1]+2.35*Math.cos(q[2])};
 function mkAQ(n,rel0){const L=[];for(let k=0;k<n;k++)L.push({u:uOfZ(SL-.6-2.35-k*7.2),v:0,rel:rel0+k*.9});return L}
-function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;KRS=null;BBK.visible=false;BBK.fadeT=null;
+function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;KRS=null;
  ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display=''});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});      // 换右车道的按键先藏起来
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
@@ -335,8 +333,8 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  if(!R.kr&&u>=ce+1&&!R.crash)krEnter();
  if(R.kr)krStep(dt);
  // 结束
- if(R.kr&&R.kr.right&&R.kr.doneT!=null&&R.t-R.kr.doneT>5.5){finish();return}      /* 换到右车道 5.5 秒后结束（看得到前面的广告牌，也来得及关转向灯） */
- fadeBBK();if(u>=UEND+60||R.t>100)finish()}
+ {const x=a[0];if(R.kr&&R.kr.right&&R.kr.doneT!=null&&R.t-R.kr.doneT>5.5&&x<BBX+60||x<BBX+28){finish();return}}      /* 换到右车道至少 5.5 秒（来得及关转向灯、看前面的广告牌），开到离广告牌约 60 米以内才结束；最晚离广告牌 28 米时结束 */
+ if(R.t>110)finish()}
 // ---------- 信号灯：黄灯情况 ----------
 function lights(){const sc=R.sc,t=R.t,f=front(R.u);
  if(sc.AR){const A=sc.AR;if(R.Tay==null)return;
@@ -387,7 +385,7 @@ function krStart(){const K=R.kr;if(K.lc||R.crash)return;const to=K.lane==='L'?'R
  if(krGap(to==='R'?TZR:TZ))ev('lcUnsafe');
  K.lc={a:K.off,b:to==='R'?TZR-TZ:0,u0:R.u,len:Math.max(20,R.v*4.8),to};mk()}
 function krStep(dt){const K=R.kr,t=R.t,u=R.u;
- if(K.lc&&u>=K.lc.u0+K.lc.len){K.off=K.lc.b;K.lane=K.lc.to;K.lc=null;K.doneT=t;if(K.lane==='R'){K.right=true;if(!BBK.visible)showBBK(myPath(u)[0]-125)}mk()}
+ if(K.lc&&u>=K.lc.u0+K.lc.len){K.off=K.lc.b;K.lane=K.lc.to;K.lc=null;K.doneT=t;if(K.lane==='R')K.right=true;mk()}
  if(K.doneT!=null&&K.sig&&K.sigT<K.doneT&&t-K.doneT>5)ev('lcSigOn');
  if(!K.right&&!K.lc&&u>=ce+190)ev('keepRight');
  // 看后视镜／回头看盲点（和换线项目一样）
