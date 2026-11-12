@@ -25,7 +25,8 @@ function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.0
  return{pts,len:L,p,cs,ce,uW:at(zW-.05),ZC}}
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,myPathRaw,cs,ce,UEND,uW,ZC;
-{const g=billboard('turn-left');placeBB(g,-70,17,-Math.PI/2)}      // 左转进去的那条路右手边的广告牌
+{const g=billboard('turn-left');placeBB(g,-70,17.5,-Math.PI/2)}
+{const g=billboard('keep-right');placeBB(g,-232,17.5,-Math.PI/2)}      // 换到右车道以后，前方右边路边再一块广告牌      // 左转进去的那条路右手边的广告牌
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPathRaw=P.p;myPath=u=>latPath(P.p,u);cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+215}      // 转完弯以后再往前开约 190 米：在这一段里要换到右车道      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 // 转完弯后换车道：在路线上加一个往右（+z）的横向偏移，按走过的距离平顺地过去
 const qn=k=>k*k*k*(10-15*k+6*k*k),qd=k=>30*k*k*(1-k)*(1-k);
