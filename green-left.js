@@ -147,7 +147,9 @@ const TXT={
  yieldBk:["没有让行对面直行的自行车","对面自行车道里有自行车直行过来。自行车和对面直行车一样有路权，要等它过去再转。"],
  yieldPL:["有行人还开始转弯","你要转入那条路的人行横道上有行人正在过（或者正要从你这一侧走过来）。左转要先确认能让行人、同时对面直行车有空档，两样都满足才转；有行人就在路口里原地等。"],
  stuckO:["转到一半停下，挡在对面直行车道上","你已经开始转弯，却停在了对面的车道上，挡住了对面直行车，非常危险，也会堵塞交通。开始转之前就要确认行人和对面车流都允许你一次转过去。"],
- stuckRed:["变红后还停在路口里","你已经在路口里等候，灯变黄、变红后，对面的车停下来了，你应该尽快完成左转、离开路口。停在路口里不走，会挡住横向的车。"],
+ stuckRed:["变红后还停在路口里","你已经完全进了路口、在待转位置等候，灯变黄、变红后，对面的车停下来了，你应该在安全时尽快完成左转、清空路口。停在路口里不走，会挡住横向的车。"],
+ stopOverL:["停车越过了停车线","黄灯、红灯时要停在停车线后面。稍微过了线、车头还没进人行横道，就停在那里等下一个绿灯（不要倒车），不算严重错误，但要注意提早减速。"],
+ stopXwL:["停车压在了人行横道上","黄灯、红灯时车头进了人行横道，会挡住过马路的行人。就停在那里等下一个绿灯（不要倒车），下次要提早减速、停在停车线后面。"],
  yelIn:["黄灯时开进了路口","灯变黄时你离停车线还有足够的距离，能安全停下，就应该停在停车线后面，不要再开进路口。"],
  redIn:["闯红灯","红灯时越过了停车线。"],
  yelA:["左转箭头变黄时开进了路口","箭头变黄时你离停车线还有足够的距离，能安全停下。本方圆灯是红灯，箭头一熄灭就不能再左转，应该停在停车线后面，等圆灯变绿再按绿灯左转的方法进路口等候。"],
@@ -162,6 +164,7 @@ const TXT={
  lcNoSho:["换车道前没有回头看右边盲点","后视镜看不到右后方的盲区：换车道前要回头看一眼右边盲点。"],
  lcUnsafe:["右车道空档不够就换了车道","右后方的车正在开过来（或者就在你旁边的盲区里），你换过去会逼它急刹车，甚至撞上。要等它超过去、右车道有足够空档再换。"],
  lcSigOn:["换完车道后没有关转向灯","换好车道后要关掉转向灯，不然后面的车会以为你还要再换。"]};
+const CWS=-(hwX+5.5),CWE=-(hwX+2),CWB=CWE+2.5;      // 你这边人行横道的近边、远边（车头位置）：过了停车线但没进人行横道＝可以停着等；过了人行横道＝已经进了路口
 const SER=['lcUnsafe','sameLT','yieldO','yieldRT','yieldBk','yieldPL','stuckO','stuckRed','redIn','crash','hitP','hitB'];
 function snap(){const c=document.createElement('canvas');c.width=280;c.height=200;const x=c.getContext('2d'),X=a=>(a+31)*4.5,Y=a=>(22-a)*4.5;
  x.fillStyle='#7bbf52';x.fillRect(0,0,280,200);x.fillStyle='#6c6c75';x.fillRect(X(-hwM),0,hwM*9,200);x.fillRect(0,Y(hwX),280,hwX*9);
@@ -221,12 +224,12 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  const a=myPath(u),f=front(u);
  if(v===0&&(m==='enter'&&u>=uW-.3||m==='stop'&&front(u)[1]>SL)&&u<cs&&R.atW==null)R.atW=R.t;      // 停在路口里等候
  // 过停车线：黄灯、红灯
- if(!R.lineX&&f[1]>SL){R.lineX=R.t;if(R.arrow==='g'||(AM&&R.light==='g')){}else if(R.arrow==='y'||R.light==='y'){if(R.arrow==='y'?(R.light!=='g'&&R.yD>R.yV*R.yV/8+1.5):R.yD>13)ev(R.arrow==='y'?'yelA':'yelIn')}else if(R.light==='r')ev('redIn');      /* 箭头绿灯可以走；本方圆灯绿灯时箭头变黄、熄灭也可以开进路口等候 */
+ if(!R.lineX&&f[1]>SL){R.lineX=R.t;if(R.arrow==='g'||(AM&&R.light==='g')){}else if(R.arrow==='y'||R.light==='y'){if(R.arrow==='y'?(R.light!=='g'&&R.yD>R.yV*R.yV/8+1.5):R.yD>13){if(R.arrow==='y')ev('yelA');else R.yelPend=1}}      /* 黄灯能停却过了停车线：停在人行横道前后只算停车过线，开进路口才算“黄灯开进路口” */else if(R.light==='r')R.redPend=1;      /* 红灯时过了停车线：停在人行横道前后还不算闯红灯，真的开进路口才算 */      /* 箭头绿灯可以走；本方圆灯绿灯时箭头变黄、熄灭也可以开进路口等候 */
   if(R.LC&&R.LC.st!=='go')ev('enter2')}
  if(R.lineT==null&&u>=uS-3)R.lineT=R.t;
  // 第一辆左转车：绿灯时停在停车线后面不进路口
  const firstCar=(!R.LC||R.LC.st==='go')&&!(R.AQ&&R.AQ.some(L=>!L.gone&&L.u>u&&L.u-u<16));
- if(AM&&R.arrow==='g'&&v===0&&firstCar){R.awT=(R.awT||0)+dt;if(R.awT>2.5){ev('arrowWait');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.awT=0;      /* 箭头绿灯时停着不走 */
+ if((AM||R.arrowL!=null)&&R.arrow==='g'&&v===0&&firstCar){R.awT=(R.awT||0)+dt;if(R.awT>2.5){ev('arrowWait');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.awT=0;      /* 箭头绿灯时停着不走 */
  if(v===0&&f[1]<SL&&R.light==='g'&&R.arrow!=='g'&&firstCar){R.neT=(R.neT||0)+dt;if(R.neT>3.5){ev('noEnter');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.neT=0;      // 后车按喇叭催
  // 开始转弯的那一刻：检查对面车、右转车、自行车、行人、有没有观察
  if(m==='go'&&f[0]<-3.4&&v>.05&&R.cmtArm){      // 车头开始伸向对面车道：真正开始转弯的那一刻
@@ -240,8 +243,12 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  if(R.cmt&&v===0&&a[0]<-4&&a[0]>-13&&!R.crash&&R.hitT==null){R.stO=(R.stO||0)+dt;if(R.stO>.6)ev('stuckO')}else R.stO=0;
  // 转弯时车头压进人行横道，前面有行人
  if(v>.3&&f[0]<-14.8&&a[0]>-20.5)R.peds.forEach(p=>{if(!pedConf(p))return;const c=pedPos(p,R.t);if(Math.abs(c[1]-a[1])<3.4)ev('yieldPL')});      // 转弯时车头进了人行横道：只算还没让完的行人（对面来的过了中线、你这侧的上了人行道都不算）
+ if(R.redPend===1&&f[1]>CWB&&R.arrow!=='g'){R.redPend=2;ev('redIn')}
+ if(R.yelPend===1&&f[1]>CWB){R.yelPend=2;ev('yelIn')}
+ // 黄灯、红灯时停下：稍微过了停车线（没进人行横道）＝扣分项，进了人行横道＝扣分项；都可以停着等下一个绿灯
+ if(v===0&&R.light!=='g'&&R.arrow!=='g'&&!R.cmt&&f[1]>SL+.3&&f[1]<=CWB&&!R.slEv){R.slEv=1;ev(f[1]<=CWS+.5?'stopOverL':'stopXwL')}
  // 变红后还停在路口里
- if(R.light==='r'&&R.arrow!=='g'&&R.arrow!=='y'&&f[1]>SL&&u<ce&&v===0&&!R.crash){const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40)||rtAct()||bikeConf()||R.peds.some(pedConf);      /* 还有车、自行车或行人要让，就不算 */R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
+ if(R.light==='r'&&R.arrow!=='g'&&R.arrow!=='y'&&f[1]>CWB&&u<ce&&v===0&&!R.crash){      /* 只有车头过了人行横道、已经进了路口才要清空路口 */const mov=R.OC.some(s=>!s.gone&&!s.stop&&s.cv>.5&&s.z+2.35>ZC[s.lane]-1.3&&s.z<40)||rtAct()||bikeConf()||R.peds.some(pedConf);      /* 还有车、自行车或行人要让，就不算 */R.srT=mov?0:(R.srT||0)+dt;if(R.srT>2.5)ev('stuckRed')}
  // 撞到行人或自行车
  R.peds.forEach(p=>{if(p.hit)return;const c=pedPos(p,R.t),dx=c[0]-a[0],dz=c[1]-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
   if(Math.abs(fw)<2.45&&Math.abs(lat)<1.05&&v>.4){p.hit=true;p.dd=pedD(p,R.t);p.sg=[{t:0,v:0}];ev(p.bike?'hitB':'hitP');R.mode=m='stop';R.stopA=7;R.stopT=u+v*v/14;R.hitT=R.t;mk()}});
@@ -298,7 +305,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
   if(L.st==="wait"&&R.t>=R.G.s+.3)L.st="go";      /* 万一错过了空档，就用后面那个大空档 */if(L.st==='wait')vt=0;if(L.st==='go')vt=L.u<P.cs-6?11:5.5+3*ss(P.ce-6,P.ce+14,L.u);
   L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+2.2*dt);L.u+=L.v*dt;if(ocBlock(P.p(L.u))){L.u-=L.v*dt;L.v=0}if(L.u>myLen-2)L.u=myLen-2}      /* 前面那辆左转车：不会开进对面直行车里 */
  // 横向车：横向变绿后起步；你挡在它的车道上就不走
- const inBox=Math.abs(a[0])<hwM&&f[1]>-(hwX+7.75)&&a[1]<hwX+2&&u<ce;      // 你过了停车线、还在路口里      // 你还在路口里：横向的车看到了，先不走
+ const inBox=Math.abs(a[0])<hwM&&f[1]>CWE&&a[1]<hwX+2&&u<ce;      // 你过了停车线、还在路口里      // 你还在路口里：横向的车看到了，先不走
  R.XQ.forEach(q=>{if(R.xgT==null||R.t<R.xgT+1.3||q.crash){q.cv=0;return}let vt=inBox&&q.dir*q.x<-(hwM+4)?0:16;if(q.dir<0)wCars().forEach(o=>{if(o.o===q||Math.abs(o.z-q.z)>2.4)return;const al=q.x-o.x;if(al>0&&al<60)vt=Math.min(vt,Math.sqrt(o.v*o.v+2*4*Math.max(0,al-4.6-7)))});const g=(a[0]-q.x)*q.dir;if(Math.abs(a[1]-q.z)<2.6&&g>0&&g<40)vt=Math.min(vt,Math.max(0,(g-6)*1.3));
   q.cv=q.cv>vt?Math.max(vt,q.cv-7*dt):Math.min(vt,q.cv+2*dt);q.x+=q.dir*q.cv*dt});
  // 转向灯
@@ -328,7 +335,6 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  if(!R.kr&&u>=ce+1&&!R.crash)krEnter();
  if(R.kr)krStep(dt);
  // 结束
- if(sc.Y7&&R.light==='r'&&f[1]<SL&&R.t>R.Ty+5){finish();return}
  if(R.kr&&R.kr.right&&R.kr.doneT!=null&&R.t-R.kr.doneT>5.5){finish();return}      /* 换到右车道 5.5 秒后结束（看得到前面的广告牌，也来得及关转向灯） */
  fadeBBK();if(u>=UEND+60||R.t>100)finish()}
 // ---------- 信号灯：黄灯情况 ----------
@@ -348,11 +354,15 @@ function lights(){const sc=R.sc,t=R.t,f=front(R.u);
  if(R.light!=='g'){R.OC.forEach(s=>{if(s.run&&!s.rush&&s.z-OSZ>s.cv*s.cv/9+.5){s.run=false}if(!s.run&&!s.stop&&s.z-OSZ>s.cv*s.cv/9+1)s.stop=true});      // 原来停不下的车被前车挡慢了、现在能停：也停      // 黄灯、红灯：还没到停车线、能安全停下的直行车和右转车都要停（后来才开到的车也一样）
   if(R.RT&&!R.RT.gone&&!R.RT.stop&&!R.RT.go){const q=ORT(R.RT.u);if(q[0]>-9.8&&q[1]-OSZ>R.RT.v*R.RT.v/14+.3)R.RT.stop=true;else R.RT.go=true}}      // 对面右转车车头还没过它的停车线：停（它转弯前车速很慢，基本都停得住）；已经过线、进了路口：正常转完
  if(R.light==='y'&&t>=R.Ty+2)setLight('r');
- if(R.xgT==null&&t>=R.Ty+4){R.xgT=t;setHeads(CHEADS,'g');setPedSig('X','walk')}}
+ // 本方变红 1.5 秒后横向绿灯（横向直行车起步）；绿灯约 7 秒 → 黄灯 2 秒 → 红灯；再过 1 秒，还没转的左转车得到左转箭头绿灯（最大路权，直接左转）
+ if(R.xgT==null&&t>=R.Ty+3.5){R.xgT=t;setHeads(CHEADS,'g');setPedSig('X','walk')}
+ if(R.xgT!=null&&R.xyT==null&&t>=R.xgT+7){R.xyT=t;setHeads(CHEADS,'y');setPedSig('X','hand')}
+ if(R.xyT!=null&&R.xrT==null&&t>=R.xyT+2){R.xrT=t;setHeads(CHEADS,'r')}
+ if(R.xrT!=null&&R.arrowL==null&&t>=R.xrT+1&&R.u<ce&&!R.cmt){R.arrowL=t;R.arrow='g';setArrow('g',ME);banner('左转箭头绿灯：可以直接左转','#2ee66b')}}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.title}${SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'}</b><span>${e.text}</span></div>`).join('')+'</div>'}
 function finish(){R.over=true;R.sig=false;$('sg').style.display='none';mk();const o=$('ov');let h;
  const turned=R.u>=ce;
- if(!R.ev.length)h=turned?'<h2>驾驶总结</h2><div class="st">★★★</div><p>进入路口等候，看清对面车流、右转车和行人，空档足够再转，绿灯左转处理得很好。</p>':R.sc.Y7&&R.light==='r'?'<h2>驾驶总结</h2><div class="st">★★★</div><p>灯变黄时你离停车线还有足够距离，停在了停车线后面，处理正确。</p>':'<h2>驾驶总结</h2><p>你一直没有完成左转。</p>';
+ if(!R.ev.length)h=turned&&R.arrowL!=null?'<h2>驾驶总结</h2><div class="st">★★★</div><p>灯变黄时停在了停车线后面，等横向绿灯过去，左转箭头亮了再左转，处理正确。</p>':turned?'<h2>驾驶总结</h2><div class="st">★★★</div><p>进入路口等候，看清对面车流、右转车和行人，空档足够再转，绿灯左转处理得很好。</p>':R.sc.Y7&&R.light==='r'?'<h2>驾驶总结</h2><div class="st">★★★</div><p>灯变黄时你离停车线还有足够距离，停在了停车线后面，处理正确。</p>':'<h2>驾驶总结</h2><p>你一直没有完成左转。</p>';
  else h='<h2>驾驶总结</h2><p>这一趟有 '+R.ev.length+' 处需要注意：</p>'+cardsHtml(R.ev);
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
