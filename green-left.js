@@ -2,11 +2,11 @@
 // green-left.js — 项目：绿灯左转（进入路口等候 → 看对面直行车的空档、右转车、行人、自行车 → 安全再转）
 // ============================================================
 // 路口：主路有左转专用道（页面里 IXO={ltl:1,hwM:13}）。每段路：驶入一侧左转道紧贴路中线（0–3.5，中心 1.75）、直行道 5.25 和 8.75、自行车道 11.25；隔离带在驶离一侧（0–3.5），正对对面那段路的左转道
-// 路线：左转专用道（x=1.75）向北；过了停车线做一个小 S 形（S-shift）向左移到 x=1.0，车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
+// 路线：左转专用道（x=1.75）向北；过了停车线做一个小 S 形（Zig-Zag）向左移到 x=0（左转道左边的黄线上方），车正轮正停在路口里等候；再左转进西边道路的内侧车道（z=2.75）
 const cub=(P,t)=>{const u=1-t;return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
-// S-shift：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
-const SDZ=-3,SDS=-(hwX+7.75)-2.35-.4,XL=1.75,XW=1.0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 S-shift 向左约 1.5 米（一次调整，不要太多），停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
-// 两条路线：S＝出白线后做 S-shift（按“S-停车”）；N＝直着开进路口（按“直行停车”）。停车线以前两条路线完全一样
+// Zig-Zag：车头一过停车线就往左打方向、再往右回正，车正轮正停在对面直行车道线（x=-4.5）旁边、不压线；然后顺着自然的弧线左转（不是直角弯）
+const SDZ=-3,SDS=-(hwX+7.75)-2.35-.4,XL=1.75,XW=0,SL=-(hwX+7.75),OSZ=-SL+2.35;      // SL：本方停车线（横路加宽后约 -20.75）      // 在左转专用道里靠左（靠隔离带的黄线）开；出白线后 Zig-Zag 向左约 1.5 米（一次调整，不要太多），停在对面待转车的左边（两车错开，对面车不挡你看对面直行车道）；起步时边往前开边左打方向
+// 两条路线：S＝出白线后做 Zig-Zag（按“S-停车”）；N＝直着开进路口（按“直行停车”）。停车线以前两条路线完全一样
 // 左转路线（参考现实）：先直着开进路口，开始转后打方向盘约 75°（半径约 8 米），然后斜着穿过对面车道，
 // 借着中间隔离带末端的弧形尖头斜着进入目标车道（内侧车道 z=5.25），进去以后再慢慢回正（车身在隔离带尖头之后才完全摆正）
 const TZ=5.25,TZR=8.75;      // 左转进西边那条路的左车道（z=5.25，紧挨着隔离带）；右车道 z=8.75
@@ -17,7 +17,7 @@ function turnShape(D,TH){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;con
 // 开始转弯的位置固定（Z0），斜着进车道后约在 END 摆正；两者之间的斜穿角度按路线自动选（约 65°–80°）
 function turnPts(x0){let best=null;for(let d=60;d<=82;d+=.5){const TH=d*Math.PI/180,a=turnShape(0,TH);let D=(TZ-TURN.Z0-a[a.length-1][1])/Math.cos(TH);if(D<0)continue;let b=turnShape(D,TH);D+=(TZ-TURN.Z0-b[b.length-1][1])/Math.cos(TH);b=turnShape(D,TH);const e=Math.abs(x0+b[b.length-1][0]-TURN.END);if(!best||e<best.e)best={e,b}}
  return best.b.map(q=>[x0+q[0],TURN.Z0+q[1]])}
-function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // S-shift 做完停在等候点；起步后先直走一小段再转
+function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // Zig-Zag 做完停在等候点；起步后先直走一小段再转
  const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-280,TZ]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
@@ -38,8 +38,8 @@ const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return my
 const uS=uAt(SL-2.7),      // 停车线后的停车位置（车头离停车线约 0.6 米）
       uDiv=uAt(SL-2.05);     // 两条路线从这里分开
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
-const OLT=path(myPts.map(p=>[-p[0],-p[1]]));      // （对面车也做 S-shift 时用的路线，现在先不用）
-// 对面左转车：不做 S-shift，进路口后把车头歪向它自己的左边等着（车头不进你这边的直行车道）——不对的做法，但生活中很常见
+const OLT=path(myPts.map(p=>[-p[0],-p[1]]));      // （对面车也做 Zig-Zag 时用的路线，现在先不用）
+// 对面左转车：不做 Zig-Zag，进路口后把车头歪向它自己的左边等着（车头不进你这边的直行车道）——不对的做法，但生活中很常见
 const BKP=path([[-1.75,120],...Array.from({length:41},(_,i)=>cub([[-1.75,15.5],[-1.75,1],[6,-5.25],[26,-5.25]],i/40)),[170,-5.25]]);
 // 对面右转车：转进西边道路的外侧车道（z=5.25）
 const ORT=path([[-8.75,150],...Array.from({length:31},(_,i)=>cub([[-8.75,33],[-8.75,20],[-(hwM-1),8.75],[-(hwM+10),8.75]],i/30)),[-280,8.75]]);      // 对面外侧直行道右转，转进西边道路的外侧车道
@@ -78,7 +78,7 @@ function stepOA(Ls,t,dt,us){Ls.forEach((L,k)=>{if(L.gone)return;const q=BKP(L.u)
 const PN=()=>PK.N,uOfZ=zz=>{const P=PK.N;for(let u=0;u<P.len;u+=.05)if(P.p(u)[1]>=zz)return u;return 0},frontZ=u=>{const q=PK.N.p(u);return q[1]+2.35*Math.cos(q[2])};
 function mkAQ(n,rel0){const L=[];for(let k=0;k<n;k++)L.push({u:uOfZ(SL-.6-2.35-k*7.2),v:0,rel:rel0+k*.9});return L}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;KRS=null;
- ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display=''});['bsl','bsr','bmi','bsh','blc'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});      // 换右车道的按键先藏起来
+ ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display=''});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});      // 换右车道的按键先藏起来
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
  if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8,LC:Math.random()<.4,BKS:Math.random()<.5};      /* BKS：我们这边直行车一直很密，对面左转车一直走不了，一直挡着你的视线 */      /* 困难模式：约 80% 的局会变黄灯 */}
@@ -100,7 +100,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 你前面的左转车（你是第二辆）
  if(sc.LC){const c=car(C[[3,5,7][Math.random()*3|0]]);live.push(c);R.LC={c,u:U0+38,v:11,st:'drive',goAt:G.a0+.3}}
  // 对面在路口里等左转的大车（挡住你看对面外侧车道）
- if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);let us=0,uw=0;for(let u=0;u<200;u+=.05){const q=BKP(u);if(!us&&q[1]<=OSZ+.3)us=u;if(!uw&&Math.abs(normA(q[2]-Math.PI))>=.55){uw=u;break}}R.BK={c,us,uw,u:sc.AR?us-(sc.AR.type==='A'?3*7.2:0)-.3:us-50,v:sc.AR?0:11,go:false,goAt:sc.Y?sc.Ty+2.8:sc.BKS?1e9:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 S-shift，停在和你对称的位置
+ if(sc.BK){const c=car(0xd8d8d0);c.scale.set(1.15,1.7,1.12);live.push(c);let us=0,uw=0;for(let u=0;u<200;u+=.05){const q=BKP(u);if(!us&&q[1]<=OSZ+.3)us=u;if(!uw&&Math.abs(normA(q[2]-Math.PI))>=.55){uw=u;break}}R.BK={c,us,uw,u:sc.AR?us-(sc.AR.type==='A'?3*7.2:0)-.3:us-50,v:sc.AR?0:11,go:false,goAt:sc.Y?sc.Ty+2.8:sc.BKS?1e9:G.s+.6}}      // 对面左转车：从它的左转专用道开过来，也做 Zig-Zag，停在和你对称的位置
  // 我们这个方向的直行车（在你右边的两条直行车道）：对面左转车要等它们有空档才能转
  {const L=[],gap=sc.BKS?()=>1.3+Math.random()*1.3:()=>1.5+Math.random()*3.5,w=R.BK&&!sc.BKS&&!sc.Y?[R.BK.goAt-1.5,R.BK.goAt+7]:null;let t=-9;
   while(t<65){t+=gap();if(w&&t>w[0]&&t<w[1])t=w[1];L.push(t)}
@@ -128,7 +128,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function setHeads(L,c){L.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}
 function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col}
 function setLight(c){R.light=c;setHeads(HEADS,c);banner({g:'绿灯左转',y:'黄灯！',r:'红灯'}[c],{g:'',y:'#ffc21a',r:'#ff5a5a'}[c])}
-function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',lc:K&&!!K.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!K&&(!!R.look||R.q.includes('sho')),lc:K&&!!K.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
 const TXT={
@@ -187,7 +187,7 @@ const pedConf=p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.
 function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(R.u>=ce+1)return;if(m==='look')return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
  if(m==='scan'){R.scT=0;R.scRel=null;yawD=0;R.scQ=R.u>=uS-3;R.scHold=true;return}
- // 和绿灯右转一样：不按停车，车就一直开进路口、转弯；玩家决定什么时候停、停在哪里。玩家不能打方向盘，所以 S-shift 单独一个键：出白线前按，系统做 S-shift 并停在等候点
+ // 和绿灯右转一样：不按停车，车就一直开进路口、转弯；玩家决定什么时候停、停在哪里。玩家不能打方向盘，所以 Zig-Zag 单独一个键：出白线前按，系统做 Zig-Zag 并停在等候点
  if(m==='stopN')m='stop';
  if(m==='stopS'){if(R.u<uDiv-.3&&R.mode!=='enter'){usePath('S');R.PK='S';m='enter'}else return}
  if(m==='turn')m='go';      // 行驶
@@ -195,7 +195,7 @@ function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(
  if(m==='stop'){R.stopA=Math.max(5,Math.min(7,R.v*R.v/8));R.stopT=R.u+R.v*R.v/(2*R.stopA)}      // 从现在的位置果断刹车停下（低速时不再往前溜太多）
  R.mode=m;mk()}
 function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}
-// 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 S-shift，到等候点停住（约 6 km/h）
+// 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 Zig-Zag，到等候点停住（约 6 km/h）
 // 默认（不按停车）的车速：快到路口时慢下来，顺着弧线转
 const vGo=u=>u<uS-20?11:u<cs?Math.max(5.2,11-(u-(uS-20))*.3):5.2+4.3*ss(cs+.4*(ce-cs),ce+6,u)+4.4*ss(ce+6,ce+45,u);      /* 转完弯后加速到约 50 km/h */      // 转弯时约 19 km/h，后半段（斜进目标车道后）边回正边加速
 const crawl=(u,uw)=>{uw=uw||uW;      // enter：开到停车线再慢慢溜进路口等候点
@@ -359,9 +359,10 @@ function wCars(){const L=[];const fo=R.fol;if(fo&&fo.free&&!fo.gone)L.push({o:fo
  R.XQ.forEach(q=>{if(q.dir<0&&q.x<-(hwM+2))L.push({o:q,x:q.x,z:q.z,v:q.cv})});return L}
 function krFollow(){const a=myPath(R.u);let vt=99;wCars().forEach(c=>{if(Math.abs(c.z-a[1])>2.6)return;const al=a[0]-c.x;if(al>0&&al<70)vt=Math.min(vt,Math.sqrt(c.v*c.v+2*4*Math.max(0,al-4.6-8)))});return vt}
 function krEnter(){R.kr=KRS={lane:'L',off:0,lc:null,sig:null,sigT:0,u0:R.u};R.look=null;R.q=[];R.yaw=0;R.pit=0;R.scT=-1;
- ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});['bsl','bsr','bmi','bsh','blc'].forEach(id=>{const e=$(id);if(e)e.style.display=''});mk()}
+ ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display=''});mk()}      // 右侧观察合成一个键
 function krSetSig(sd){const K=R.kr;K.sig=K.sig===sd?null:sd;K.sigT=R.t;const e=$('sg');e.style.display=K.sig?'block':'none';e.textContent=K.sig==='R'?'➡':'⬅';if(K.sig)tick(true);mk()}
 function krCmd(m){if(m==='sigL'||m==='sigR'||m==='sig'){krSetSig(m==='sigR'?'R':'L');return}
+ if(m==='obs'){if(R.look||R.q.length)return;krAct('mir');R.q.push('sho');return}      // 右侧观察：中镜＋右镜，接着回头看右盲点
  if(m==='mir'||m==='sho'||m==='lc'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}krAct(m)}}
 function krAct(m){if(m==='lc'){krStart();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.kr.lane==='L'?'R':'L'};mk()}
 function krGap(laneZ){const a=myPath(R.u);let w=null;wCars().forEach(c=>{if(w||Math.abs(c.z-laneZ)>1.6)return;const al=a[0]-c.x,dv=c.v-R.v;      // al>0：那辆车在你前面

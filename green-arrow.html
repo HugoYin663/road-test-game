@@ -50,6 +50,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 #bsr{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #bmi{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(166px + env(safe-area-inset-bottom,0px))}
 #bsh{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#bob{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}      /* 右侧观察：中镜、右镜、右盲点一个键 */
 #blc{background:#2aa24a}      /* 左转后换到右车道：按键和“换线”项目一样 */
 </style></head><body>
 <div id="hud"><div id="lt"></div><div><b id="sp">0</b> km/h</div><div id="exl" style="font-size:13px"></div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
@@ -62,8 +63,9 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b" id="bsr" data-m="sigR" style="display:none">右转灯<small>Signal</small></button>
 <button class="b" id="bmi" data-m="mir" style="display:none">后视镜<small>Mirror</small></button>
 <button class="b" id="bsh" data-m="sho" style="display:none">看盲点<small>Shoulder check</small></button>
+<button class="b" id="bob" data-m="obs" style="display:none">右侧观察<small>中镜·右镜·盲点</small></button>
 <button class="b" id="bg" data-m="sig">左转灯<small>Signal</small></button>
-<button class="b" id="bs2" data-m="stopS">S-Shift</button>
+<button class="b" id="bs2" data-m="stopS">Zig-Zag</button>
 <button class="b" id="bc" data-m="scan">观察路口<small>路口里按住看左边</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html#practice">← 全部项目</a>
@@ -77,7 +79,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p>1. 绿色左转箭头亮时，左转有保护：对面直行车是红灯。跟着前车顺畅地转过去，不要无故停车（停着不走会被后车催，算延误交通）。</p>
 <p>2. 箭头变<b>黄</b>：和黄灯一样，能安全停下就要停。箭头随后熄灭，这时要看<b>圆灯</b>：</p>
 <p>· 圆灯是<b>红灯</b>（红灯 + 箭头的路口）：停在停车线后面，不能进路口。等圆灯变绿，再按<b>绿灯左转</b>的方法开进路口等候。</p>
-<p>· 圆灯是<b>绿灯</b>（绿灯 + 箭头的路口）：不用停车，慢慢开进路口，找好位置等候（可以用 S-Shift），然后按绿灯左转的方法：对面直行车马上就会开过来，看清两条车道的空档、右转车和行人再转。</p>
+<p>· 圆灯是<b>绿灯</b>（绿灯 + 箭头的路口）：不用停车，慢慢开进路口，找好位置等候（可以用 Zig-Zag），然后按绿灯左转的方法：对面直行车马上就会开过来，看清两条车道的空档、右转车和行人再转。</p>
 <p>3. 绿灯左转部分的规则和「绿灯左转」一样：进路口等候要车正轮正，转弯前按<b>观察路口</b>看左边，让对面直行车、右转车、自行车和行人。</p>
 <p><b>转完以后：靠右行驶</b>。左转要转进最近的<b>左车道</b>（最里面那条画着黄色斜线的是隔离区，不能开）。左车道是超车道，转完后要在安全时换到<b>右车道</b>：这时按键会变成和“换线”项目一样——打<b>右转灯</b>、看<b>后视镜</b>、回头<b>看盲点</b>，空档够了再按<b>换线</b>，换好后关掉转向灯。一直不换会扣分。<b>困难模式</b>里，后面会有车很快追上来，换到右车道超你：等它超过去、右车道空了再换。</p>
 <p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>
@@ -87,7 +89,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="lib/ixo-ltl.js?v=1111w"></script>
 <script src="lib/core.js?v=1028c"></script>
-<script src="lib/intersection.js?v=1111w"></script>
+<script src="lib/intersection.js?v=1111x"></script>
 <script src="lib/actors.js?v=1028c"></script>
 <script src="lib/ads.js?v=1110o"></script>
 <script src="lib/billboard.js?v=1110o"></script>
@@ -96,6 +98,6 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/rules.js?v=1028c"></script>
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/arrow-mode.js?v=1028c"></script>
-<script src="green-left.js?v=1111w"></script>
+<script src="green-left.js?v=1111x"></script>
 <script src="lib/mock.js?v=1111u"></script>
 </body></html>
