@@ -221,11 +221,11 @@ details.route summary{cursor:pointer}
 </div>
 
 <script src="lib/mockfx.js?v=1112k"></script>
-<script src="lib/voice.js?v=1112p"></script>
+<script src="lib/voice.js?v=1112r"></script>
 <script src="lib/sheet.js?v=1112m"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1112p';
+const V='1112r';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -287,13 +287,14 @@ let DIFF='easy',LVL='g2';
 // 模拟考试的“宿主”：每一项装在全屏的框（iframe）里，一项做完，下一项在下面装好，上面那一项慢慢变透明（叠画），首页一直不离开：
 // 声音只要在点“容易／困难”时解锁一次，整场考试考官的指令都能读出来
 window.MKH={host:null,cur:null,nf:null,fb:null,
- start(url){let h=document.getElementById('mkhost');if(!h){h=document.createElement('div');h.id='mkhost';document.body.appendChild(h)}
+ start(url){if(!this.iv)this.iv=setInterval(()=>{if(this.host)this.host.querySelectorAll('iframe[data-rm]').forEach(x=>{if(Date.now()>+x.dataset.rm)x.remove()})},300);      /* 叠画完了把上一项的框拿掉 */
+  let h=document.getElementById('mkhost');if(!h){h=document.createElement('div');h.id='mkhost';document.body.appendChild(h)}
   this.host=h;h.innerHTML='';h.style.display='block';this.cur=null;this.load(url)},
  load(url){const f=document.createElement('iframe');f.setAttribute('allow','fullscreen; autoplay');f.setAttribute('allowfullscreen','');if(!this.cur)f.style.opacity=0;
   f.src=url;this.host.insertBefore(f,this.host.firstChild);this.nf=f;clearTimeout(this.fb);
   this.fb=setTimeout(()=>{if(this.nf===f&&this.cur!==f)MST.nav(url)},25000)},      // 保险：框里 25 秒还没开始，就换成原来的整页跳转
  ready(w){const f=[...this.host.querySelectorAll('iframe')].find(x=>x.contentWindow===w);if(!f||f===this.cur)return;clearTimeout(this.fb);
-  const old=this.cur;this.cur=f;f.style.opacity=1;if(old){old.style.opacity=0;setTimeout(()=>old.remove(),1600)}try{f.contentWindow.focus()}catch(e){}},
+  const old=this.cur;this.cur=f;f.style.opacity=1;if(old){old.style.opacity=0;old.dataset.rm=Date.now()+1600}try{f.contentWindow.focus()}catch(e){}},
  next(url){this.load(url)},
  close(){VOX.stop();if(this.host){this.host.style.display='none';this.host.innerHTML=''}this.cur=null},
  finish(){const h=this.host;if(this.cur)this.cur.style.opacity=0;setTimeout(()=>{this.close();try{history.replaceState(null,'','#mock/result')}catch(e){}result()},1000)},
