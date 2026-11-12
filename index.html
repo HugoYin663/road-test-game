@@ -184,7 +184,11 @@ details.route summary{cursor:pointer}
   <!-- 4. 模拟考试：选难度、看路线、开始 -->
   <div class="view" id="v-level" hidden>
     <div><h2 id="lvTitle"></h2>
-      <p class="sub"><span class="zh">先选难度，再看一下这次要考的项目顺序。</span><span class="en">Pick a difficulty, then review the order of tasks.</span></p></div>
+      <p class="sub"><span class="zh">看一下这次要考的项目顺序，点一个难度就开始考试。</span><span class="en">Review the order of tasks, then tap a difficulty to start.</span></p></div>
+    <div class="route">
+      <b><span class="zh">考试路线</span><span class="en">Test route</span></b>
+      <ol id="routeList"></ol>
+    </div>
     <div class="tiles" id="diffs">
       <button class="tile easy" data-diff="easy">
         <span class="badge"><span class="zh">容易</span><span class="en">Easy</span></span>
@@ -195,11 +199,7 @@ details.route summary{cursor:pointer}
         <span class="d"><span class="zh">车多、空档短，行人、自行车、倒车的车、对面来车都会出现，接近真实路考里最难的情况。</span><span class="en">Busy traffic and short gaps, with pedestrians, cyclists, reversing cars and oncoming traffic — the toughest real-test situations.</span></span>
       </button>
     </div>
-    <div class="route">
-      <b><span class="zh">考试路线</span><span class="en">Test route</span></b>
-      <ol id="routeList"></ol>
-    </div>
-    <button class="start" id="startBtn"><span class="zh">开始考试</span><span class="en">Start the test</span></button>
+    <button class="start" id="startBtn" hidden><span class="zh">开始考试</span><span class="en">Start the test</span></button>
     <span class="soonnote" id="soon"><span class="zh">全程大约 15–25 分钟。像真的路考一样一气呵成：中间不停下、不出总结，项目之间用镜头转场接上（略过路上的行驶和等灯），考完出成绩单。</span><span class="en">About 15–25 minutes. It runs straight through like the real test: no stops or summaries between tasks, just a scene transition (the driving in between is skipped). Score sheet at the end.</span></span>
   </div>
 
@@ -301,7 +301,7 @@ function view(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==
 function level(k){LVL=k;view('level');document.getElementById('lvTitle').innerHTML=k==='g'?bi('G 路考','G Road Test'):bi('G2 路考','G2 Road Test');
  document.getElementById('routeList').innerHTML=ROUTES[k].map(r=>'<li'+(r.hw?' class="hw"':'')+'>'+bi(r.zh,r.en)+'</li>').join('');
  document.querySelectorAll('#diffs .tile').forEach(t=>t.classList.toggle('sel',t.dataset.diff===DIFF))}
-document.querySelectorAll('#diffs .tile').forEach(t=>t.onclick=()=>{DIFF=t.dataset.diff;document.querySelectorAll('#diffs .tile').forEach(x=>x.classList.toggle('sel',x===t))});
+document.querySelectorAll('#diffs .tile').forEach(t=>t.onclick=()=>{DIFF=t.dataset.diff;document.querySelectorAll('#diffs .tile').forEach(x=>x.classList.toggle('sel',x===t));document.getElementById('startBtn').onclick()});      // 点难度就直接开始考试
 document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{setLang(b.dataset.lang);if(location.hash==='#lang')location.hash='#home';else show()});
 document.getElementById('langBtn').onclick=()=>setLang(LANG==='en'?'zh':'en');
 document.getElementById('back').onclick=()=>{const h=location.hash.replace('#','');location.hash=h.startsWith('mock/')?'#mock':'#home'};
