@@ -18,7 +18,7 @@ function turnShape(D,TH){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;con
 function turnPts(x0){let best=null;for(let d=60;d<=82;d+=.5){const TH=d*Math.PI/180,a=turnShape(0,TH);let D=(TZ-TURN.Z0-a[a.length-1][1])/Math.cos(TH);if(D<0)continue;let b=turnShape(D,TH);D+=(TZ-TURN.Z0-b[b.length-1][1])/Math.cos(TH);b=turnShape(D,TH);const e=Math.abs(x0+b[b.length-1][0]-TURN.END);if(!best||e<best.e)best={e,b}}
  return best.b.map(q=>[x0+q[0],TURN.Z0+q[1]])}
 function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // Zig-Zag 做完停在等候点；起步后先直走一小段再转
- const pre=[[XL,-120],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-420,TZ]],p=path(pts);
+ const pre=[[XL,-220],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-420,TZ]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-1.75,-5.25,-8.75,-11.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
@@ -52,9 +52,10 @@ const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
 const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};
 // ---------- 对面直行车流（两条车道，向 -z 开）：tc＝车身中心经过你路线的时间 ----------
 // sc：这一局的情况。K＝L1 只有车流；RT 右转车；BK 视线被挡；PW 行人；BI 自行车；Y 等候时变黄；Y7 到路口前变黄；LC 你是第二辆
+let LEADL=0;      // 现在从更远的地方开过来（多开 40 米）：对面车流、变黄灯、行人等时间都往后推 LEADL 秒
 function makeOpp(sc){const L=[],v0=()=>Math.random()<.12?18.06:16.67,lane=()=>Math.random()<.5?-5.25:-8.75;let t=-1;const push=tt=>L.push({lane:lane(),tc:tt,v:v0()});
  const G={};
- if(sc.LC){G.a0=6.2+Math.random()*1.5;G.a1=G.a0+6.5}      /* 你是第二辆：前车在路口里等，等你开上来停下后，用这个空档转走 */
+ if(sc.LC){G.a0=6.2+LEADL+Math.random()*1.5;G.a1=G.a0+6.5}      /* 你是第二辆：前车在路口里等，等你开上来停下后，用这个空档转走 */
  const skipLC=tt=>sc.LC&&tt>G.a0-.6&&tt<G.a1;
  if(sc.Y){while(t<sc.Ty+16){t+=1.3+Math.random()*1.5;if(!skipLC(t))push(t)}      // 一直很密，等不到空档
   if(sc.rush){      /* 困难模式：1～2 辆车黄灯时加速抢灯。最后一辆：车头过白线时还是黄灯，车尾过白线时已经红灯 */
@@ -62,7 +63,7 @@ function makeOpp(sc){const L=[],v0=()=>Math.random()<.12?18.06:16.67,lane=()=>Ma
    add(ln,34.3+Math.random()*.6);if(sc.rush>1)add(ln2,11+Math.random()*3);L.sort((a,b)=>a.tc-b.tc)}
   L.forEach(s=>{const z=ZC0[s.lane]+s.v*(s.tc-sc.Ty);if(s.rush||z>0&&z<OSZ+s.v*s.v/9+3)s.run=true});      // 黄灯时离停车线太近、停不下来的车照直开过去（等它们过去才能转）
   return{list:L,G}}
- const G1=sc.LC?G.a1+9+Math.random()*3:17+Math.random()*3;      /* 你慢慢溜进路口大约要 15 秒；第二辆：前车走后你还要开进路口 */while(t<G1){t+=1.3+Math.random()*1.5;if(skipLC(t)){t=G.a1;push(t)}else push(t)}
+ const G1=sc.LC?G.a1+9+Math.random()*3:17+LEADL+Math.random()*3;      /* 你慢慢溜进路口大约要 15 秒；第二辆：前车走后你还要开进路口 */while(t<G1){t+=1.3+Math.random()*1.5;if(skipLC(t)){t=G.a1;push(t)}else push(t)}
  t+=3.6+Math.random()*.8;push(t);t+=1.4+Math.random();push(t);      // 一个看起来像空档、其实不够的 4 秒间隔
  const len=(sc.RT||sc.PW||sc.BI)?13+Math.random()*2:8.5+Math.random()*1.5;G.s=t;G.e=t+len;t+=len;push(t);      // 足够的空档（有右转车、行人、自行车时更长）
  while(t<G.e+30){t+=1.4+Math.random()*1.5;push(t)}
@@ -89,12 +90,13 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  {const VAR=(typeof location!=='undefined'&&new URLSearchParams(location.search).get('var'))||null;      // 模拟考试用：var=green 一直是绿灯（找对面车流的空档），var=amber 等候时变黄灯
   if(!AM&&VAR==='amber'){if(hard)sc.Y=1;else sc={Y:1};delete sc.Y7}
   if(!AM&&VAR==='green'){delete sc.Y;delete sc.Y7;if(!hard&&!Object.keys(sc).length)sc={K:1}}}
+ LEADL=!AM&&!sc.Y7?40/11:0;
  let Tay=null,T0=1e9;      /* 箭头变黄的时刻（第 4 辆车头刚要过停车线）；T0：箭头结束后放行（A：两边圆绿灯；B：对面绿灯） */
  if(sc.AR&&sc.AR.pos===5){const L=mkAQ(4,1);for(let t=0;t<40;t+=1/60){stepAQ(L,t,1/60);if(frontZ(L[3].u)>SL-.4){Tay=t;break}}T0=Tay+(sc.AR.type==='A'?3:1.5)}      /* 箭头黄灯 1.5 秒；B：箭头一灭对面就变绿起步；A：再全红 1.5 秒后两边圆灯变绿 */
- if(sc.Y){sc.Ty=23+Math.random()*3;sc.run=hard||Math.random()<.5;if(hard&&sc.rush==null)sc.rush=Math.random()<.5?2:1}
+ if(sc.Y){sc.Ty=23+LEADL+Math.random()*3;sc.run=hard||Math.random()<.5;if(hard&&sc.rush==null)sc.rush=Math.random()<.5?2:1}
  const OP=sc.AR&&!Tay?{list:[],G:{s:1e9,e:1e9}}:makeOpp(sc),G=OP.G;
  if(sc.AR&&Tay){OP.list.forEach(s=>s.tc+=T0);G.s+=T0;G.e+=T0}
- const U0=uAt(sc.Y7?-105:sc.AR?(sc.AR.pos===5?-80:sc.AR.pos===2?-62:-70):-75);
+ const U0=uAt((sc.Y7?-105:sc.AR?(sc.AR.pos===5?-80:sc.AR.pos===2?-62:-70):-75)-LEADL*11);
  usePath('N');R={t:0,u:U0,v:11,mode:'go',PK:'N',over:false,sc,G,ev:[],light:'g',sig:false,sigChk:false,lookT:-1,scT:-1,yaw:0,pit:0,stT:0,hitT:null,lastScan:null,peds:[],OC:[],SD:[],XQ:[],Tay,T0,arrow:null,honked:false,cmtArm:true,kr:null,look:null,q:[],mT2:null,oT2:{}};
  R.OC=OP.list.map(s=>{const c=car(C[1+Math.random()*8|0]);live.push(c);return Object.assign(s,{c,z:ZC0[s.lane]+s.v*s.tc,cv:s.v})});
  if(sc.AR){[-5.25,-8.75].forEach(ln=>{for(let k=0;k<3;k++){const c=car(C[1+Math.random()*8|0]);live.push(c);R.OC.push({c,lane:ln,tc:0,v:16.67,z:OSZ+.4+k*7.3,cv:0})}});R.OC.forEach(s=>{if(s.z>OSZ-.5)s.stop=true})}      /* 对面直行车：红灯时在停车线后排队 */
@@ -334,7 +336,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  if(R.kr)krStep(dt);
  // 结束
  {const x=a[0];if(R.kr&&R.kr.right&&R.kr.doneT!=null&&R.t-R.kr.doneT>5.5&&x<BBX+60||x<BBX+28){finish();return}}      /* 换到右车道至少 5.5 秒（来得及关转向灯、看前面的广告牌），开到离广告牌约 60 米以内才结束；最晚离广告牌 28 米时结束 */
- if(R.t>110)finish()}
+ if(R.t>110+LEADL)finish()}
 // ---------- 信号灯：黄灯情况 ----------
 function lights(){const sc=R.sc,t=R.t,f=front(R.u);
  if(sc.AR){const A=sc.AR;if(R.Tay==null)return;

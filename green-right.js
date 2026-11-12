@@ -11,9 +11,9 @@ const bzK=t=>{const u=1-t,P=[[6.25,-16.5],[6.25,-8],[9,-6.25],[17,-6.25]];return
 const pathK=path([[6.25,-110],[6.25,-16.5],...Array.from({length:40},(_,i)=>bzK((i+1)/40)),[70,-6.25]]);let MP=pathN;
 const myPath=u=>MP(u);      // 平时走原路线（在虚线末端借用一点虚线转弯）；事先发现了右后方的自行车，就换成不碰虚线的路线
 let cs=0,ce=0;for(let i=1;i<=41;i++){ce+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===1)cs=ce}
-const vOf=u=>7-2.8*ss(cs-18,cs+6,u)+2.8*ss(ce-6,ce+14,u);
+const vOf=u=>7+4*(1-ss(cs-48,cs-30,u))-2.8*ss(cs-18,cs+6,u)+2.8*ss(ce-6,ce+14,u);      // 远处约 40 km/h，离停车线约 45 米开始慢下来
 // ================= 游戏逻辑（第一步）=================
-const AB=5,U0=60,UEND=ce+44;      // 转完弯以后再往前开 30 米（经过路边的广告牌）
+const AB=5,U0=60,U0N=22,UEND=ce+44;      // U0N：现在从更远的地方开过来（离停车线约 70 米），场景里的行人等时间往后推 LEADG 秒      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 {const g=billboard('turn-right');placeBB(g,105,-17,Math.PI/2)}      // 广告牌在结束位置（x≈60）前方约 45 米：转完弯后最后 2～3 秒看得到      // 转进去的那条路右手边的广告牌      // U0：平时从停车线前约 30 米出发
 const mine=car(C[0]);
 let uS=0;for(let u=0;u<myLen;u+=.05){if(myPath(u)[1]>=-19.3){uS=u;break}}   // 停车位置（停车线前）
@@ -68,9 +68,10 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  const LIST=R0.forceCS?(R0.forceCS==='1d'?['1a','1m']:R0.forceCS.split('+')):pickList();if(!R0.forceCS&&'123'.includes(LIST[0][0])&&!LIST.some(c=>c==='4a'||c[0]==='5')&&Math.random()<.4)LIST.push('4a');   // 常有对面左转车在路口里等（不抢行）
  const CS=LIST.find(c=>'56'.includes(c[0]))||LIST[0],peds=[];
  if(LIST.includes('3a')){const k='S',o=cyclist(PCOL[Math.random()*5|0]);live.push(o);
-  peds.push({k,o,sg:[{t:0,v:3.8},{t:2.5,v:k==='S'?5.5:4.2}],off:83,path:BPATH[k],len:BLEN[k],bike:true})}   // 开局在你前方约 3 米，你很快超过它，它之后在你右边追上来
- let TB=5.5+Math.random()*3.5,nB=0,spT=null;const allow=v=>!spT&&LASTF.sp!==v;      // 特殊动作（跑起来／中途回头）每局最多一个，也不和上一局相同
- LIST.filter(c=>'12'.includes(c[0])||c==='5e').forEach(CS=>{[-1].forEach(j=>{const k={'1a':'B','1b':'C','1c':'B','1m':'B','1n':'B','2a':'A','2b':'D','2c':'A','5e':'B'}[CS],sudden=CS==='1c'||CS==='2c',Ta=CS==='5e'?9.5+Math.random()*.4:k==='B'?(nB?(TB+=2+Math.random()*4):TB):k==='A'?3+Math.random()*5:(k==='D'?5+Math.random()*5:5.5+Math.random()*3.5);   // 时间设得一定会和你的转弯冲突；后面的行人隔 2–6 秒跟上
+  peds.push({k,o,sg:[{t:0,v:3.8},{t:2.5,v:k==='S'?5.5:4.2}],off:83-(U0-U0N),path:BPATH[k],len:BLEN[k],bike:true})}   // 开局在你前方约 3 米，你很快超过它，它之后在你右边追上来
+ if(LEADG==null)LEADG=Math.max(0,tArr(U0N)-tArr(U0));
+ let TB=5.5+LEADG+Math.random()*3.5,nB=0,spT=null;const allow=v=>!spT&&LASTF.sp!==v;      // 特殊动作（跑起来／中途回头）每局最多一个，也不和上一局相同
+ LIST.filter(c=>'12'.includes(c[0])||c==='5e').forEach(CS=>{[-1].forEach(j=>{const k={'1a':'B','1b':'C','1c':'B','1m':'B','1n':'B','2a':'A','2b':'D','2c':'A','5e':'B'}[CS],sudden=CS==='1c'||CS==='2c',Ta=CS==='5e'?9.5+LEADG+Math.random()*.4:k==='B'?(nB?(TB+=2+Math.random()*4):TB):LEADG+(k==='A'?3+Math.random()*5:(k==='D'?5+Math.random()*5:5.5+Math.random()*3.5));   // 时间设得一定会和你的转弯冲突；后面的行人隔 2–6 秒跟上
   // 随机变化：正常走 / 走着走着跑起来 / 走到一半回头
   const r=Math.random();let va=(j>=0||CS==='5e')?'walk':sudden?'run':(r<.62?'walk':r<.9?'run':'back');if(va!=='walk'){if(allow(va))spT=va;else va='walk'}let v0=j>=0?1.3:1.2+Math.random()*.3,sg;   // 1d：两个从后方来的行人，前一个快走过一半时，后一个正要过街
   if(va==='walk')sg=[{t:0,v:v0}];
@@ -89,10 +90,10 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
   lc={type,ze,path:path(pts),La,uStop:La+3,car:lcar,isP,u:LP,v:0,state:'idle',d0:.3+Math.random()*.7};
   if(CS[0]==='5')lc.l5=true;else if(type==='wait'){lc.u=0;lc.v=7;lc.state='app';lc.ta=tArr()-tApp()+(Math.random()-.5);while(lc.ta<0){lc.u+=vApp(lc.u)*.02;lc.ta+=.02}}live.push(lc.car);for(let u=La;u<La+30;u+=.05){if(lc.path(u)[0]>=9){lc.uStop=u;break}}
   }
- const U1=CS[0]==='5'&&'abc'.includes(CS[1])?U0-20:U0;      // 黄灯局多开 20 米，留出行人灯闪烁→红手→变黄的时间
+ const U1=U0N;      // 黄灯局多开 20 米，留出行人灯闪烁→红手→变黄的时间
  R={cs:CS,list:LIST,allR:2,yT:-1,yD:2+Math.random()*2,fl:false,emg:(LIST.includes('E')||(!LASTF.E&&'123'.includes(LIST[0][0])&&LIST.some(c=>c[0]==='1'||c[0]==='2')&&MODE==='free'&&DIFF==='easy'&&Math.random()<.22))?(LIST.includes('4a')||Math.random()<.5?'Lw':'O'):null,polsOld:[],scT:-1,pol:null,light:'green',t:0,u:U1,v:vOf(U1),mode:'turn',committed:false,over:false,peds,lc,ev:[],idle:0,dl:false,lookT:-1,yaw:0,stopT:0,stopA:AB,stopped:false,pit:0,sig:false,sigChk:false,chk:false,chkT:0};
  if(lc){const q=lc.path(0);place(lc.car,q[0],q[1],q[2])}
- if(CS==='5d'){const lcar=car(C[1+Math.random()*8|0]);live.push(lcar);lcar.userData.bl.forEach(m=>m.position.x=-m.position.x);R.ld={car:lcar,u:U0+12,v:vOf(U0+12),st:'go',sT:0}}   // 5d：你前面还有一辆右转车（打着右转灯）
+ if(CS==='5d'){const lcar=car(C[1+Math.random()*8|0]);live.push(lcar);lcar.userData.bl.forEach(m=>m.position.x=-m.position.x);R.ld={car:lcar,u:U0N+12,v:vOf(U0N+12),st:'go',sT:0}}   // 5d：你前面还有一辆右转车（打着右转灯）
  {const fc=car(C[Math.random()*9|0]);live.push(fc);R.fol={car:fc,u:R.u-16,v:R.v}}      // 后车：一直跟在你后面
  sirenOff();if(CS==='6')R.pol=makePolice('L');setPedSig('M','walk');setPedSig('X','hand');
  if(CS[0]==='5'&&CS!=='5e'){let uy=R.u;for(let u=R.u;u<myLen;u+=.05){const w=myPath(u);if(CS==='5a'?w[1]+2.35>=-17-R.yD:CS==='5b'?w[1]>=-17.8:w[1]>-8.5){uy=u;break}}R.uY=uy}   // 变黄的位置
@@ -159,7 +160,8 @@ function setLight(c){R.light={g:'green',y:'yellow',r:'red'}[c];HEADS.forEach(lm=
  const b=$('bn');b.textContent={g:'绿灯右转',y:'黄灯！',r:'红灯'}[c];b.style.color={g:'',y:'#ffc21a',r:'#ff5a5a'}[c];const d=$('lt'),k={g:'#2ee66b',y:'#ffc21a',r:'#ff3b3b'}[c];d.style.background=k;d.style.boxShadow='0 0 8px '+k}
 const vApp=u=>Math.min(7,Math.sqrt(2*2.2*Math.max(0,LP-u)));
 function tApp(){let u=0,t=0;while(u<LP-.05&&t<30){u+=Math.max(.3,vApp(u))*.02;t+=.02}return t}       // 左转车驶到停车点要多久
-function tArr(){let u=U0,t=0;while(u<uS-5&&t<30){u+=vOf(u)*.02;t+=.02}return t}                    // 你（不按按钮）到停车线前约 5 米要多久
+function tArr(u0){let u=u0==null?U0N:u0,t=0;while(u<uS-5&&t<30){u+=vOf(u)*.02;t+=.02}return t}
+let LEADG=null;                    // 你（不按按钮）到停车线前约 5 米要多久
 function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
  if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
@@ -262,7 +264,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  // 后车跟车：保持车距，你停它也停
  {const f=R.fol;if(f){const gap=u-f.u-4.6;let vt=Math.max(0,Math.min(R.v+3,2.2*(gap-2.5)));
   if(R.yT>=0&&f.bY==null)f.bY=myPath(f.u)[1]<-19.6;if(R.light!=='green'&&f.bY)vt=Math.min(vt,Math.sqrt(2*4*Math.max(0,uS-1.7-f.u)));   /* 黄灯时后车还在停车线后：停在线后，不跟着你转 */f.v=f.v>vt?Math.max(vt,f.v-6*dt):Math.min(vt,f.v+3*dt);f.u=Math.min(f.u+f.v*dt,u-4.6)}}
- if(u>=UEND||R.t>80)finish()}
+ if(u>=UEND||R.t>80+LEADG)finish()}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.n?'第 '+e.n+' 个路口 · ':''}${e.title}${EX||e.n?(SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'):''}</b><span>${e.text}</span></div>`).join('')+'</div>'}
 function finish(){R.over=true;sirenOff();R.sig=false;$('sg').style.display='none';mk();const o=$('ov');let h,btn='<button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button>';
  if(EX){R.ev.forEach(e=>EX.ev.push(Object.assign({n:EX.i+1},e)));EX.i++;

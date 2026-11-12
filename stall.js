@@ -52,7 +52,7 @@ const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x23324f,0x4a4f57,0x8e
 const PARKS=[],LX=PCX-LW.HL-2.2-LW.HW;      // 开过来时离参考车的车头（车道边）约 2.2 米
 for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
  if(s>0&&k===0)return;      // 空车位
- const near=s>0&&Math.abs(k)<=1;if(!near&&Math.random()<.12)return;      // 远处偶尔空着
+ const near=s>0&&Math.abs(k)<=1;      // 除了指定的车位，其他车位都停满（不留空车位，免得停错）
  const nose=near?false:Math.random()<.75,h=(s>0)===nose?Math.PI/2:-Math.PI/2;      /* 空车位两边的两辆车都是尾进（车头朝车道），能看到它们的外后视镜 */      // 大多数车头朝里停（尾朝车道）
  const col=s>0&&k===1?0xf4f6f8:PCOLS[Math.random()*PCOLS.length|0];
  const jz=near?0:(Math.random()-.5)*.25,jh=near?0:(Math.random()-.5)*.05;

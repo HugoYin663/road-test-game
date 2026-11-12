@@ -116,6 +116,8 @@ section{display:flex;flex-direction:column;gap:12px}
 .dq h4{margin:0 0 6px;font-size:13px;letter-spacing:.03em}.dq ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:3px 18px}
 .dq li{display:flex;gap:7px;align-items:baseline;font-size:13.5px;color:#888}.dq li.on{color:#111;font-weight:700}.dq li i{flex:none;width:15px;height:15px;border:1.5px solid #333;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;color:#c8102e;position:relative;top:2px}.dq li small{font-weight:400;color:#666;margin-left:4px}
 details.route summary{cursor:pointer}
+#mkhost{position:fixed;inset:0;z-index:100;background:#000;display:none}
+#mkhost iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;transition:opacity 1.4s ease-in-out}
 </style>
 
 <div class="wrap">
@@ -218,11 +220,12 @@ details.route summary{cursor:pointer}
   </div>
 </div>
 
-<script src="lib/mockfx.js?v=1112j"></script>
-<script src="lib/sheet.js?v=1112b"></script>
+<script src="lib/mockfx.js?v=1112k"></script>
+<script src="lib/voice.js?v=1112k"></script>
+<script src="lib/sheet.js?v=1112m"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1112j';
+const V='1112m';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -235,6 +238,7 @@ const ITEMS={
  'highway-on':{zh:'上高速',en:'Merging onto the highway',dz:'从匝道弯道开始，在加速车道里按车流提速、找空档并入 401',de:'From the ramp curve, match traffic speed in the acceleration lane and merge into a gap on the 401'},
  'highway-off':{zh:'出高速',en:'Exiting the highway',dz:'主路 80，换一次线进最右的出口车道，离出口还远就加速到 110，快到出口再减速，开到匝道弯道',de:'From 80 on the main road, move once into the rightmost exit lane, speed up to about 110 while the exit is still far, and slow down only near the exit'},
  'three-point':{zh:'三点调头',en:'Three-point turn',dz:'靠边停在 30 厘米内，每一步 M.S.B.，前、后、前三步调头，不原地打方向、不碰路缘',de:'Pull over within 30 cm, M.S.B. at every step, forward–reverse–forward, no dry steering, no curb contact'},
+ 'residential':{zh:'小区路段连考',en:'Residential street run',dz:'同一条街上一项接一项：坡道停车 → 三点调头 → 平行停车，和真路考一样不停下',de:'One street, back to back: hill parking, three-point turn, parallel parking — no breaks, like the real test'},
  'hill-park':{zh:'上下坡停车',en:'Parking on a hill',dz:'上坡有路缘车轮朝外，下坡、没有路缘车轮朝路边；停好再离开',de:'Uphill with a curb, wheels away from it; downhill or no curb, wheels toward the edge. Park, then move off'},
  'parallel':{zh:'平行停车',en:'Parallel parking',dz:'停在参考车旁边 1 米、后保险杠对齐，倒车右打、45° 回正、左打，停在车位中间',de:'Stop 1 m beside the reference car with bumpers aligned, reverse with right lock, straighten at 45°, left lock, finish centred'},
  'stall':{zh:'停车场倒车入位',en:'Reverse into a parking stall',dz:'开过空车位，司机对着参考车第 4 个角停住，R＋360° 观察，右打到底，平行时回正，停在两线正中',de:'Drive past the stall, stop with your seat at the reference car’s far corner, 360° check, full right lock, straighten when parallel, finish centred'},
@@ -242,27 +246,27 @@ const ITEMS={
  'exit':{zh:'出车位、出停车场',en:'Leaving a stall and the lot',dz:'放手刹、看镜打灯、挪到车道边左右看，车道里让行人和倒车的车，出口车头停到大路边，等两边空档左转上大路',de:'Release the brake, mirrors and signal, edge out and look both ways, yield to pedestrians and reversing cars, stop at the road edge and turn left in a safe gap'}};
 const GROUPS=[{zh:'路口判断',en:'Intersections',ids:['green-right','red-right','green-left','green-arrow','stop-left','stop-4way']},
  {zh:'行驶中判断',en:'On the road',ids:['lane-change','highway-on','highway-off']},
- {zh:'低速操作',en:'Low-speed manoeuvres',ids:['three-point','hill-park','parallel','stall','headin','exit']}];
+ {zh:'低速操作',en:'Low-speed manoeuvres',ids:['residential','three-point','hill-park','parallel','stall','headin','exit']}];
 // ---------- 模拟考试的路线（每一段对应哪个单项，下一步串起来时用） ----------
 // ---------- 模拟考试：每一项是哪个场景（var：绿灯左转指定情况） ----------
 const STEP={exit:{zh:'出车位、出停车场，左转上大路',en:'Leave the stall and the lot, turn left onto the road'},
  'red-right':{zh:'红灯右转',en:'Right turn on red'},'green-right':{zh:'绿灯右转',en:'Right turn on green'},
  'green-left:green':{zh:'绿灯左转（等对面车流空档），转完靠右',en:'Left turn on green (wait for a gap), then keep right'},
  'green-left:amber':{zh:'绿灯左转（等候时变黄灯），转完靠右',en:'Left turn on green that turns amber, then keep right'},
- 'stop-4way':{zh:'小区：四面停牌直行',en:'Residential: straight through an all-way stop'},'hill-park':{zh:'小区：坡道停车',en:'Residential: hill parking'},
+ 'stop-4way':{zh:'小区：四面停牌直行',en:'Residential: straight through an all-way stop'},'residential':{zh:'小区：坡道停车 → 三点调头 → 平行停车',en:'Residential: hill parking, three-point turn, parallel parking'},'hill-park':{zh:'小区：坡道停车',en:'Residential: hill parking'},
  'three-point':{zh:'小区：三点调头',en:'Residential: three-point turn'},parallel:{zh:'小区：平行停车',en:'Residential: parallel parking'},
  'stop-left':{zh:'小区：停牌路口左转',en:'Residential: left turn at a stop sign'},stall:{zh:'回考场：倒车入位（尾进）',en:'Back at the centre: reverse into a stall'},
  'highway-on':{zh:'上高速',en:'Merge onto the highway'},'highway-off':{zh:'出高速（换进最右出口车道，加速到 110，快到出口再减速）',en:'Exit the highway (move into the exit lane, speed up to 110, slow near the exit)'},
  headin:{zh:'回考场：车头进车位（头进）',en:'Back at the centre: park forward into a stall'}};
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 function buildSteps(k){const GL=shuf(['green-left:green','green-left:amber']);      // 路线像一圈：去的路上右转，三点调头往回开，回来的路上左转
- const L=k==='g2'?['exit',...shuf(['red-right','green-right']),'stop-4way','parallel','hill-park','three-point','stop-left',...GL,'stall']
+ const L=k==='g2'?['exit',...shuf(['red-right','green-right']),'stop-4way','residential','stop-left',...GL,'stall']
   :['exit',...shuf(['red-right','green-right']),'highway-on','highway-off',...shuf(['green-left:green','green-left:amber']),'headin'];
  return L.map(id=>{const [sc,vr]=id.split(':');return Object.assign({s:sc,var:vr||null},STEP[id])})}
 // 首页上显示的路线（红绿灯部分顺序每次随机）
 const ROUTES={
  g2:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'红绿灯路口：红灯右转、绿灯右转（顺序随机）',en:'Right on red and right on green (random order)'},
-  {zh:'进小区：四面停牌直行',en:'Residential: all-way stop, straight through'},{zh:'平行停车',en:'Parallel parking'},{zh:'坡道停车',en:'Hill parking'},{zh:'三点调头，往回开',en:'Three-point turn, head back'},
+  {zh:'进小区：四面停牌直行',en:'Residential: all-way stop, straight through'},{zh:'同一条街上：坡道停车 → 起步 → 三点调头往回开 → 平行停车',en:'Same street: hill parking → pull out → three-point turn → parallel parking'},
   {zh:'出小区：停牌路口左转',en:'Leaving: left turn at a stop sign'},{zh:'回考场路上：绿灯左转两次（等空档、变黄灯，顺序随机），转完靠右',en:'On the way back: two left turns on green (gap, amber; random order), keep right after'},{zh:'回考场：倒车入位（尾进）',en:'Back at the centre: reverse into a stall'}],
  g:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'红绿灯路口：红灯右转、绿灯右转（顺序随机）',en:'Right on red and right on green (random order)'},
   {zh:'上高速',en:'Merge onto the highway',hw:1},{zh:'出高速：换进最右出口车道，加速到 110，快到出口再减速',en:'Exit: move into the exit lane, speed up to 110, slow near the exit',hw:1},
@@ -280,8 +284,22 @@ document.getElementById('groups').innerHTML=GROUPS.map(g=>'<section class="group
 // ---------- 页面切换（用网址 # 记住在哪一页，手机的返回键也能用） ----------
 let DIFF='easy',LVL='g2';
 // 开始考试：路线存起来，打开第一项
+// 模拟考试的“宿主”：每一项装在全屏的框（iframe）里，一项做完，下一项在下面装好，上面那一项慢慢变透明（叠画），首页一直不离开：
+// 声音只要在点“容易／困难”时解锁一次，整场考试考官的指令都能读出来
+window.MKH={host:null,cur:null,nf:null,fb:null,
+ start(url){let h=document.getElementById('mkhost');if(!h){h=document.createElement('div');h.id='mkhost';document.body.appendChild(h)}
+  this.host=h;h.innerHTML='';h.style.display='block';this.cur=null;this.load(url)},
+ load(url){const f=document.createElement('iframe');f.setAttribute('allow','fullscreen; autoplay');f.setAttribute('allowfullscreen','');if(!this.cur)f.style.opacity=0;
+  f.src=url;this.host.insertBefore(f,this.host.firstChild);this.nf=f;clearTimeout(this.fb);
+  this.fb=setTimeout(()=>{if(this.nf===f&&this.cur!==f)MST.nav(url)},25000)},      // 保险：框里 25 秒还没开始，就换成原来的整页跳转
+ ready(w){const f=[...this.host.querySelectorAll('iframe')].find(x=>x.contentWindow===w);if(!f||f===this.cur)return;clearTimeout(this.fb);
+  const old=this.cur;this.cur=f;f.style.opacity=1;if(old){old.style.opacity=0;setTimeout(()=>old.remove(),1600)}try{f.contentWindow.focus()}catch(e){}},
+ next(url){this.load(url)},
+ close(){VOX.stop();if(this.host){this.host.style.display='none';this.host.innerHTML=''}this.cur=null},
+ finish(){const h=this.host;if(this.cur)this.cur.style.opacity=0;setTimeout(()=>{this.close();try{history.replaceState(null,'','#mock/result')}catch(e){}result()},1000)},
+ quit(){this.close();try{history.replaceState(null,'','#mock')}catch(e){}view('mock')}};
 document.getElementById('startBtn').onclick=()=>{const S={level:LVL,diff:DIFF,lang:LANG,v:V,steps:buildSteps(LVL),i:0,res:[],t0:Date.now()};if(!MST.set(S)){alertBox();return}
- const st=S.steps[0];MST.nav(st.s+'.html?mock=1&v='+V+(st.var?'&var='+st.var:''))};
+ VOX.unlock();const st=S.steps[0];MKH.start(st.s+'.html?mock=1&v='+V+(st.var?'&var='+st.var:''))};
 function alertBox(){document.getElementById('soon').innerHTML=bi('这个浏览器不能保存考试进度（可能是无痕模式），没法串联考试。','This browser can’t save test progress (private mode?), so the chained test can’t run.')}
 // 成绩单
 function result(){view('result');let S=MST.get();const box=document.getElementById('resBox');

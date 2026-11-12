@@ -33,7 +33,7 @@ const HI_TXT={
 // 停着的车：空车位两边的车都是头进（车头朝里），能对齐外后视镜；右边第 -8 个空着（转进车道时车头会扫过去）
 function buildParks(){const P=[];
  for(let k=-8;k<=22;k++)[1,-1].forEach(s=>{if(s<0&&k<-7)return;if(s>0&&k===-8)return;if(s<0&&k===KT)return;
-  const near=s<0&&Math.abs(k-KT)<=1;if(!near&&Math.random()<.14)return;
+  const near=s<0&&Math.abs(k-KT)<=1;      // 除了指定的车位，其他车位都停满（不留空车位，免得停错）
   const nose=near?true:Math.random()<.7,h=(s>0)===nose?Math.PI/2:-Math.PI/2;
   P.push([s*PCX,ZS(k)+(near?0:(Math.random()-.5)*.25),h+(near?0:(Math.random()-.5)*.05),PCOLS[Math.random()*PCOLS.length|0]])});return P}
 // ---------------- 系统开的路线（后轴走的线） ----------------
