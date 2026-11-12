@@ -55,15 +55,16 @@ const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.pa
 let LEADL=0;      // 现在从更远的地方开过来（多开 40 米）：对面车流、变黄灯、行人等时间都往后推 LEADL 秒
 function makeOpp(sc){const L=[],v0=()=>Math.random()<.12?18.06:16.67,lane=()=>Math.random()<.5?-5.25:-8.75;let t=-1;const push=tt=>L.push({lane:lane(),tc:tt,v:v0()});
  const G={};
- if(sc.LC){G.a0=9+LEADL+Math.random()*1.5;G.a1=G.a0+12}      /* 空档对准你开上来停下的时间，留够前车安全转走的时间 */      /* 你是第二辆：前车在路口里等，等你开上来停下后，用这个空档转走 */
+ if(sc.LC){G.a0=10+Math.random();G.a1=G.a0+11}      /* 前车大约 7.7 秒开到路口里等候；你开到停车线前（约 10～11 秒）时它找到空档转走：你要先停在停车线后，等它走了再开进路口 */      /* 空档对准你开上来停下的时间，留够前车安全转走的时间 */      /* 你是第二辆：前车在路口里等，等你开上来停下后，用这个空档转走 */
  const skipLC=tt=>sc.LC&&tt>G.a0-.6&&tt<G.a1;
- if(sc.Y){while(t<sc.Ty+16){t+=1.3+Math.random()*1.5;if(!skipLC(t))push(t)}      // 一直很密，等不到空档
+ const sp=()=>sc.LC&&t<G.a1?2.6+Math.random()*2.2:1.3+Math.random()*1.5;      /* 有前车左转时，它转走之前对面车少、车距大 */
+ if(sc.Y){while(t<sc.Ty+16){t+=sp();if(!skipLC(t))push(t)}      // 一直很密，等不到空档
   if(sc.rush){      /* 困难模式：1～2 辆车黄灯时加速抢灯。最后一辆：车头过白线时还是黄灯，车尾过白线时已经红灯 */
    const ln=-5.25,ln2=-5.25,/* 都走内侧车道：外侧车道有右转车减速会挡住 */add=(lane,dz)=>{const v=16.67,tc=sc.Ty+(OSZ+dz-ZC0[lane])/v;for(let i=L.length-1;i>=0;i--)if(L[i].lane===lane&&Math.abs(L[i].tc-tc)<1.3)L.splice(i,1);L.push({lane,tc,v,rush:1})};
    add(ln,34.3+Math.random()*.6);if(sc.rush>1)add(ln2,11+Math.random()*3);L.sort((a,b)=>a.tc-b.tc)}
   L.forEach(s=>{const z=ZC0[s.lane]+s.v*(s.tc-sc.Ty);if(s.rush||z>0&&z<OSZ+s.v*s.v/9+3)s.run=true});      // 黄灯时离停车线太近、停不下来的车照直开过去（等它们过去才能转）
   return{list:L,G}}
- const G1=sc.LC?G.a1+9+Math.random()*3:17+LEADL+Math.random()*3;      /* 你慢慢溜进路口大约要 15 秒；第二辆：前车走后你还要开进路口 */while(t<G1){t+=1.3+Math.random()*1.5;if(skipLC(t)){t=G.a1;push(t)}else push(t)}
+ const G1=sc.LC?G.a1+9+Math.random()*3:17+LEADL+Math.random()*3;      /* 你慢慢溜进路口大约要 15 秒；第二辆：前车走后你还要开进路口 */while(t<G1){t+=sp();if(skipLC(t)){t=G.a1;push(t)}else push(t)}
  t+=3.6+Math.random()*.8;push(t);t+=1.4+Math.random();push(t);      // 一个看起来像空档、其实不够的 4 秒间隔
  const len=(sc.RT||sc.PW||sc.BI)?13+Math.random()*2:8.5+Math.random()*1.5;G.s=t;G.e=t+len;t+=len;push(t);      // 足够的空档（有右转车、行人、自行车时更长）
  while(t<G.e+30){t+=1.4+Math.random()*1.5;push(t)}
@@ -275,7 +276,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
   R.OC.forEach(o=>{if(o!==s&&!o.gone&&o.lane===s.lane&&o.z<s.z&&s.z-o.z<45)vt=Math.min(vt,Math.max(0,o.cv+(s.z-o.z-7)*1.2))});      /* 跟前车：看 45 米 */
   if(s.lane===-8.75&&R.RT&&!R.RT.gone&&R.RT.on){const q=ORT(R.RT.u);if(q[0]>-(hwM-1.7)&&q[1]<s.z&&s.z-q[1]<24)vt=Math.min(vt,Math.max(0,(s.z-q[1]-7)*1.5))}
   {const X=[];if(R.AQ){R.AQ.forEach(L=>{if(!L.gone){const q=PK.N.p(L.u);X.push(q)}});R.OA.forEach(L=>{if(!L.gone)X.push(BKP(L.u))})}if(R.LC)X.push(PK.S.p(R.LC.u));R.XQ.forEach(q=>X.push([q.x,q.z,q.h]));if(R.fol.go&&!R.fol.free)X.push(myPathRaw(R.fol.u));
-   if(R.AQ)R.AQ.forEach(L=>{if(!L.gone)[4,8].forEach(d=>X.push(PK.N.p(L.u+d)))});if(R.LC&&R.LC.st==='go')[4,8].forEach(d=>X.push(PK.S.p(R.LC.u+d)));      /* 前车还在等的时候不算（不然对面直行车会停在路口中间） */      /* 转弯车再往前走几米会到哪里：提前让 */
+   if(R.AQ)R.AQ.forEach(L=>{if(!L.gone)[4,8].forEach(d=>X.push(PK.N.p(L.u+d)))});      /* 对面直行车有路权，不给前面那辆左转车让路：左转车自己找安全空档 */      /* 转弯车再往前走几米会到哪里：提前让 */
    X.forEach(q=>{if(Math.abs(q[0]-s.lane)<2.6&&q[1]<s.z&&s.z-q[1]<40)vt=Math.min(vt,Math.max(0,(s.z-q[1]-7)*1.2))})}      /* 路口里还有转弯的车挡在它的车道上：减速、停住等它过去 */
   if(s.rush&&R.Ty!=null)vt=19.5;      /* 抢黄灯：加速到约 70 km/h */
   if(s.stop)vt=Math.min(vt,Math.sqrt(7*Math.max(0,s.z-OSZ)));
@@ -305,7 +306,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  // 你前面的左转车
  if(R.LC){const L=R.LC,P=PK.S;let vt=11;if(L.st==='drive'){const us=uAt(SL-2.7);vt=L.u<us?11:Math.min(2.6,Math.sqrt(2*1.2*Math.max(0,P.uW-L.u))+.05);if(L.u>=P.uW-.3&&L.v<.1)L.st='wait'}
   if(R.v===0)R.stopAt=R.stopAt==null?R.t:R.stopAt;else R.stopAt=null;
-  if(L.st==='wait'&&R.t>=L.goAt&&R.t<R.G.a1-3.5&&(R.stopAt!=null&&R.t-R.stopAt>.8||R.t>=L.goAt+2.5)&&lcSafe())L.st='go';      /* 前车等你开上来停下（或最多等 2.5 秒），趁空档转走 */
+  if(L.st==='wait'&&R.t>=L.goAt&&lcSafe())L.st='go';      /* 前车一到路口里就找空档：对面车少、车距大，它很快就能安全转走 */
   if(L.st==="wait"&&(R.t>=R.G.s+.3||R.Ty!=null&&R.t>=R.Ty+1.5)&&lcSafe())L.st="go";      /* 黄灯、红灯时对面停下了，也转走（清空路口） */      /* 万一错过了空档，就用后面那个大空档 */if(L.st==='wait')vt=0;if(L.st==='go')vt=L.u<P.cs-6?11:5.5+3*ss(P.ce-6,P.ce+14,L.u);
   L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+3*dt);L.u+=L.v*dt;if(ocBlock(P.p(L.u))){L.u-=L.v*dt;L.v=0}if(L.u>myLen-2)L.u=myLen-2}      /* 前面那辆左转车：不会开进对面直行车里 */
  // 横向车：横向变绿后起步；你挡在它的车道上就不走
