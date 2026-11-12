@@ -22,11 +22,17 @@ box(2*RW,.04,420,ASF,0,.02,0);box(460,.04,2*RW,ASF,0,.021,0);      // 你这条�
  [[-230,-6],[6,230]].forEach(([a,b])=>{const L=b-a,c=(a+b)/2;box(1.5,.12,L,SWK,s*(SW0+.75),.06,c);box(L,.12,1.5,SWK,c,.06,s*(SW0+.75))})});
 // 路口转角：路面填成圆角，外面一圈路缘
 function fan(pts,mat,y){const pos=[],idx=[];pts.forEach(p=>pos.push(-p[0],y,p[1]));for(let i=1;i<pts.length-1;i++)idx.push(0,i,i+1);const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;scene.add(m)}
+const RAMPA=[[SW0,SW1],[SW0,SW1]].map((b,j)=>{const A=w=>Math.asin((RW+RC-w)/RC)*180/Math.PI,a0=A(b[1]),a1=A(b[0]);return j?[90-a1,90-a0]:[a0,a1]});      // 缓坡处路缘断开的角度范围（度）
 const ASD=M(0x5f6168,{side:T.DoubleSide}),CRD=M(0xc9cbcf,{side:T.DoubleSide}),SWD=M(0xd5d3cc,{side:T.DoubleSide}),GRD=M(0x79a95a,{side:T.DoubleSide});
 [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz])=>{const cx=sx*(RW+RC),cz=sz*(RW+RC),N=16,arc=r=>Array.from({length:N+1},(_,i)=>{const a=i/N*Math.PI/2;return[cx-sx*r*Math.cos(a),cz-sz*r*Math.sin(a)]});
  fan([[sx*RW,sz*RW],...arc(RC).map(p=>p)],ASD,.021);
  // 路缘：一圈 0.25 宽的带子
- {const a=arc(RC),b=arc(RC-.25),pos=[],idx=[];for(let i=0;i<=N;i++){pos.push(-a[i][0],.15,a[i][1],-b[i][0],.15,b[i][1])}for(let i=0;i<N;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();scene.add(new T.Mesh(g,CRD))}
+ {const a=arc(RC),b=arc(RC-.25),pos=[],idx=[];for(let i=0;i<=N;i++){pos.push(-a[i][0],.15,a[i][1],-b[i][0],.15,b[i][1])}for(let i=0;i<N;i++){const am=(i+.5)/N*90;if(RAMPA.some(r=>am>r[0]&&am<r[1]))continue;const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();scene.add(new T.Mesh(g,CRD))}      /* 缓坡那两段不画路缘 */
+ // 缓坡（和红绿灯路口一样）：人行道一端接到路面，从人行道平缓降到路面高度；转角两条人行道各一个
+ [true,false].forEach(alongX=>{const N=10,pos=[],idx=[];for(let i=0;i<=N;i++){const w=SW0+(SW1-SW0)*i/N,xa=RW+RC-Math.sqrt(RC*RC-(RW+RC-w)**2);
+   [[xa-.03,.045],[6.05,.122]].forEach(([a,y])=>{const px=alongX?sx*a:sx*w,pz=alongX?sz*w:sz*a;pos.push(-px,y,pz)})}
+  for(let i=0;i<N;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,SWD);m.receiveShadow=true;scene.add(m)});
 });
 // 人行横道（你这条路，以及对面那条路）：小区里只画两条细白线（不是大路口那种斑马线）
 const WLm=BM(WH);
@@ -112,7 +118,7 @@ const TXT={
  stopFar:["停车离人行横道太远","车头要停在接近人行横道的地方（1～2 米内）。停得太远看不清路口，之后还要再往前挪。"],
  noLook:["转弯前没有左右观察","停稳以后、起步左转之前，要看左边、看右边（最好再看一眼左边），两个方向的来车都要看清。"],
  blindGo:["视线被挡住，没看清就转弯","路角的树和灌木挡住视线时，要先在人行横道前完全停车；没有行人时，再慢慢往前挪（前移）到能看清两边来车的地方（不能进入横路），停下来再看左、看右，确认安全再转。"],
- pedYield:["没有让人行横道上的行人","行人在人行横道上（或正要走上来）时，车要停在人行横道前等他走过去，不能往前挪，也不能转弯。"],
+ pedYield:["没有让人行横道上的行人","行人在人行横道上（或正要走上来）时，车要停在人行横道前，等他完全走过马路、走上对面的人行道，才能往前挪或转弯。"],
  unsafeL:["左边来车太近还转弯","横路的车不用停，你要让它。左边的车离你太近时转弯，你会挡在它前面，逼它急刹，甚至撞上。"],
  unsafeR:["右边来车太近还转弯","你要转进去的那条车道上，右边来的车不用停。它离得太近时转进去，它只能急刹或撞上你。"],
  hesitate:["有安全的空档却一直不走","两边都没车、看得也清楚的时候，要果断转弯。等了很久不走，会影响后面的车，也算犹豫不决。"],
@@ -192,7 +198,7 @@ const LIM=()=>-RW-.05,blind=()=>sightL()<50||sightR()<50;      /* 前移最远�
 function sightL(){const z=ZE;for(let d=10;d<=90;d+=5)if(!seen(-d,z))return d-5;return 90}
 function sightR(){for(let d=10;d<=90;d+=5)if(!seen(d,ZWB)&&!seen(d,ZE))return d-5;return 90}
 // 行人在你车前的人行横道上（或马上要走上来）
-function pedNear(){const P=R.ped;if(!P||P.z<front()-.6)return false;return Math.abs(P.x)<RW+.3||(P.dir>0?P.x>-RW-6&&P.x<-RW:P.x<RW+6&&P.x>RW)}      /* 还在路面上（路缘以内），或离路边不到 6 米、正走过来；已经走上对面人行道的不算 */
+function pedNear(){const P=R.ped;if(!P||P.z<front()-.6)return false;return P.dir>0?P.x>-RW-6&&P.x<SW0+.2:P.x<RW+6&&P.x>-SW0-.2}      /* 还在路面上（路缘以内），或离路边不到 6 米、正走过来；已经走上对面人行道的不算 */
 const pedEv=()=>{const P=R.ped;ev('pedYield',P?{focus:[P.x,P.z],add:'（红圈是那位行人）'}:{})};
 // ---------- 转弯路线：从你现在的位置直走到转弯点，再左转进往西车道 ----------
 function turnPath(){if(AW4){const P0=path([[XL,R.z],[XL,160]]);const f=u=>[XL,R.z+u,0];f.len=P0.len;f.arcEnd=0;return f}const zc=R.z,zs=Math.max(zc,-6.3),Rr=ZWB-zs,pts=[[XL,zc]];if(zs>zc+.3)pts.push([XL,zs]);
