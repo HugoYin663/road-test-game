@@ -400,7 +400,8 @@ function krStart(){const K=R.kr;if(K.lc||R.crash)return;const to=K.lane==='L'?'R
 function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  if(K.lc&&u>=K.lc.u0+K.lc.len){K.off=K.lc.b;K.lane=K.lc.to;K.lc=null;K.doneT=t;if(K.lane==='R')K.right=true;mk()}
  if(K.doneT!=null&&K.sig&&K.sigT<K.doneT&&t-K.doneT>5)ev('lcSigOn');
- if(!K.right&&!K.lc&&!K.told&&u>=ce+120){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 转完开了一段（约 120 米）还在左车道：考官提醒你换到右车道，扣一分（不是严重错误） */
+ if(!K.right&&!K.lc&&!K.told&&u>=ce+10){if(krGap(TZR))K.gapT=0;else K.gapT=(K.gapT||0)+dt}      /* 右车道真的空着（有空档可以换）才计时；右边有车、只能等的时候不算 */
+ if(!K.right&&!K.lc&&!K.told&&(K.gapT||0)>=(K.sig==='R'?10:7)){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 有空档可以换、你却一直没换（没打灯 7 秒；已经打了右转灯在准备 10 秒）：考官提醒你换到右车道，扣一分（不是严重错误） */
  // 看后视镜／回头看盲点（和换线项目一样）
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT2=t}

@@ -81,7 +81,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
   if(i<PATH.iS)v=1.4;      // 出车位：走路的速度
   if(i>=PATH.i1-12&&i<PATH.i2)v=1.6;      // 车道尽头右转：慢
   else if(i>=PATH.i2&&i<PATH.i3){v=4.5;if(fx<XR+12)v=Math.max(.9,Math.min(4.5,.9+(fx-(XR+1.2))*.35))}      // 往出口开：约 16 km/h，快到大路时减到很慢（挪到路边）
-  A.acc=1.3;if(i>=PATH.i2&&i<PATH.i3&&fx>=XR+12)A.acc=1.8;if(i>=PATH.i3-6||fx<XR-.2){v=i>=PATH.i4?13:5.5;A.acc=2.8}      // 开出去了：看准空档就果断左转（约 23 km/h），然后加速
+  A.acc=1.3;if(i>=PATH.i2&&i<PATH.i3&&fx>=XR+12)A.acc=1.8;if(i>=PATH.i3-6||fx<XR-.2||R.ph===3&&fx<XR+7&&R.lastStopD!=null&&R.lastStopD<6){v=i>=PATH.i4?13:5.5;A.acc=2.8}      /* 已经在路边停下、看好空档再走：一起步就果断开出去，不再慢慢挪 */      // 开出去了：看准空档就果断左转（约 23 km/h），然后加速
   // 前面有人、有车：系统先帮你急刹（但你没让，已经算错了）
   const hz=R.haz.map(f=>f()).filter(d=>d!=null);R.tf.cars.forEach(o=>{if(o.gone)return;const ds=boxCorners([o.x,o.z,o.dir>0?0:Math.PI,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);if(ds.length)hz.push(Math.min(...ds))});      /* 大路上的车挡在前面：系统也会刹车，不会开进别的车里 */if(hz.length){const d=Math.min(...hz);if(d<1.6){v=0;A.brk=9}else if(d<4)v=Math.min(v,.6)}
   return v},
