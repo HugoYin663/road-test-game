@@ -1,4 +1,5 @@
 const ONLYL=/[?&]var=left/.test(typeof location!=='undefined'?location.search:'');      // 只换到左车道（模拟考试：接下来要左转）
+if(ONLYL){const r=document.getElementById('bsr'),l=document.getElementById('bsl');if(r)r.style.display='none';if(l)l.style.bottom='calc(14px + env(safe-area-inset-bottom,0px))'}      /* 考官让换到左车道：只要左转灯、左侧观察、换线三个键 */
 // ============================================================
 // lane-change.js — 项目：换线（SMOG：Signal 打灯 → Mirror 看后视镜 → Over shoulder 回头看盲区 → Go 换线）
 // ============================================================

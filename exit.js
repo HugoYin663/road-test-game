@@ -88,7 +88,9 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
  onAutoBtn(R,m){if(m==='stp')R.stopT=R.t},
  step(R,dt){const t=R.t;
   // ---------- 出车位（系统控制方向，玩家控制走、停、前移） ----------
-  if(R.ph===0&&R.v>.1){R.ph=1;if(!((R.oT.XL||-99)>t-15))ev('noLookL');if(R.sig!=='L')ev('noSigOut');if(R.EV.ac&&!R.AC)acSpawn()}
+  if(R.ph===0&&R.v>.1){R.ph=1;R.ox=R.x;R.oz=R.z;if(R.EV.ac&&!R.AC)acSpawn()}
+  // 起步时漏了打灯、观察：车刚挪一点就停下补上，不算错（车头还没出去、没有影响）；车往外开了 1.5 米还没打灯／没看左边才算
+  if(R.ph>=1&&!R.outChk&&Math.hypot(R.x-R.ox,R.z-R.oz)>1.5){R.outChk=1;if(!((R.oT.XL||-99)>t-15))ev('noLookL');if(R.sig!=='L')ev('noSigOut')}
   if(R.ph===1){const fx=frontX();
    if(!R.scanChk&&fx<AW-1.5){R.scanChk=1;if(!sawScan(10))ev('noScanAisle')}
    if(R.auto.i>=PATH.iS-4){R.ph=2;if(R.sig==='L')setSig(null);tip('进了车道：系统继续慢慢开。看到行人、倒车出来的车，点“停车”让；可以走了点“行驶”')}}
