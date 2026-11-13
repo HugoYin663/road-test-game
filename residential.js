@@ -7,12 +7,12 @@
 const RM=[{k:'upC',up:1,name:'上坡、有路缘',en:'uphill, with curb'},{k:'downC',up:0,name:'下坡、有路缘',en:'downhill, with curb'}];
 const RQ=((typeof location!=='undefined'?location.search:'').match(/mode=(\w+)/)||[])[1];
 const HP=RM.find(m=>m.k===RQ)||RM[Math.random()<.5?0:1];HP.curb=1;
-const HPG=HP.up?.09:-.09,ZH0=-20,ZH1=10;      // 坡道在 z<-20；-20～10 慢慢变平；10 以北是平路
+const HPG=HP.up?.06:-.06,ZH0=-20,ZH1=10;      // 坡度 6%（缓一些，坡道可以长一些）      // 坡道在 z<-20；-20～10 慢慢变平；10 以北是平路
 const YF=z=>z>=ZH1?0:z>=ZH0?-HPG*(ZH1-z)*(ZH1-z)/60:-HPG*15+HPG*(z-ZH0);
 const GF=z=>z>=ZH1?0:z>=ZH0?HPG*(ZH1-z)/30:HPG;
 // 平行停车：路西边（你往南开时的右边）停着参考白车 A（z=PZA）和后面的车 B（更北）
 const PX=HRW-.35-LW.HW,PZA=30,PSPACE=8.5,PZB=PZA+LW.HL*2+PSPACE;
-const HOOD=buildHood({g:YF,z0:-200,z1:270,curbR:true,curbL:true,quiet:[[PZA-7,PZB+7]]});
+const HOOD=buildHood({g:YF,z0:-300,z1:270,curbR:true,curbL:true,quiet:[[PZA-7,PZB+7]]});
 const HP_INSTXT='考官：安全的时候靠右停车（pull over），做'+HP.name+'的坡道停车（'+HP.en+'）';
 const TP_INSTXT='考官：在右边靠边停车，然后用三点调头往回开';
 const PK_INSTXT='考官：用前面那辆白车做参考，在它后面平行停车';
@@ -73,7 +73,7 @@ function setBtns(t){const B=BTN[t];if(!BG1){BG1={};['bsigL','bsigR'].forEach(id=
  ['bsigL','bsigR','bshL','bshR','bback','bmir'].forEach(id=>{const e=$(id);if(!e)return;const c=B[id];if(!c){e.style.display='none';return}e.style.display='';e.dataset.m=c[0];e.innerHTML=c[1];e.style.background=c[2]||BG1[id]||''});
  {const n=$('gN');if(n)n.style.display=B.gN?'':'none';const p=$('gPB');if(p)p.style.display=B.gPB?'':'none'}
  mk()}
-const EX_HP={laneX:2.1,startZ:-140,missZ:-28,side:'R',noAutoSlow:true,twoStage:true,crawlV:.85,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
+const EX_HP={laneX:2.1,startZ:-240,missZ:-40,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:.85,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
 const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,keepIns:true,noBackCheck:true,
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  obst:[[-PX,PZA,Math.PI],[-PX,PZB,Math.PI]],
@@ -115,7 +115,7 @@ function hpNext(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banne
 // 起步开走以后：系统接着往北开（约 35 km/h），2 秒后考官发三点调头的指令；到了平路才开始慢下来
 function resumeCruise(){R.autoGo=false;R.goT=0;R.cruise=true;R.stopReq=false;R.crawl=false;R.slow=0;R.gear='D';R.gas=false;R.wl=R.wr=false;R.hb=false;R.pb=false;R.ph=0;R.revDist=0;R.revNoLook=0;R.lastDir=0;R.c0=0;R.touch={};
  SCN.vmax=2.0;SCN.stpLabel='停车<small>点一下<br>就停住</small>';cruiseUI(true);$('bgas').style.visibility=''}
-function startTP(){tagEv();R.task='tp';resumeCruise();const cz=Math.max(100,R.z+95);SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+55,side:'R',insText:TP_INSTXT};setBtns('tp');
+function startTP(){tagEv();R.task='tp';resumeCruise();const cz=Math.max(100,R.z+95);SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+55,side:'R',vcr:45/3.6,insText:TP_INSTXT};      // 两项之间开快一点（约 45 km/h）setBtns('tp');
  R.insAt=R.t+2;R.insTxt=TP_INSTXT;R.tr=null;R.trT=1e9;R.z0=null;R.goShown=0}
 // ---------------- 2. 三点调头（和“三点调头”一样） ----------------
 function tpSeg(dir,n){if(R.ph<1)return;if(dir<0&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');

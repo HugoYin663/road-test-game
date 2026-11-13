@@ -1,3 +1,4 @@
+const ONLYL=/[?&]var=left/.test(typeof location!=='undefined'?location.search:'');      // 只换到左车道（模拟考试：接下来要左转）
 // ============================================================
 // lane-change.js — 项目：换线（SMOG：Signal 打灯 → Mirror 看后视镜 → Over shoulder 回头看盲区 → Go 换线）
 // ============================================================
@@ -76,7 +77,7 @@ function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 考官指令
  if(R.ph===0&&t>=3&&R.z>BB1.position.z+2){      /* 先开过第一块广告牌，考官再发指令 */R.ph=1;R.p1=t;banner('考官：当安全时，换到左车道','#ffe27a',1)}
- if(R.ph===1&&R.done.L){R.ph=2;R.p2=t}
+ if(R.ph===1&&R.done.L){if(ONLYL){R.ph=4;R.p4=t;banner('换线完成','');putBB(BB2,R.z+110,1);R.bbz=R.z+110}else{R.ph=2;R.p2=t}}      /* 模拟考试里（var=left）：只换到左车道，准备下一个路口左转 */
  if(R.ph===2&&t>=R.p2+2){R.ph=3;R.p3=t;banner('考官：当安全时，换回右车道','#ffe27a',1);R.cars.forEach(c=>{if(c.vf)c.vd=c.vf})}      /* 换好约 2 秒后发指令；这时你右后方的车才开始加速、慢慢跟上来 */
  if(R.ph===3&&R.done.R){R.ph=4;R.p4=t;banner('换线完成','');putBB(BB2,R.z+110,1);R.bbz=R.z+110}      /* 两次换线都做完：前面出现第二块广告牌，开过它再出结果 */
  if(R.ph===1&&!R.lc&&t>R.p1+45){ev('noChange');finish();return}

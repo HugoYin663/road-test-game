@@ -11,7 +11,7 @@ const HP=HP_MODES.find(m=>m.k===HP_Q)||hpRand();
 // 考官的指令（英文原话＋中文）
 const HP_INS={upC:['上坡、有路缘','uphill, with curb'],downC:['下坡、有路缘','downhill, with curb'],upN:['上坡、没有路缘','uphill, no curb'],downN:['下坡、没有路缘','downhill, no curb']}[HP.k];
 const HP_INSTXT='考官：安全的时候靠右停车（pull over），做'+HP_INS[0]+'的坡道停车（'+HP_INS[1]+'）';      // 先用中文，关键词标英文
-const HPG=HP.up?.09:-.09;      // 真的坡：每 100 米升（降）9 米
+const HPG=HP.up?.06:-.06;      // 坡：每 100 米升（降）6 米（缓一些）
 const HOOD=buildHood({g:HPG,curbR:!!HP.curb,curbL:!!HP.curb});      // 没有路缘的路：两边都没有路缘、没有人行道，路面直接接草地      // 每栋房子都有车道：停车时不能挡住车道口
 const HP_TXT={
  noSigR:["靠边前没有打右转灯","听到指令后，先打右转灯、做右侧观察，再踩刹车靠边。"],
@@ -31,7 +31,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2
  alwaysExam:true,keepIns:true,noBackCheck:true,      // 总是从行驶中开始，考官的指令一直留在上方
  stpLabel:'刹车<small>点一下<br>减速靠边</small>',
  // 行驶中不会自动减速：你点“刹车”，系统减速并靠到右边路缘（离路缘约 20 厘米），然后贴着路缘极慢地往前走（约 3 km/h）；看好车道口（路边橙色标杆）中间的位置，点“停车”停住
- exam:{laneX:2.1,startZ:-140,missZ:150,side:'R',noAutoSlow:true,twoStage:true,crawlV:.85,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT},
+ exam:{laneX:2.1,startZ:-140,missZ:150,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:.85,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT},
  okText:'打灯、右侧观察后靠边，没有挡住车道口；车轮方向正确，松刹车让车轮抵住路缘后挂 P；离开前打左灯、左侧观察，做得很好。',
  setup(R){SCN.vmax=2.2;{const n=$('gN');if(n)n.style.display=HP.curb?'':'none'}      // 没有路缘：不用空档溜车，没有 N 档
   Object.assign(R,{x:2.1,z:-28,h:0,gear:'D',ph:0,hb:false});banner(HP_INSTXT,'#ffe27a',1)},

@@ -18,7 +18,7 @@ function turnShape(D,TH){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;con
 function turnPts(x0){let best=null;for(let d=60;d<=82;d+=.5){const TH=d*Math.PI/180,a=turnShape(0,TH);let D=(TZ-TURN.Z0-a[a.length-1][1])/Math.cos(TH);if(D<0)continue;let b=turnShape(D,TH);D+=(TZ-TURN.Z0-b[b.length-1][1])/Math.cos(TH);b=turnShape(D,TH);const e=Math.abs(x0+b[b.length-1][0]-TURN.END);if(!best||e<best.e)best={e,b}}
  return best.b.map(q=>[x0+q[0],TURN.Z0+q[1]])}
 function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // Zig-Zag 做完停在等候点；起步后先直走一小段再转
- const pre=[[XL,-220],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-420,TZ]],p=path(pts);
+ const pre=[[XL,-220],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-560,TZ]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-1.75,-5.25,-8.75,-11.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
@@ -26,7 +26,8 @@ function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.0
 const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,myPathRaw,cs,ce,UEND,uW,ZC;
 // 广告牌原则：任务做完、结束前的 2～3 秒里玩家看得到——换到右车道以后，前方约 120 米右边路边慢慢出现一块，结束时它还在前面
-const BBX=-320,BBK=billboard('turn-left');placeBB(BBK,BBX,17.5,-Math.PI/2);      // 一直立在那里：转完弯就能远远看见，换完线后越来越近，结束时还在前面 40 多米
+const BBX=-400,BBK=billboard('turn-left');placeBB(BBK,BBX,17.5,-Math.PI/2);
+{const g=speedSign(-(30+hwM),hwX+1.7);g.rotation.y=Math.PI}      // 左转进去以后约 30 米：限速 60      // 一直立在那里：转完弯就能远远看见，换完线后越来越近，结束时还在前面 40 多米
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPathRaw=P.p;myPath=u=>latPath(P.p,u);cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+215}      // 转完弯以后再往前开约 190 米：在这一段里要换到右车道      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 // 转完弯后换车道：在路线上加一个往右（+z）的横向偏移，按走过的距离平顺地过去
 const qn=k=>k*k*k*(10-15*k+6*k*k),qd=k=>30*k*k*(1-k)*(1-k);
@@ -206,7 +207,7 @@ function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(
 function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}
 // 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 Zig-Zag，到等候点停住（约 6 km/h）
 // 默认（不按停车）的车速：快到路口时慢下来，顺着弧线转
-const vGo=u=>u<uS-20?11:u<cs?Math.max(5.2,11-(u-(uS-20))*.3):5.2+4.3*ss(cs+.4*(ce-cs),ce+6,u)+4.4*ss(ce+6,ce+45,u);      /* 转完弯后加速到约 50 km/h */      // 转弯时约 19 km/h，后半段（斜进目标车道后）边回正边加速
+const vGo=u=>u<uS-20?11:u<cs?Math.max(5.2,11-(u-(uS-20))*.3):5.2+4.3*ss(cs+.4*(ce-cs),ce+6,u)+7.2*ss(ce+6,ce+55,u);      /* 转完弯后加速到约 60 km/h（这条路限速 60） */      // 转弯时约 19 km/h，后半段（斜进目标车道后）边回正边加速
 const crawl=(u,uw)=>{uw=uw||uW;      // enter：开到停车线再慢慢溜进路口等候点
  return u<uS?Math.min(11,Math.sqrt(2*2.2*Math.max(0,uS-u))+1.7):u<uw?Math.min(1.7,Math.sqrt(2*1.2*Math.max(0,uw-u))+.05):0};
 // ---------- 每一帧 ----------
@@ -318,9 +319,9 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
  if(R.scT>=0){R.scT+=dt;const sT=R.scT;
-  if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
+  if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>1.5)R.scRel=sT;const tg=sT<.7?1.05:R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 路口里：先看右边（有没有紧急车辆），再看左边（人行横道上的行人）；按住就一直看左边 */
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
-  if(sT>.3&&R.scT>=0)R.lastScan=R.t}
+  if((R.scQ?sT>.9:sT>.3)&&R.scT>=0)R.lastScan=R.t}
  // 在路口里等候时，司机会稍微偏头、身体往左探，看对面远处的直行车
  {const w=R.atW!=null&&v===0&&m!=='go'&&R.scT<0&&u<cs;R.lean=(R.lean||0)+((w?1:0)-(R.lean||0))*Math.min(1,dt*2.5)}
  // 和其他车相撞
@@ -412,7 +413,7 @@ function folStep(dt,u){if(DIFF==='hard'&&!R.psOn&&u>=ce+14&&!R.crash){const ok=w
   if(fo.go&&fo.u>=ce+2){const q=myPathRaw(fo.u);Object.assign(fo,{free:true,x:q[0],z:TZ,h:-Math.PI/2,lane:'L'})}
   return}
  if(fo.crash){fo.v=Math.max(0,fo.v-9*dt);fo.x-=fo.v*dt;return}
- const a=myPath(u);let vt=fo.lane==='R'?20:17.5;      /* 换到右车道后加速超过你（约 72 km/h） */
+ const a=myPath(u);let vt=fo.lane==='R'?22.5:20;      /* 换到右车道后加速超过你（约 72 km/h） */
  // 跟前车（你的车在它车道上也算）
  const ahead=[{x:a[0],z:a[1],v:R.v}].concat(wCars().filter(c=>c.o!==fo));
  ahead.forEach(o=>{if(Math.abs(o.z-fo.z)>2.4)return;const al=fo.x-o.x;if(al>0&&al<70)vt=Math.min(vt,Math.sqrt(o.v*o.v+2*4*Math.max(0,al-4.6-6)))});

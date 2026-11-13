@@ -57,7 +57,7 @@ for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
  const NCOL=[0x2e9d4f,0xe8802a,0xc8352c],col=s>0&&Math.abs(k)<=3?NCOL[Math.abs(k)-1]:PCOLS[Math.random()*PCOLS.length|0];      /* 空车位两边各三辆：绿、橙、红（两边对称），数车位时不会数错；参考车是前面那辆绿车 */
  const jz=near?0:(Math.random()-.5)*.25,jh=near?0:(Math.random()-.5)*.05;
  PARKS.push([s*PCX,ZS(k)+jz,h+jh,col])});
-const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,tiltL:true,
+const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,      // 倒车时只有右镜往下翻，左镜保持原位（地平线在中间）
  curbs:[{side:1,x:XC},{side:-1,x:-XC}],
  // 考试模式：在停车场的车道里约 15 km/h 开过来，一开始考官就发指令；开过空车位时系统减到很慢，你在合适的地方点“停车”
  exam:{laneX:LX,startZ:-32,crawlZ:-7,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
