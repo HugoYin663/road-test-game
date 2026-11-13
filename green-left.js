@@ -133,7 +133,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function setHeads(L,c){L.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}
 function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col}
 function setLight(c){R.light=c;setHeads(HEADS,c);banner({g:'绿灯左转',y:'黄灯！',r:'红灯'}[c],{g:'',y:'#ffc21a',r:'#ff5a5a'}[c])}
-function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!K&&(!!R.look||R.q.includes('sho')),lc:K&&!!K.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!K&&(!!R.look||R.q.includes('sho')),lc:K&&!!K.lc};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('blc',K&&K.lc&&!K.lc.cancel&&!K.lc.cross);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
 const TXT={
@@ -388,17 +388,19 @@ function krEnter(){R.kr=KRS={lane:'L',off:0,lc:null,sig:null,sigT:0,u0:R.u};R.lo
 function krSetSig(sd){const K=R.kr;K.sig=K.sig===sd?null:sd;K.sigT=R.t;const e=$('sg');e.style.display=K.sig?'block':'none';e.textContent=K.sig==='R'?'➡':'⬅';if(K.sig)tick(true);mk()}
 function krCmd(m){if(m==='sigL'||m==='sigR'||m==='sig'){krSetSig(m==='sigR'?'R':'L');return}
  if(m==='obs'){if(R.look||R.q.length)return;krAct('mir');R.q.push('sho');return}      // 右侧观察：中镜＋右镜，接着回头看右盲点
+ if(m==='lc'&&R.kr.lc){krCancel();return}
  if(m==='mir'||m==='sho'||m==='lc'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}krAct(m)}}
-function krAct(m){if(m==='lc'){krStart();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.kr.lane==='L'?'R':'L'};mk()}
+function krAct(m){if(m==='lc'){if(R.kr.lc)krCancel();else krStart();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.kr.lane==='L'?'R':'L'};mk()}
 function krGap(laneZ){const a=myPath(R.u);let w=null;wCars().forEach(c=>{if(w||Math.abs(c.z-laneZ)>1.6)return;const al=a[0]-c.x,dv=c.v-R.v;      // al>0：那辆车在你前面
   if(al<5.6&&al>-12)w='B';else if(al<0){const g=-al-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.v+2.5*Math.max(0,dv)))w='R'}else{const g=al-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='F'}});return w}
 function krStart(){const K=R.kr;if(K.lc||R.crash)return;const to=K.lane==='L'?'R':'L',t=R.t;
  if(K.sig!==to)ev('lcNoSig');else if(t-K.sigT<2)ev('lcSigShort');
  if(!(R.mT2!=null&&t-R.mT2<10))ev('lcNoMir');if(!(R.oT2[to]!=null&&t-R.oT2[to]<10))ev('lcNoSho');
- if(krGap(to==='R'?TZR:TZ))ev('lcUnsafe');
- K.lc={a:K.off,b:to==='R'?TZR-TZ:0,u0:R.u,len:Math.max(20,R.v*4.8),to};mk()}
+ K.lc={a:K.off,b:to==='R'?TZR-TZ:0,u0:R.u,len:Math.max(20,R.v*4.8),to,from:K.lane};mk()}      /* 空档等压线那一刻再判 */
+function krCancel(){const K=R.kr,L=K.lc;if(!L||L.cancel||L.cross)return;const o=latOff(R.u)[0];K.lc={a:o,b:L.from==='R'?TZR-TZ:0,u0:R.u,len:Math.max(8,R.v*1.6),to:L.from,from:L.from,cancel:true};flash('取消换线，回到原车道');mk()}
 function krStep(dt){const K=R.kr,t=R.t,u=R.u;
- if(K.lc&&u>=K.lc.u0+K.lc.len){K.off=K.lc.b;K.lane=K.lc.to;K.lc=null;K.doneT=t;if(K.lane==='R')K.right=true;mk()}
+ if(K.lc&&!K.lc.cancel&&!K.lc.cross&&Math.abs(latOff(u)[0]-K.lc.a)>.8){K.lc.cross=1;if(krGap(K.lc.to==='R'?TZR:TZ))ev('lcUnsafe');mk()}      /* 车轮压线：判空档，之后不能取消 */
+ if(K.lc&&u>=K.lc.u0+K.lc.len){const c=K.lc.cancel;K.off=K.lc.b;K.lane=K.lc.to;K.lc=null;if(!c){K.doneT=t;if(K.lane==='R')K.right=true}mk()}
  if(K.doneT!=null&&K.sig&&K.sigT<K.doneT&&t-K.doneT>5)ev('lcSigOn');
  if(!K.right&&!K.lc&&!K.told&&u>=ce+10){if(krGap(TZR))K.gapT=0;else K.gapT=(K.gapT||0)+dt}      /* 右车道真的空着（有空档可以换）才计时；右边有车、只能等的时候不算 */
  if(!K.right&&!K.lc&&!K.told&&(K.gapT||0)>=(K.sig==='R'?10:7)){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 有空档可以换、你却一直没换（没打灯 7 秒；已经打了右转灯在准备 10 秒）：考官提醒你换到右车道，扣一分（不是严重错误） */

@@ -137,7 +137,7 @@ function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={acc:!!R.acc,dec:!!R.dec,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const on={acc:!!R.acc,dec:!!R.dec,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('bgo',R.lc&&!R.lc.cancel&&!R.lc.cross&&!R.lc.auto);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 // 你的位置：沿路线 P 的 u，再往左偏 d 米
 function me(){if(R.mz!=null)return[R.mx,R.mz,0];const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
 const myY=()=>R.mz!=null?Yart(R.mz):yP(R.u);
@@ -154,10 +154,11 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(m==='acc'||m==='dec'){if(R.ph<2||R.ph===9)return;R[m]=true;R[m==='acc'?'dec':'acc']=false;mk();return}      // 加速／减速：按住才起作用，松开保持车速
  if(m==='sigL'||m==='sigR')return;      // 转向灯由系统打
  if(false){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
+ if(m==='go'&&R.lc){cancelLC();return}      // 换线中再按一下：取消
  if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}
 // 看完盲点：在加速车道的虚线段，系统马上并线（SMOG 的 G）；还在实线段只是看一眼
 function afterShoulder(){if(!onAcc()||R.merged||R.lc||R.over)return;const x=me()[0];if(x<XJ-5)return;if(x<XSOL){flash('这里还是实线，到虚线再并');return}startChange()}
-function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
+function doAct(m){if(m==='go'){if(!R.lc)startChange();else cancelLC();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
 function nextAct(){const m=R.q.shift();if(m)doAct(m)}
 function cmdUp(m){if(!R)return;if(m==='acc'||m==='dec'){R[m]=false;mk()}}
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc');if(e.key==='ArrowDown')cmd('dec')});addEventListener('keyup',e=>{if(e.key==='ArrowUp')cmdUp('acc');if(e.key==='ArrowDown')cmdUp('dec')});
@@ -173,9 +174,9 @@ function startChange(){if(onArt()&&(me()[1]<H.L0+30||R.d<1.8))return;if(!onArt()
  if(!R.sig)ev('noSig');else if(R.sig!==to)ev('wrongSig');else if(t-R.sigT<3)ev('sigShort');
  if(!(R.mT[to]!=null&&t-R.mT[to]<10))ev('noMirror');
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
- const T2=targetCars(to),why=gapWhy(T2.L,T2.S);if(why)ev(why);
  if(onAcc()){if(me()[0]<XSOL)ev('solidX')}      /* 车速在并线完成时再判断：并线过程中可以一边并一边把车速调到车流速度 */
- const d1=onArt()?0:3.75;R.vM=R.v*3.6;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}
+ const d1=onArt()?0:3.75;R.vM=R.v*3.6;R.lc={to,d0:R.d,d1,t0:t,T:onAcc()?4.5:5.5,merge:onAcc()};mk()}      /* 空档等压线那一刻再判 */
+function cancelLC(){const L=R.lc;if(!L||L.cancel||L.cross||L.auto)return;R.lc={to:L.to,d0:R.d,d1:L.d0,t0:R.t,T:1.6,cancel:true};flash('取消换线，回到原车道');mk()}
 // ---------- 每一帧 ----------
 function occ(c){const p=me();if(c.road==='A')return onArt()||R.u<UDIV+30?Math.abs(p[0]-c.lane)<2.7&&c.lane>0:false;if(c.road==='F')return onAcc()&&Math.abs(p[1]-c.lane)<2.7;return false}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
@@ -214,6 +215,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   const h=g/Math.max(1,R.v);R.tc=R.merged&&t-R.mgT>4&&h<.7?(R.tc||0)+dt:0;R.tc2=h<.45?(R.tc2||0)+dt:0;if(R.tc>3||R.tc2>1)ev('tooClose',{ah:g+4.6,add:`（当时你 ${Math.round(R.v*3.6)} km/h，离前车约 ${Math.max(0,Math.round(g))} 米，只有 ${h.toFixed(1)} 秒；2 秒应该约 ${Math.round(R.v*2)} 米）`})}      /* 并入 4 秒后还不到 1 秒、持续 3 秒；或任何时候不到 0.6 秒 */
  if(R.mz!=null)R.mz+=R.v*dt;else R.u+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
+  if(!L.cancel&&!L.auto&&!L.cross&&Math.abs(R.d-L.d0)>.8){L.cross=1;const T2=targetCars(L.to),why=gapWhy(T2.L,T2.S);if(why)ev(why);mk()}      /* 车轮压到车道线：判空档，之后不能取消 */
+  if(k>=1&&L.cancel){R.lc=null;R.hd=0;R.d=L.d1;mk()}else
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;if(L.auto)setSig(null);else R.lastDone=t;if(L.merge){R.merged=true;R.mgT=t;setSig(null);const kh=R.v*3.6;if(R.mode==='A'){if(kh<98)ev('slowA')}else if(kh<72)ev('slowB')}mk()}}
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／看盲点

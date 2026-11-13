@@ -45,7 +45,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}      // big：考官指令先在屏幕中间大字闪几下，再缩回上方
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',obs:!!R.look,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};
+function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',obs:!!R.look,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('bgo',R.lc&&!R.lc.cancel&&!R.lc.cross);
  {const b=$('bmi'),sd=(R.lc?R.lc.to:other());if(b&&b.dataset.m==='obs'){const h=sd==='L'?'左侧观察<small>中镜·左镜·左盲点</small>':'右侧观察<small>中镜·右镜·右盲点</small>';if(b.innerHTML!==h)b.innerHTML=h}}document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 const other=()=>R.lane==='R'?'L':'R';      // 只有两条车道：能换的只有另一条
 // 错误卡片的配图：出错那一刻从正上方拍一张
@@ -58,8 +58,9 @@ function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push(
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
  if(m==='obs'){if(R.look||R.q.length)return;doAct('mir');R.q.push('sho');return}      // 侧面观察：中镜＋外后视镜，接着回头看盲点
+ if(m==='go'&&R.lc){cancelLC();return}      // 换线中再按一下：取消
  if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}      // 手快的玩家：前一个动作（看镜子、看盲点）还没做完就按下一个，记下来，做完一个接着做下一个
-function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
+function doAct(m){if(m==='go'){if(!R.lc)startChange();else cancelLC();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
 function nextAct(){const m=R.q.shift();if(m)doAct(m)}
 function cmdUp(){}
 // 空档够不够：旁边／盲区里有车不行；后车比你快、换过去会逼它刹车不行；前车比你慢、离得太近不行（前车比你快、正在开远就没关系）
@@ -73,8 +74,9 @@ function startChange(){const to=other(),t=R.t,X1=LX[to];
  if(!(R.mT[to]!=null&&t-R.mT[to]<10))ev('noMirror');
  if(!(R.oT[to]!=null&&t-R.oT[to]<10))ev('noShoulder');else if(t-R.oT[to]>2.5)ev('oldShoulder');
  // 空档：换过去以后后车不用刹车、前车不会太近；在旁边（盲区）就一定不行
- const why=gapWhy(to);if(why)ev(why);
- R.lc={from:R.lane,to,x0:R.x,x1:X1,t0:t,T:5.5};mk()}
+ R.lc={from:R.lane,to,x0:R.x,x1:X1,t0:t,T:5.5};mk()}      /* 空档够不够：等车轮压到车道线那一刻再判（压线前发现有车，可以取消） */
+// 取消换线：车轮还没压到车道线时可以反悔，开回原车道中间（不算换线、不算错）
+function cancelLC(){const L=R.lc;if(!L||L.cancel||L.cross)return;R.lc={from:L.from,to:L.from,x0:R.x,x1:LX[L.from],t0:R.t,T:1.6,cancel:true};flash('取消换线，回到原车道');mk()}
 // ---------- 每一帧 ----------
 function occ(lane){return Math.abs(R.x-LX[lane])<2.7}      // 你的车身占着这条车道
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
@@ -90,7 +92,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  let vt=V0;R.cars.forEach(c=>{if(!occ(c.lane))return;const g=c.z-R.z-4.6;if(g>-2&&g<60)vt=Math.min(vt,Math.sqrt(c.cv*c.cv+2*4*Math.max(0,g-8)))});
  if(R.crash)vt=0;R.v=R.v>vt?Math.max(vt,R.v-(R.crash?9:5)*dt):Math.min(vt,R.v+1.5*dt);R.z+=R.v*dt;
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dx=(L.x1-L.x0)*30*k*k*(1-k)*(1-k)/L.T;      /* 平顺曲线：方向盘慢慢打、慢慢回，最大偏角约 4° */R.x=L.x0+(L.x1-L.x0)*s;R.h=Math.atan2(dx,Math.max(1,R.v));
-  if(k>=1){R.lc=null;R.h=0;R.x=L.x1;R.lane=L.to;R.done[L.to]=true;R.lastDone=t;mk()}}
+  if(!L.cancel&&!L.cross&&Math.abs(R.x-L.x0)>.8){L.cross=1;const why=gapWhy(L.to);if(why)ev(why);mk()}      /* 车轮压到车道线：这时候再判空档（之后不能取消） */
+  if(k>=1){R.lc=null;R.h=0;R.x=L.x1;R.lane=L.to;if(!L.cancel){R.done[L.to]=true;R.lastDone=t}mk()}}
  // 换完线：转向灯要关
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／回头看盲区
