@@ -36,6 +36,7 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #bmir{left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #bshL{left:calc(114px + env(safe-area-inset-left,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 #bshR{left:calc(114px + env(safe-area-inset-left,0px));bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+#bshRR{background:#d98a1f;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 #bback{left:calc(114px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #bgas{background:#2aa24a;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));height:130px}
 #bwr{background:#3a4352;right:calc(114px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:26px}
@@ -83,6 +84,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b pos" id="bmir" data-m="obs360" style="background:#d98a1f;font-size:17px;white-space:nowrap">360°观察<small>四周看一遍</small></button>
 <button class="b pos" id="bshL" data-m="mL" style="background:#3a7d8c">左镜<small>按住看左外后视镜</small></button>
 <button class="b pos" id="bshR" data-m="mR" style="background:#3a7d8c">右镜<small>按住看右外后视镜</small></button>
+<button class="b pos" id="bshRR" data-m="shR" style="display:none">右后观察<small>Look back</small></button>
 <div id="gears"><button class="b" id="gPB" data-m="pb" title="Parking Brake" style="color:#2fd1b3;font-size:20px;letter-spacing:-1px">(<span style="display:inline-block;width:22px;height:22px;line-height:20px;border:2.5px solid currentColor;border-radius:50%;font-size:15px;font-weight:800;margin:0 1px">P</span>)</button><button class="b" id="gP" data-m="gP">P</button><button class="b" id="gR" data-m="gR">R</button><button class="b" id="gD" data-m="gD">D</button></div>
 <div id="wind"><div id="whl"></div><span>方向盘 <span id="wtx">正</span></span></div>
 <button class="b pos" id="bwl" data-m="wl">⟲<small>往左打</small></button>
@@ -108,15 +110,15 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html#practice" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="lib/core.js?v=1031a"></script>
-<script src="lib/actors.js?v=1112w"></script>
+<script src="lib/actors.js?v=1112y"></script>
 <script src="lib/cockpit.js?v=1112x"></script>
 <script src="lib/ui.js?v=1030c"></script>
 <script src="lib/houses.js?v=1106i"></script>
 <script src="lib/hood.js?v=1112k"></script>
-<script src="lib/lowspeed.js?v=1112s"></script>
+<script src="lib/lowspeed.js?v=1112y"></script>
 <script src="lib/hq.js?v=1111i"></script>
 <script src="lib/plaza.js?v=1111a"></script>
-<script src="headin.js?v=1112s"></script>
-<script src="lib/voice.js?v=1112w"></script>
+<script src="headin.js?v=1112y"></script>
+<script src="lib/voice.js?v=1112y"></script>
 <script src="lib/mock.js?v=1112k"></script>
 </body></html>

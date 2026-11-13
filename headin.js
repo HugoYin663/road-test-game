@@ -28,7 +28,9 @@ const HI_TXT={
  manyMoves:["调整超过两次","开进去以后，往后倒、再往前算一次调整，最多两次。调整太多次，说明开始转的位置或打方向的时机不对。"],
  no360:["倒车前没有做 360° 观察","每次开始倒车之前，都要把四周看一遍（360° 观察），确认没有车、行人再倒。"],
  noYieldCar:["车道上有车开过来时没有停下让它","车道上对面开过来的车离你很近时，不要把车头摆进它的车道：先停住让它过去，再转进车位。"],
- noP:["没有挂 P 停好","停车的最后一步要挂 P，再拉手刹。"]};
+ noP:["没有挂 P 停好","停车的最后一步要挂 P，再拉手刹。"],
+ noShRIn:["右转前没有看右后方","右转进考场之前要回头看右后方（右盲点）：右边可能有自行车或从后面上来的车。按“右后观察”。"],
+ yieldLT:["不清楚路权：停下来让对面的左转车","你右转、对面的车左转，进的是同一个口：右转车的路权比左转车高（左转车要让直行和右转的车），哪怕它先到、先在那里等。没有行人的话，应该直接转进去，不要停下来让它——停下让会让对方不知道该不该走，还会挡住后面的车。只有行人比你路权高。"]};
 // 指定车位上方的蓝色箭头
 {const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(PCX,3.2,ZT);scene.add(a)}      // 左边一排：x＝-PCX（画到场景里是 +PCX）
 // 停着的车：空车位两边的车都是头进（车头朝里），能对齐外后视镜；右边第 -8 个空着（转进车道时车头会扫过去）
@@ -51,6 +53,9 @@ const ACP=(()=>{const{P,seg,arc}=mkPts(),r=4;seg([LANE,80],[LANE,ZE+r]);arc(LANE
 // 商铺那边开过来的车：走通道北半边往西，到出口停在大路边，等近处车道有空档就右转上大路
 const ECP=(()=>{const{P,seg}=mkPts(),Rr=3.6,cx=NX+Rr,cz=ZL+Rr;seg([XC+40,ZL],[cx,ZL]);const iH=P.length;for(let i=0;i<12;i++){const a=-Math.PI/2-Math.PI/2*i/12;P.push([cx+Rr*Math.cos(a),cz+Rr*Math.sin(a)])}seg([NX,cz],[NX,400]);P.push([NX,400]);
  const L=[0];for(let i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));return{P,L,sH:L[iH]-((XR+.3+LW.HL)-cx)}})();
+// 对面往南开、在进口处左转进考场的车（模拟考试“右转回考场”）：比你先到、停在对面等你先转（右转车路权高），你转进去以后它跟在你后面进来
+const LTR=7,LTP=TURNIN?(()=>{const{P,seg,arc}=mkPts();seg([SX,ZE+LTR+150],[SX,ZE+LTR]);const iA=P.length;arc(SX+LTR,ZE+LTR,LTR,Math.PI,Math.PI*1.5);seg([SX+LTR,ZE],[NX+5,ZE]);for(let i=PATH.i2;i<PATH.P.length;i++)P.push(PATH.P[i]);
+ const L=[0];for(let i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));return{P,L,sW:L[iA]-LW.HL-.6}})():null;
 function at(Q,s){const{P,L}=Q;let i=0;while(i<L.length-2&&L[i+1]<s)i++;const f=Math.min(1,Math.max(0,(s-L[i])/(L[i+1]-L[i]||1)));return[P[i][0]+(P[i+1][0]-P[i][0])*f,P[i][1]+(P[i+1][1]-P[i][1])*f,Math.atan2(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1])]}
 // ---------------- 工具 ----------------
 function inPath(px,pz,r){const s=Math.sin(R.h),c=Math.cos(R.h),fw=(px-R.x)*s+(pz-R.z)*c,lt=(px-R.x)*c-(pz-R.z)*s;return fw>LW.HL-.3&&Math.abs(lt)<LW.HW+r+.35?fw-LW.HL-r:null}      // 在车头前面的通道里：返回离车头的距离
@@ -69,10 +74,12 @@ function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1
   while(TF.q[L].length&&TF.q[L][0]-R.t<12){const ta=TF.q[L].shift(),z=ZC-dir*VR*(ta-R.t);
    if(L==='N'&&R.ph===0&&z>R.z-60&&z<R.z+40)continue;      // 你还在大路上：你前后附近不放车（后面的车会跟着你）
    if(TF.cars.some(p=>!p.gone&&p.L===L&&Math.abs(p.z-z)<9))continue;
+   if(R.LT&&!R.LT.gone&&Math.abs(R.LT.x-x)<3&&Math.abs(R.LT.z-z)<14)continue;
    const c=car(PCOLS[Math.random()*PCOLS.length|0]);live.push(c);TF.cars.push({c,L,dir,x,z,v:VR})}});
  TF.cars.forEach(o=>{if(o.gone)return;
   let vt=VR;{let gap=1e9,lv=0;TF.cars.forEach(p=>{if(p===o||p.gone||p.L!==o.L)return;const g=(p.z-o.z)*o.dir-2*LW.HL;if(g>-1&&g<gap){gap=g;lv=p.v}});
    if(o.L==='N'&&R.EC&&R.EC.road&&!R.EC.gone){const g=R.EC.z-o.z-2*LW.HL;if(g>-1&&g<gap){gap=g;lv=R.EC.v}}if(gap<60)vt=Math.min(vt,Math.max(0,lv+(gap-7)*.9))}
+  {const T=R.LT;if(T&&!T.gone){const q=boxCorners([T.x,T.z,T.h,LW.HL,LW.HW]);if(Math.min(...q.map(p=>p[0]))<o.x+1.3&&Math.max(...q.map(p=>p[0]))>o.x-1.3){const zs=q.map(p=>p[1]),d=o.dir>0?Math.min(...zs)-(o.z+LW.HL):(o.z-LW.HL)-Math.max(...zs);if(d>-1&&d<60){vt=Math.min(vt,Math.max(0,(d-6)*.9));if(d<1.5){o.v=0;vt=0}}}}}      /* 对面待转的左转车：大路上的车跟在它后面、等它，不会撞上 */
   const cs=corners(),inL=Math.min(...cs.map(q=>q[0]))<o.x+1.3&&Math.max(...cs.map(q=>q[0]))>o.x-1.3;if(inL){const zs=cs.map(q=>q[1]),d=o.dir>0?Math.min(...zs)-(o.z+LW.HL):(o.z-LW.HL)-Math.max(...zs);if(d>-1&&d<60)vt=Math.min(vt,Math.max(0,R.v*Math.max(0,Math.cos(R.h)*o.dir)+(d-7)*.9));
    if(d>-1&&d<50){const need=o.v*o.v/(2*Math.max(.5,d-4));if(need>1.5){vt=Math.max(0,o.v-need*dt);if(!o.honk&&need>3){o.honk=1;honk()}}}}
   o.v=vt<o.v?Math.max(0,vt):Math.min(VR,o.v+2*dt);o.z+=o.dir*o.v*dt;
@@ -81,7 +88,8 @@ function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1
   if(inL){const zs=cs.map(q=>q[1]),z0=Math.min(...zs),z1=Math.max(...zs);if(o.dir>0&&o.z+LW.HL>z0-.4&&o.z<z1){o.z=Math.min(o.z,z0-.4-LW.HL);o.v=0}if(o.dir<0&&o.z-LW.HL<z1+.4&&o.z>z0){o.z=Math.max(o.z,z1+.4+LW.HL);o.v=0}}      /* 无论如何不会开进你的车里 */
   place(o.c,o.x,o.z,o.dir>0?0:Math.PI,0);if(Math.abs(o.z-ZC)>230){o.c.visible=false;o.gone=1}})}
 // ---------------- 按键：大路和通道里（系统开）用右转灯；自己停车时换成看左边、360° 观察 ----------------
-function keys(manual){const sh=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none'};sh('bsigRR',!manual);sh('bsigR',manual);sh('bmir',manual)}
+function keys(manual){const sh=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none'};sh('bsigRR',!manual);sh('bsigR',manual);sh('bmir',manual);
+ if(TURNIN){sh('bsigL',0);sh('bshL',0);sh('bshR',0);sh('bshRR',!manual)}else sh('bshRR',0)}      /* 右转回考场：只要右转灯和“右后观察”（不用左右镜） */
 // ---------------- 场景 ----------------
 const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','backIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,tiltL:true,keepIns:true,pkYaw:-.35,
  curbs:[{side:1,x:XC,z0:ZA,z1:200},{side:-1,x:-XC,z0:ZA,z1:200}],
@@ -90,13 +98,14 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
  setup(R){SCN.exam=null;const park=DIFF==='park';
   const ev0=HARD?{pe:1,ec:1,ac:1}:park?{pe:0,ec:0,ac:0}:{pe:Math.random()<.5,ec:Math.random()<.6,ac:Math.random()<.35};
   const PK=buildParks();PK.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
-  if(TURNIN){ev0.pe=Math.random()<.7;ev0.ec=false;ev0.ac=false}      /* 右转回考场：常有行人在人行道上走 */
+  if(TURNIN){ev0.pe=Math.random()<.7;ev0.ec=false;ev0.ac=false}
+  R.LT=null;      /* 右转回考场：常有行人在人行道上走 */
   Object.assign(R,{EV:ev0,haz:[],tf:{q:trafPlan(HARD),cars:[]},AC:null,EC:null,PE:null,moves:0,segD:0});
   if(park){Object.assign(R,{x:LXA,z:ZT-9,h:0,gear:'D',ph:3,auto:null,cruise:false});keys(true);
    banner('考官：左边那个空车位（上方有蓝色箭头），车头朝里停进去（park front-in in the spot on your left）','#ffe27a',1);
    tip('打左转灯，按住油门往前开到合适的位置停住；转头看左边，方向盘往左打到底，慢慢开进去')}
   else{const p=PATH.P[0];Object.assign(R,{x:p[0],z:p[1]+LW.TX,h:0,v:30/3.6,gear:'D',ph:0,auto:{pts:PATH.P,i:0},stopReq:false});keys(false);
-   banner(TURNIN?'考官：前面右转，回考场（turn right into the test centre）':'考官：前面右转，进停车场（turn right into the plaza）','#ffe27a',1)}},
+   banner(TURNIN?'考官：前面右转，回考场（turn right into the test centre）':'考官：前面右转，进停车场（turn right into the plaza）','#ffe27a',1);if(TURNIN)ltSpawn()}},
  onGear(g){R.gT=R.t;if(R.ph===4&&g==='P'){R.ph=5;R.pT=R.t}else if(R.ph===5&&g!=='P')R.ph=4},      /* 挂 P 又马上换回 R/D：当作误操作，继续 */
  autoV(R,dt){const A=R.auto,i=A.i,s=PATH.L[i],Lp=PATH.L;let v;A.brk=2.5;
   if(i<PATH.i1)v=Math.min(30/3.6,Math.sqrt(9+2*1.3*Math.max(0,Lp[PATH.i1]-s-3)));      // 大路上：快到进口时平稳地减速
@@ -117,6 +126,8 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
   // ---------- 大路上：右转进停车场 ----------
   if(R.ph===0){
    if(!R.sigChk&&s>PATH.L[PATH.i1]-22){R.sigChk=1;if(R.sig!=='R')ev('noSigIn')}
+   if(TURNIN&&!R.shChk&&i>=PATH.i1){R.shChk=1;if(!sawSh('R',10))ev('noShRIn')}      /* 开始转弯时：10 秒内回头看过右后方 */
+   if(TURNIN)ltYieldChk(dt,s);
    if(R.EV.pe&&!R.PE&&s>PATH.L[PATH.i1]-28){const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.PE={o,x:-(XC+1.3),z:ZB-10.5,v:1.3,ph:0};R.haz.push(()=>R.PE&&!R.PE.gone?inPath(R.PE.x,R.PE.z,.35):null)}
    if(R.EV.ec&&!R.EC&&i>=PATH.i1)ecSpawn();
    if(i>=PATH.i2){if(TURNIN){R.ph=9;R.endT=R.t+2.5;if(R.sig==='R')setSig(null)}else{R.ph=1;if(R.sig==='R')setSig(null);banner('考官：前面左转，进车道（turn left into the aisle）','#ffe27a',1)}}}      /* 转完右转灯自己灭 */
@@ -134,7 +145,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
    R.moves=0;R.segD=0;if(!(R.oT.XL!=null&&R.t-R.oT.XL<10)&&!sawSh('L',10))ev('noShoulderL')}      /* 往左转之前 10 秒内转头看过左边 */
   if(R.ph>=4)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
   if(R.ph===5&&!R.over){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();finish()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');finish()}}      /* 挂 P、拉手刹以后，停 1.5 秒没有别的操作才算做完 */
-  pedStep(dt);ecStep(dt);acStep(dt);trafStep(dt);
+  pedStep(dt);ecStep(dt);acStep(dt);ltStep(dt);trafStep(dt);
   if(t>300&&!R.over){if(R.ph<5)ev('noP');finish()}},
  draw(R){},
  topCam(R){return[R.x,R.z,26]}};
@@ -179,4 +190,18 @@ function acStep(dt){const A=R.AC;if(!A||A.gone)return;const cs=corners(),zs=cs.m
   if(!A.inW&&inWay&&R.v>.05&&front>Math.min(...zs)-1){A.inW=1;if((front-mz)/Math.max(1,A.v)<3.5)ev('noYieldCar')}      /* 你的车头摆进它的车道的时候，它不到 3.5 秒就到了 */
   if(A.z+LW.HL<Math.min(...zs)){A.done=true;if(!R.ev.some(e=>e.key==='noYieldCar')&&R.ph===3)banner('看到车道上对面开过来的车，等它过去再转：正确','#7ee787')}}
  if(A.s>ACP.L[ACP.L.length-1]-2){A.c.visible=false;A.gone=1;SCN.obst[A.oi]=[0,-999,0]}}
+function ltSpawn(){const c=car([0x8e2b2b,0xe8e8e8,0x23324f,0x4a4f57][Math.random()*4|0]);live.push(c);const s0=LTP.sW-95,p=at(LTP,s0);
+ R.LT={c,s:s0,v:11,x:p[0],z:p[1],h:p[2],go:false,yT:0};R.tf.cars.forEach(o=>{if(!o.gone&&o.L==='S'&&Math.abs(o.z-p[1])<20){o.c.visible=false;o.gone=1}});
+ R.haz.push(()=>{const T=R.LT;return!T||T.gone||T.s<LTP.sW+.5?null:boxHaz([T.x,T.z,T.h])})}      /* 它开始转了：挡在你前面时系统帮你刹车 */
+// 你在进口前停下来（不是为了行人）：它在等你、你在等它——等一会儿它先转进去，你这一步算“不清楚路权”
+function ltYieldChk(dt,s){const T=R.LT;if(!T||T.go||T.gone)return;
+ const nearIn=s>PATH.L[PATH.i1]-25&&R.auto&&R.auto.i<PATH.i2,ped=R.haz.some(f=>{const d=f();return d!=null&&d<15})||(R.PE&&!R.PE.gone&&Math.abs(R.PE.z-ZC)<9);
+ if(nearIn&&R.v<.3&&T.s>=LTP.sW-1.5&&!ped){T.yT+=dt;if(T.yT>1.5&&!R.ev.some(e=>e.key==='yieldLT'))ev('yieldLT');if(T.yT>3.5)T.go=true}else if(R.v>.5)T.yT=0}
+function ltStep(dt){const T=R.LT;if(!T||T.gone)return;
+ if(!T.go){const xs=corners().map(q=>q[0]);if(R.ph===9||Math.min(...xs)>SX+LTR+.8)T.go=true}      /* 你的车尾进了考场口：它跟着转进来 */
+ let vt=T.go?(T.s<LTP.sW+14?4.5:3.2):Math.min(11,Math.sqrt(2*2.2*Math.max(0,LTP.sW-T.s)));
+ const cl=npcClear(T.x,T.z,T.h,'LT');if(cl<2.5)vt=0;else vt=Math.min(vt,(cl-2.5)*1.2+.1);
+ T.v=vt<T.v?Math.max(vt,T.v-6*dt):Math.min(vt,T.v+1.8*dt);T.s+=T.v*dt;if(!T.go)T.s=Math.min(T.s,LTP.sW);
+ const p=at(LTP,T.s);T.x=p[0];T.z=p[1];T.h=p[2];place(T.c,T.x,T.z,T.h,0);
+ if(T.s>LTP.L[LTP.L.length-1]-3){T.c.visible=false;T.gone=1}}
 LS.start(SCENE);

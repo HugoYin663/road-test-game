@@ -19,8 +19,10 @@ const TP_TXT={
  wrongLane:["调头后没有开在正确的车道","调过头以后要开在新方向的右边车道（原来的对面车道）。"]};
 const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车前做 360° 观察（里面包括看正后面），不用按住回头看 */
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
- exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:40,side:'R',insText:'考官：在右边靠边停车，然后用三点调头往回开'},
- onHandover(R){R.trT=R.t+6+Math.random()*10},      // 考试模式：慢下来以后路上才开始有车
+ exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:60,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:6,pullX:HRW-.2-LW.TY-LW.TR,insText:'考官：在右边靠边停车，然后用三点调头往回开'},
+ onHandover(R){R.trT=R.t+6+Math.random()*10},
+ onStopReq(R){if(!R.c0){R.c0=1;msb('R')}},
+ stpLabel:'刹车<small>点一下<br>减速靠边</small>',      // 考试模式：慢下来以后路上才开始有车
  okText:'靠边停在 30 厘米内，每一步之前都做了 M.S.B.，倒车回头看，没有原地打方向、没有碰路缘，三步完成调头，做得很好。',
  onGo(R){banner('调头完成：系统回正方向盘，开到右边车道加速开走','#7ee787')},
  setup(R){SCN.vmax=2.0;Object.assign(R,{x:2.1,z:-20,h:0,gear:'D',ph:0,tr:null,trT:3+Math.random()*12});banner('考官：在右边靠边停车，然后用三点调头往回开','#ffe27a',1);if(EXAM)R.trT=1e9;
