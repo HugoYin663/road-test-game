@@ -44,7 +44,8 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}      // big：考官指令先在屏幕中间大字闪几下，再缩回上方
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',obs:!!R.look,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};
+ {const b=$('bmi'),sd=(R.lc?R.lc.to:other());if(b&&b.dataset.m==='obs'){const h=sd==='L'?'左侧观察<small>中镜·左镜·左盲点</small>':'右侧观察<small>中镜·右镜·右盲点</small>';if(b.innerHTML!==h)b.innerHTML=h}}document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 const other=()=>R.lane==='R'?'L':'R';      // 只有两条车道：能换的只有另一条
 // 错误卡片的配图：出错那一刻从正上方拍一张
 let SNC=null;
@@ -55,6 +56,7 @@ function ev(key){if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push(
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
+ if(m==='obs'){if(R.look||R.q.length)return;doAct('mir');R.q.push('sho');return}      // 侧面观察：中镜＋外后视镜，接着回头看盲点
  if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}      // 手快的玩家：前一个动作（看镜子、看盲点）还没做完就按下一个，记下来，做完一个接着做下一个
 function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
 function nextAct(){const m=R.q.shift();if(m)doAct(m)}

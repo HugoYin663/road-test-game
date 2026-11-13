@@ -18,7 +18,7 @@ const AB=5,U0=60,U0N=-18,UEND=ce+44;      // U0N：现在从更远的地方开�
 const mine=car(C[0]);
 let uS=0;for(let u=0;u<myLen;u+=.05){if(myPath(u)[1]>=-19.3){uS=u;break}}   // 停车位置（停车线前）
 // 对面车流、同向车流、横向等红灯的车（只作场景，不参与判定）
-const flows=[];const addFlow=(p,v,off,col)=>flows.push({c:car(col),p:path(p),v,off});
+const flows=[];const addFlow=(p,v,off,col)=>flows.push({c:car(col),p:path(p),v,off,key:JSON.stringify(p)});      // key：同一条路线上的车（排队时互相保持车距）
 [0,90,190].forEach((o,i)=>addFlow([[-6.25,140],[-6.25,-140]],9,o,C[[2,5,1][i]]));
 [0,150].forEach((o,i)=>addFlow([[2.75,-140],[2.75,140]],12,o,C[[3,4][i]]));
 [[-19.5,-2.75],[-26,-2.75],[-33,-2.75]].forEach((a,i)=>addFlow([[a[0],a[1]],[a[0]+.001,a[1]]],0,0,[C[2],C[4],C[6]][i]));
@@ -281,6 +281,7 @@ let last=0,fovH=110;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const t=R.t;
  const fdt=Math.max(0,t-(loop.pt||0));loop.pt=t;
  flows.forEach(f=>{if(f.v===0){crossCar(f,fdt);return}if(f.s==null||t<.001)f.s=f.off+f.v*t;let vt=f.v;if(f.v>0&&(R.light!=='green'||polHold())){const q0=f.p(f.s),ds=q0[0]<0?q0[1]-20:-20-q0[1];if(ds>0&&ds<40)vt=Math.min(f.v,Math.sqrt(2*3*Math.max(0,ds-.5)))}
+  if(f.v>0){const L=f.p.len;flows.forEach(o=>{if(o===f||o.key!==f.key||o.s==null)return;let g=((o.s-f.s)%L+L)%L-4.6;if(g<30)vt=Math.min(vt,Math.max(0,Math.sqrt(Math.max(0,(o.cv||0))**2+2*4*Math.max(0,g-2.5))))})}      /* 同一条路上的前车：跟车、排队时留车距（不会叠在一起） */
   f.cv=f.cv==null?f.v:(f.cv>vt?Math.max(vt,f.cv-6*dt):Math.min(vt,f.cv+3*dt));f.s+=f.cv*fdt;const q=f.p(f.s);place(f.c,q[0],q[1],q[2])});
  R.peds.forEach(p=>{const D=pedD(p,t),uu=p.off+D;p.o.visible=!p.hide&&uu<p.len-.05;const q=p.path(Math.min(uu,Math.min(p.len,p.path.len)-.06)),mc=myPath(R.u),ox=R.onE?Math.max(0,mc[0]+3.2-q[0])*Math.max(0,1-Math.abs(q[1]-mc[1])/3.5):0,G=pedSeg(p,t);place(p.o,q[0]+(p.hit?0:ox),q[1]+(p.oz||0),q[2]+(G.f?Math.PI:0)+(p.ohd||0),.1);
   if(p.hit){p.o.rotation.order='YXZ';if(p.bike){p.o.rotation.z=Math.min(1.45,(p.o.rotation.z||0)+.12);p.o.position.y=.15}else{p.o.rotation.x=Math.max(-1.45,(p.o.rotation.x||0)-.12);p.o.position.y=.2}return}   // 倒地

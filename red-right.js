@@ -87,7 +87,7 @@ const OLP=path([[2.75,-120],...Array.from({length:31},(_,i)=>{const q=ltb(i/30);
 let LTU1=104,LTX=0;for(let u=104;u<200;u+=.1){const q=LTP(u);if(q[0]<14-.01)LTU1=u;if(!LTX&&q[0]>=10.3)LTX=u}      // 弧线结束的位置、走到人行横道前的位置
 const lConf=()=>{if(!R.cyc)return false;let blk=false;return R.cy.LT.some((L,i)=>{const ah=R.cy.LT[i-1];
   blk=(L.wait&&L.u>=110&&L.v<.5)||(blk&&ah&&!ah.gone&&ah.u-L.u<9.5&&L.v<.5);      // 在路口里停着等的、排在它后面停着的，不算正在转
-  return !L.gone&&L.rel!=null&&R.t>=L.rel&&L.u>101.5&&!L.hold&&!blk&&LTP(L.u)[0]<=4})};      /* 已经开过停车线、正在路口里转、还没转过路口中间的左转车 */      // 箭头一亮，停车线前的第一辆就算要走了
+  return !L.gone&&L.rel!=null&&R.t>=L.rel&&L.u>101.5&&!L.hold&&!blk&&LTP(L.u)[0]<=4&&(R.tG==null||L.u>(101.5+LTU1)/2)})};      /* 本方已经变绿灯：车头还没转过来（弯还没转过一半）的左转车，路权比你低，你先动不算错 */      /* 已经开过停车线、正在路口里转、还没转过路口中间的左转车 */      // 箭头一亮，停车线前的第一辆就算要走了
 function mk(){document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===R.mode))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
@@ -233,7 +233,9 @@ function cycle(dt){const C=R.cy,t=R.t;
  // 圆灯绿灯：右转比对面左转优先。你在等行人时左转车也等；你转完了它才走；没有行人、你又一直不走（约 5 秒），它才先走
  if(C.ph===7){const walk=R.peds.some(p=>{if(p.k!=='A'||p.hit)return false;const c=pedPos(p,t);return pedSeg(p,t).v>0&&c[1]>-11.5&&c[1]<9.6});
   C.idle=(R.v<.05&&!walk)?(C.idle||0)+dt:0;C.LT.forEach(L=>{if((L.hold||L.wait)&&(R.u>ce+1||C.idle>5)){L.hold=false;L.wait=false}})}
- C.MOV.forEach(m=>{if(t<m.t0||m.crash){if(m.crash)place(m.o,m.x,m.z,m.h+m.spin);return}m.v=Math.min(16,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
+ C.MOV.forEach(m=>{if(t<m.t0||m.crash){if(m.crash)place(m.o,m.x,m.z,m.h+m.spin);return}let vm=16;const dir=Math.cos(m.h);      /* 前面（路口里）还有没转完的左转车、或者别的车：减速、停下等，不会开进它里面 */
+  [...C.LT.filter(L=>!L.gone).map(L=>LTP(L.u)),...C.OL.filter(L=>!L.gone).map(L=>OLP(L.u)),...C.MOV.filter(o=>o!==m&&t>=o.t0).map(o=>[o.x,o.z])].forEach(q=>{if(Math.abs(q[0]-m.x)>2.6)return;const d=(q[1]-m.z)*dir;if(d>0&&d<40)vm=Math.min(vm,Math.sqrt(2*5*Math.max(0,d-6.5)))});
+  m.v=m.v>vm?Math.max(vm,m.v-8*dt):Math.min(vm,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
  C.LT.forEach((L,i)=>{if(L.gone)return;if(L.crash){L.v=0;return}const ah=C.LT[i-1];let vt=L.u<104?9:L.u<LTU1?7:11;
   if(L.rel==null||t<L.rel)vt=0;
   if(L.hold||(C.ph>=7&&R.v>.3&&(R.entered||(R.goN&&R.mode==='turn'))&&R.u<ce+3&&L.u<101.5))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）

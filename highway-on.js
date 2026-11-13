@@ -228,7 +228,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   R.cars.forEach(o=>{if(o===c||o.road!==c.road||o.lane!==c.lane)return;const g=(o.s-c.s)*sg-4.6;if(g>-1&&g<80)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
   if(occ(c)){const g=((c.road==='A'?p[1]:p[0])-c.s)-4.6;if(g>-1&&g<80){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}}}}
   c.cv=c.cv>vt?Math.max(vt,c.cv-7*dt):Math.min(vt,c.cv+1.8*dt);c.s+=c.cv*sg*dt;
-  if(c.road==='A'&&c.vd<0&&c.s<-300)c.s+=1000;if(c.road==='W'&&c.s<-550)c.s+=2100;if(c.road==='F'&&c.lane!==ZF1&&c.s>1550)c.s-=2100});
+  {const s0=c.s;if(c.road==='A'&&c.vd<0&&c.s<-300)c.s+=1000;if(c.road==='W'&&c.s<-550)c.s+=2100;if(c.road==='F'&&c.lane!==ZF1&&c.s>1550)c.s-=2100;
+   if(c.s!==s0){const d=Math.sign(c.s-s0);for(let k=0;k<30&&R.cars.some(o=>o!==c&&o.road===c.road&&o.lane===c.lane&&Math.abs(o.s-c.s)<14);k++)c.s+=d*15}}});      /* 车流循环回到远处时，不会刚好叠在别的车上 */
  // 相撞
  if(!R.crash){const mm=[p[0],p[1],p[2],2.3,.95];const H=R.cars.find(c=>{if(c.gone)return false;const q=carPos(c);if(Math.abs(q[0]-p[0])>8||Math.abs(q[1]-p[1])>8)return false;if(Math.abs(carY(c)-myY())>2)return false;return obbHit(mm,[q[0],q[1],q[2],2.3,.95])});
   if(H){H.crash=true;H.spin=.3;R.crash={t};crashSnd();ev('crash')}}

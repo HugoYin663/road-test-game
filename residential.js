@@ -91,7 +91,8 @@ const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,ke
  peekR:R=>R.task==='pk'&&R.ph>=1,
  on360Start(R){if(R.task==='pk'&&HARD&&!R.bk&&R.ph>=1&&(R.n360||0)-(R.n360b||0)+1>=R.bkK){bikeSpawn(R,26);R.bk.seen=true}},
  autoV(R,dt){return pkAutoV(R,dt)},
- step(R,dt){if(R.insAt!=null&&R.t>=R.insAt){banner(R.insTxt,'#ffe27a',1);R.insAt=null;if(R.task==='pk')PKARW.visible=true}
+ step(R,dt){if(R.tpWait&&R.z>PZB+25){R.tpWait=0;R.insAt=R.t;$('bgas').style.visibility=''}
+  if(R.insAt!=null&&R.t>=R.insAt){banner(R.insTxt,'#ffe27a',1);R.insAt=null;if(R.task==='pk')PKARW.visible=true}
   if(R.task==='hp')hpStep(R,dt);else if(R.task==='tp')tpStep(R,dt);else if(R.task==='pk')pkStep(R,dt);
   if(R.t>420&&!R.over)finish()},
  topCam(R){return[R.x-3,R.z+2,22]}};
@@ -115,8 +116,8 @@ function hpNext(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banne
 // 起步开走以后：系统接着往北开（约 35 km/h），2 秒后考官发三点调头的指令；到了平路才开始慢下来
 function resumeCruise(){R.autoGo=false;R.goT=0;R.cruise=true;R.stopReq=false;R.crawl=false;R.slow=0;R.gear='D';R.gas=false;R.wl=R.wr=false;R.hb=false;R.pb=false;R.ph=0;R.revDist=0;R.revNoLook=0;R.lastDir=0;R.c0=0;R.touch={};
  SCN.vmax=2.0;SCN.stpLabel='停车<small>点一下<br>就停住</small>';cruiseUI(true);$('bgas').style.visibility=''}
-function startTP(){tagEv();R.task='tp';resumeCruise();const cz=Math.max(100,R.z+95);SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+55,side:'R',vcr:45/3.6,insText:TP_INSTXT};      // 两项之间开快一点（约 45 km/h）setBtns('tp');
- R.insAt=R.t+2;R.insTxt=TP_INSTXT;R.tr=null;R.trT=1e9;R.z0=null;R.goShown=0}
+function startTP(){tagEv();R.task='tp';resumeCruise();const cz=PZB+95;SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+55,side:'R',vcr:45/3.6,insText:TP_INSTXT};setBtns('tp');      /* 两项之间开快一点（约 45 km/h） */
+ R.insAt=null;R.tpWait=1;R.insTxt=TP_INSTXT;R.tr=null;R.trT=1e9;R.z0=null;R.goShown=0;$('bgas').style.visibility='hidden'}      /* 先往前开过路边停着的那两辆车，考官才发三点调头的指令（调头回来正好在它们后面平行停车）；指令之前不能停车 */
 // ---------------- 2. 三点调头（和“三点调头”一样） ----------------
 function tpSeg(dir,n){if(R.ph<1)return;if(dir<0&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');
  if(R.ph===1&&dir>0){R.ph=2;msb('L',{sig:'tp_noSigL',mir:'tp_noMirror',sh:'tp_noShoulderL'});if(R.oT.A==null||R.t-R.oT.A>15)E('noScan');tip('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前')}
@@ -151,7 +152,7 @@ function trafficStep(R,dt){const c=R.tr,t=R.t;
 const PAl=-PZA,PBl=-PZB,LANEW=-(PX-2*LW.HW-1);
 function startPK(){tagEv();R.task='pk';R.autoGo=false;R.goT=0;R.gear='D';R.gas=false;R.wl=R.wr=false;R.ph=0;R.revDist=0;R.revNoLook=0;R.lastDir=0;R.touch={};R.slow=0;R.stopReq=false;
  if(R.tr){R.tr=null;R.trc.visible=false}R.trT=1e9;SCN.vmax=2.0;SCN.stpLabel='停车<small>点一下<br>就停住</small>';
- const pts=[];for(let z=R.z;z>PZA-60;z-=2)pts.push([LANEW,z]);R.auto={pts,i:0,brk:3};R.cruise=false;cruiseUI(true);gasMode('stp');$('bgas').style.visibility='';setBtns('pk');obsLbl(0);
+ const pts=[];for(let z=R.z;z>Math.min(R.z-20,PZA-60);z-=2)pts.push([LANEW,z]);R.auto={pts,i:0,brk:3};R.cruise=false;cruiseUI(true);gasMode('stp');$('bgas').style.visibility='';setBtns('pk');obsLbl(0);
  R.insAt=R.t+1.5;R.insTxt=PK_INSTXT;R.bk=null}
 function pkAutoV(R,dt){const VC=35/3.6,d=R.z-(PZA+14),vt=Math.min(VC,Math.sqrt(1.8*1.8+2*1.6*Math.max(0,d)));
  if(!R.slow&&vt<VC-.3){R.slow=1;if(!sawMir(12))ev('brkNoMir');if(R.sig!=='R')ev('brkNoSig')}return vt}
