@@ -159,7 +159,7 @@ const TXT={
  crash:["发生碰撞","你的车和其他车辆撞上了。没有让行、抢着转弯，就会造成碰撞，路考立即结束。"],
  hitP:["撞到了行人","你的车撞到了正在过马路的行人。"],
  hitB:["撞到了自行车","你的车撞到了对面骑过来的自行车。"],
- keepRight:["左转后一直在左车道，没有换到右车道","左转要转进最近的左车道；转完以后，在安全时（打右转灯、看后视镜、回头看右边盲点）换到右车道。左车道是超车道，一直占着会挡住后面要超车的车。"],
+ keepRight:["左转后一直在左车道，考官提醒了才换到右车道","左转要转进最近的左车道；转完以后不用等考官说，自己在安全时（打右转灯、看后视镜、回头看右边盲点）换到右车道。左车道是超车道，一直占着会挡住后面要超车的车。考官等了一会儿你还没换，就会提醒你，这要扣分。"],
  lcNoSig:["换车道前没有打右转灯","换到右车道前要先打右转灯，闪几下再换。"],
  lcSigShort:["右转灯刚打就换车道","打了转向灯要闪几下（约 2 秒以上），让后面的车看到，再开始换。"],
  lcNoMir:["换车道前没有看后视镜","换车道前要看后视镜，确认后面和右后方的车离得够远。"],
@@ -341,7 +341,7 @@ if(oppConf())ev('yieldO');if(rtAct())ev('yieldRT');if(bikeConf())ev('yieldBk');i
  if(!R.kr&&u>=ce+1&&!R.crash)krEnter();
  if(R.kr)krStep(dt);
  // 结束
- {const x=a[0];if(R.kr&&R.kr.right&&R.kr.doneT!=null&&R.t-R.kr.doneT>5.5&&x<BBX+60||x<BBX+28){finish();return}}      /* 换到右车道至少 5.5 秒（来得及关转向灯、看前面的广告牌），开到离广告牌约 60 米以内才结束；最晚离广告牌 28 米时结束 */
+ {const x=a[0];if(R.kr&&R.kr.right&&R.kr.doneT!=null&&R.t-R.kr.doneT>5.5&&x<BBX+60||x<BBX+28&&!(R.kr&&R.kr.lc)&&!(R.kr&&R.kr.told&&!R.kr.right&&x>BBX-120)){finish();return}      /* 考官提醒换右道以后：给你时间换完（正在换线时不结束） */}      /* 换到右车道至少 5.5 秒（来得及关转向灯、看前面的广告牌），开到离广告牌约 60 米以内才结束；最晚离广告牌 28 米时结束 */
  if(R.t>110+LEADL)finish()}
 // ---------- 信号灯：黄灯情况 ----------
 function lights(){const sc=R.sc,t=R.t,f=front(R.u);
@@ -395,7 +395,7 @@ function krStart(){const K=R.kr;if(K.lc||R.crash)return;const to=K.lane==='L'?'R
 function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  if(K.lc&&u>=K.lc.u0+K.lc.len){K.off=K.lc.b;K.lane=K.lc.to;K.lc=null;K.doneT=t;if(K.lane==='R')K.right=true;mk()}
  if(K.doneT!=null&&K.sig&&K.sigT<K.doneT&&t-K.doneT>5)ev('lcSigOn');
- if(!K.right&&!K.lc&&u>=ce+190)ev('keepRight');
+ if(!K.right&&!K.lc&&!K.told&&u>=ce+120){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 转完开了一段（约 120 米）还在左车道：考官提醒你换到右车道，扣一分（不是严重错误） */
  // 看后视镜／回头看盲点（和换线项目一样）
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT2=t}
