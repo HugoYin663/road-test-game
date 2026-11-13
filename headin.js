@@ -203,5 +203,6 @@ function ltStep(dt){const T=R.LT;if(!T||T.gone)return;
  const cl=npcClear(T.x,T.z,T.h,'LT');if(cl<2.5)vt=0;else vt=Math.min(vt,(cl-2.5)*1.2+.1);
  T.v=vt<T.v?Math.max(vt,T.v-6*dt):Math.min(vt,T.v+1.8*dt);T.s+=T.v*dt;if(!T.go)T.s=Math.min(T.s,LTP.sW);
  const p=at(LTP,T.s);T.x=p[0];T.z=p[1];T.h=p[2];place(T.c,T.x,T.z,T.h,0);
+ {const on=T.s<LTP.sW+11&&Math.sin(R.t*9.4)>0;T.c.userData.bl.forEach(m=>m.visible=on)}      /* 左转灯：开过来、等着、转弯时一直闪，转进去以后关掉 */
  if(T.s>LTP.L[LTP.L.length-1]-3){T.c.visible=false;T.gone=1}}
 LS.start(SCENE);

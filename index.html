@@ -225,7 +225,7 @@ details.route summary{cursor:pointer}
 <script src="lib/sheet.js?v=1112s"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1112y';
+const V='1113a';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -308,14 +308,23 @@ function alertBox(){document.getElementById('soon').innerHTML=bi('这个浏览�
 // 成绩单
 function result(){view('result');let S=MST.get();const box=document.getElementById('resBox');
  if(!S||!S.res||!S.res.length){box.innerHTML='<h2>'+bi('还没有考试成绩','No test results yet')+'</h2>';return}
- const all=S.res.filter(Boolean),fin=S.i>=S.steps.length,SH=renderSheet(S,LANG!=='en'),ser=SH.crit.length,mk=SH.marks,lim=S.level==='g'?8:10,pass=fin&&ser===0&&mk<=lim;
+ const all=S.res.filter(Boolean),fin=S.i>=S.steps.length,SH=renderSheet(S,LANG!=='en'),ser=SH.crit.length,mk=SH.marks,lim=15,pass=fin&&ser===0&&mk<=lim;
+ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ // 上半部分：每个错误出错那一刻的截图和名称（严重错误红框在前）
+ const errs=[];S.steps.forEach((st,i)=>{const r=S.res[i];if(r)r.ev.forEach(e=>errs.push({e,st}))});errs.sort((a,b)=>(b.e.ser?1:0)-(a.e.ser?1:0));
+ const gal=errs.length?'<div class="route"><b>'+bi('所犯错误（'+errs.length+'）','Mistakes ('+errs.length+')')+'</b><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px">'+errs.map(x=>{const c=x.e.ser?'var(--hard)':'var(--soon)';
+   return '<figure style="margin:0;border:2px solid '+c+';border-radius:10px;overflow:hidden">'+(x.e.img?'<img src="'+x.e.img+'" alt="" style="display:block;width:100%;aspect-ratio:3/2;object-fit:cover">':'<div style="aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;opacity:.5;font-size:13px">'+bi('无截图','No image')+'</div>')
+    +'<figcaption style="padding:6px 8px;font-size:13px;line-height:1.35"><span style="color:'+c+';font-weight:700">'+(x.e.ser?bi('严重错误','Major'):bi('小错误','Minor'))+'</span><br><b>'+esc(x.e.t)+'</b><br><span class="sub" style="font-size:12px">'+esc(LANG==='en'?x.st.en:x.st.zh)+'</span></figcaption></figure>'}).join('')+'</div></div>'
+  :'<div class="route"><b style="color:var(--live)">'+bi('✓ 全程没有错误','✓ No mistakes')+'</b></div>';
+ // 最后：结果
+ const verdict='<header class="sign" style="background:'+(pass?'var(--live)':'var(--hard)')+';border-color:'+(pass?'var(--live)':'var(--hard)')+'"><div><h1>'+(fin?(pass?bi('合格','PASS'):bi('不合格','FAIL')):bi('未完成','Incomplete'))+'</h1><p>'
+  +bi('严重错误 '+ser+' 处 · 小错误 '+mk+' 处（15 处以内合格）。标准：有一个严重错误（major mistake）就不合格；没有严重错误、小错误不超过 15 处就合格。真实路考以考官评分为准。','Major '+ser+' · Minor '+mk+' (15 or fewer passes). One major mistake fails the test; with no major mistakes, up to 15 minor mistakes passes. Real tests are scored by the examiner.')+'</p></div></header>'
+  +(ser?'<div class="route crit"><b>'+bi('严重错误','Major mistakes')+'</b><ol>'+SH.crit.map(c=>'<li>'+c.e.t+' <span class="sub">— '+(LANG==='en'?c.step.en:c.step.zh)+'</span></li>').join('')+'</ol></div>':'')+(fin&&!pass?SH.dq(mk>lim):'');
  box.innerHTML='<div><h2>'+bi('模拟考试成绩单 · '+S.level.toUpperCase()+(S.diff==='hard'?' · 困难':' · 容易'),'Mock '+S.level.toUpperCase()+' test · '+(S.diff==='hard'?'Hard':'Easy'))+'</h2>'
-  +'<p class="sub">'+bi((fin?'全部 ':'完成 ')+all.length+' / '+S.steps.length+' 项 · 严重错误 '+ser+' 处 · 扣分 '+mk+' 处','Completed '+all.length+' / '+S.steps.length+' · Critical '+ser+' · Marks '+mk)+'</p></div>'
-  +'<header class="sign" style="background:'+(pass?'var(--live)':'var(--hard)')+';border-color:'+(pass?'var(--live)':'var(--hard)')+'"><div><h1>'+(fin?(pass?bi('合格','PASS'):bi('不合格','FAIL')):bi('未完成','Incomplete'))+'</h1><p>'+bi('参考标准：有任何严重错误不合格；扣分 G2 超过 10 处、G 超过 8 处不合格（评分表上每个字母算一处）。真实路考以考官评分为准。','Guide: any critical error fails; more than 10 marks (G2) or 8 marks (G) fails — each letter on the sheet is one mark. Real tests are scored by the examiner.')+'</p></div></header>'
-  +(ser?'<div class="route crit"><b>'+bi('严重错误','Critical errors')+'</b><ol>'+SH.crit.map(c=>'<li>'+c.e.t+' <span class="sub">— '+(LANG==='en'?c.step.en:c.step.zh)+'</span></li>').join('')+'</ol></div>':'')
-  +(fin&&!pass?SH.dq(mk>lim):'')+SH.html
+  +'<p class="sub">'+bi((fin?'全部 ':'完成 ')+all.length+' / '+S.steps.length+' 项','Completed '+all.length+' / '+S.steps.length)+'</p></div>'
+  +gal+'<h3 style="margin:18px 0 6px">'+bi('评分表','Score sheet')+'</h3>'+SH.html+verdict
   +'<details class="route"><summary><b>'+bi('每一项的详细说明','Details for each task')+'</b></summary><ol>'+S.steps.map((st,i)=>{const r=S.res[i];if(!r)return '<li style="opacity:.55">'+bi(st.zh,st.en)+' — '+bi('未做','not done')+'</li>';
-   return '<li><b>'+bi(st.zh,st.en)+'</b>'+(r.ev.length?'<ul style="margin:4px 0 6px;padding-left:1.1em">'+r.ev.map(e=>'<li><span style="color:'+(e.ser?'var(--hard)':'var(--soon)')+';font-weight:700">'+(e.ser?bi('严重','Critical'):bi('扣分','Mark'))+'</span> '+e.t+(e.x?'<br><span class="sub" style="font-size:13px">'+e.x+'</span>':'')+'</li>').join('')+'</ul>':' <span style="color:var(--live);font-weight:700">'+bi('✓ 没有错误','✓ no errors')+'</span>')+'</li>'}).join('')+'</ol></details>'}
+   return '<li><b>'+bi(st.zh,st.en)+'</b>'+(r.ev.length?'<ul style="margin:4px 0 6px;padding-left:1.1em">'+r.ev.map(e=>'<li><span style="color:'+(e.ser?'var(--hard)':'var(--soon)')+';font-weight:700">'+(e.ser?bi('严重','Major'):bi('小错误','Minor'))+'</span> '+e.t+(e.x?'<br><span class="sub" style="font-size:13px">'+e.x+'</span>':'')+'</li>').join('')+'</ul>':' <span style="color:var(--live);font-weight:700">'+bi('✓ 没有错误','✓ no errors')+'</span>')+'</li>'}).join('')+'</ol></details>'}
 function show(){if(!LANG){view('lang');return}const h=location.hash.replace('#','')||'home';
  if(h==='mock/result')result();else if(h==='mock')view('mock');else if(h==='mock/g2'||h==='mock/g')level(h.split('/')[1]);else if(h==='practice')view('practice');else if(h==='lang')view('lang');else view('home')}
 function view(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+id);
