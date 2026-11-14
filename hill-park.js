@@ -47,7 +47,7 @@ const SCENE={g:HPG,Y:z=>HPG*z,TXT:HP_TXT,SER:['wrongWheels','rollAway'],vmax:2.2
    if(R.stuck)R.v=0;else R.rollD+=Math.abs(R.v)*dt;
    if(HP.curb&&R.curbT!=null&&t-R.curbT<.2){R.rested=true}      // 车轮抵住了路缘，车停住
    if(!HP.curb&&R.rollD>.35&&!R.stuck){const ok=HP.up?R.w>.05:R.w>.05;if(ok){R.stuck=1;R.rested=true;R.v=0}}      // 没有路缘：往路边溜一点就停（车轮压到路边松软的地方）
-   if(R.rollD>1.2&&!R.away){R.away=1;ev('rollAway');R.hb=true;gasMode('hb')}}
+   if(R.rollD>1.2&&!R.away){R.away=1;ev('rollAway');R.hb=true;gasMode('hb')}else if(R.rollD>2.4){R.hb=true;gasMode('hb')}}
   if(R.ph===2.5){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();nextIns()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');nextIns()}}      /* 挂 P、拉手刹以后停 1.5 秒没有别的操作才算做完 */
   // 3：考官说继续行驶：挂 D、打左灯、左侧观察，点油门，系统开走
   if(R.ph===3&&R.gas&&!R.autoGo){if(R.pb){R.gas=false;tip('先放下手刹（再点一下手刹键）');mk()}else if(R.gear!=='D'){R.gas=false;tip('先挂 D 档');mk()}

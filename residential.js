@@ -105,7 +105,7 @@ function hpParked(g){R.ph=2;R.rollD=0;R.gas=false;if(Math.min(g.front,g.rear)>1)
 function hpStep(R,dt){const t=R.t;
  if(R.ph===2&&R.gear==='N'&&!R.hb){if(R.stuck)R.v=0;else R.rollD+=Math.abs(R.v)*dt;
   if(R.curbT!=null&&t-R.curbT<.2)R.rested=true;
-  if(R.rollD>1.2&&!R.away){R.away=1;E('rollAway');R.hb=true;gasMode('hb')}}
+  if(R.rollD>1.2&&!R.away){R.away=1;E('rollAway');R.hb=true;gasMode('hb')}else if(R.rollD>2.4){R.hb=true;gasMode('hb')}}      /* 又松开刹车一直溜：再帮你踩住 */
  if(R.ph===2.5){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){hpDone();hpNext()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){hpDone();ev('noPB');hpNext()}}
  if(R.ph===3&&R.gas&&!R.autoGo){if(R.pb){R.gas=false;tip('先放下手刹（再点一下手刹键）');mk()}else if(R.gear!=='D'){R.gas=false;tip('先挂 D 档');mk()}
   else{R.autoGo=true;if(R.sig!=='L')E('noSigL');if(!sawMir(12))E('noMirror');if(!sawSh('L',10))E('noShoulderL');tip('开走了')}}
