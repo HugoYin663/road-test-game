@@ -29,14 +29,16 @@ const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackC
   // 路上偶尔有车开过：从前面开过来（对面车道）或者从后面开过来
   const c=car(C[1+Math.random()*8|0]);live.push(c);c.visible=false;R.trc=c},
  onTouch(){if(R.ph>=1)ev('touchCurb')},
- onSeg(dir,n){if(R.ph<1)return;if(dir<0&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');
-  if(R.ph===1&&dir>0){R.ph=2;msb('L');if(R.oT.A==null||R.t-R.oT.A>15)ev('noScan');banner('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前','')}
-  else if(R.ph===2&&dir<0){R.ph=3;if(R.sig!=='R')ev('noSigR2');if(!sawMir(12))ev('noMirror');banner('第二步：倒车，方向盘往右打到底，一直观察，停在路缘前','')}
+ onSeg(dir,n){if(R.ph<1)return;if(dir<0&&R.ph>=2&&(R.oT.A==null||R.t-R.oT.A>15))ev('no360');
+  if(R.ph===1&&dir>0)return;      /* 停好后往前（不打方向）：只是在调整位置 */
+  if(R.ph===2&&dir<0){R.ph=3;if(R.sig!=='R')ev('noSigR2');if(!sawMir(12))ev('noMirror');banner('第二步：倒车，方向盘往右打到底，一直观察，停在路缘前','')}
   else if(R.ph===3&&dir>0){R.ph=4;if(R.sig!=='L')ev('noSigL3');banner('第三步：往前开，回到右边车道','')}
   else if(R.ph>=4&&dir<0)ev('tooMany')},
  step(R,dt){const t=R.t;
   if(R.ph===0&&R.x>2.45&&!R.c0){R.c0=1;msb('R')}
-  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}if(g.rear>.35)ev('farCurb','（后轮离路缘 '+g.rear.toFixed(2)+' 米）');banner('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始','#ffe27a')}}
+  if(R.ph===0&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;banner('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始','#ffe27a')}}
+  // 往前、方向盘往左打：这时才算开始调头，停车位置也在这时候判（停下后还可以前后调整）
+  if(R.ph===1&&R.gear==='D'&&R.v>.05&&R.w<-.35){R.ph=2;R.z0=R.z;{const g=curbGap(1);if(g&&g.rear>.35)ev('farCurb','（后轮离路缘 '+g.rear.toFixed(2)+' 米）')}{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}msb('L');if(R.oT.A==null||R.t-R.oT.A>15)ev('noScan');banner('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前','')}
   // 路上开过的车：到时间出现，开过去就没了；你在路中间挡着它的车道时它停下来等
   if(!R.tr&&t>R.trT&&R.ph<5){const fromAhead=Math.random()<.5;R.tr={x:fromAhead?-2.1:2.1,lx:fromAhead?-2.1:2.1,z:fromAhead?R.z+140:R.z-140,dir:fromAhead?-1:1,v:11,wait:0};R.trc.visible=true}
   if(R.tr)trafficStep(R,dt);

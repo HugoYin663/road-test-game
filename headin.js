@@ -176,7 +176,7 @@ function ecStep(dt){const E=R.EC;if(!E||E.gone)return;let vt=E.st==='go'?(E.road
  E.v=vt<E.v?Math.max(vt,E.v-6*dt):Math.min(vt,E.v+(E.road?2.5:1.5)*dt);E.s+=E.v*dt;const p=at(ECP,E.s);E.x=p[0];E.z=p[1];E.h=p[2];if(E.x<XR-.5&&E.h>-.2)E.road=true;
  place(E.c,E.x,E.z,E.h,0);if(E.z>ZC+220){E.c.visible=false;E.gone=1}}
 // 车道上对面开过来的车（困难模式／有时候）：你停下准备停车时从北边开过来，走车道西半边
-function acSpawn(d){const c=car([0x8e2b2b,0x23324f,0xb9bec4][Math.random()*3|0]);live.push(c);const s0=Math.max(0,80-(R.z+d)),p=at(ACP,s0);R.AC={c,s:s0,v:3,x:p[0],z:p[1],h:p[2],off:0};
+function acSpawn(d){const c=car([0x8e2b2b,0x5a3e36,0xb9bec4][Math.random()*3|0]);live.push(c);const s0=Math.max(0,80-(R.z+d)),p=at(ACP,s0);R.AC={c,s:s0,v:3,x:p[0],z:p[1],h:p[2],off:0};
  SCN.obst.push([p[0],p[1],p[2]]);R.AC.oi=SCN.obst.length-1}
 function acStep(dt){const A=R.AC;if(!A||A.gone)return;const cs=corners(),zs=cs.map(q=>q[1]),xs=cs.map(q=>q[0]);
  // 你的车基本开进车位了、只有车尾还留在车道边上：它往东边（它的左边）让一点从旁边过去；你的车头还摆在它的车道上：它停下等你
@@ -190,7 +190,7 @@ function acStep(dt){const A=R.AC;if(!A||A.gone)return;const cs=corners(),zs=cs.m
   if(!A.inW&&inWay&&R.v>.05&&front>Math.min(...zs)-1){A.inW=1;if((front-mz)/Math.max(1,A.v)<3.5)ev('noYieldCar')}      /* 你的车头摆进它的车道的时候，它不到 3.5 秒就到了 */
   if(A.z+LW.HL<Math.min(...zs)){A.done=true;if(!R.ev.some(e=>e.key==='noYieldCar')&&R.ph===3)banner('看到车道上对面开过来的车，等它过去再转：正确','#7ee787')}}
  if(A.s>ACP.L[ACP.L.length-1]-2){A.c.visible=false;A.gone=1;SCN.obst[A.oi]=[0,-999,0]}}
-function ltSpawn(){const c=car([0x8e2b2b,0xe8e8e8,0x23324f,0x4a4f57][Math.random()*4|0]);live.push(c);const s0=LTP.sW-95,p=at(LTP,s0);
+function ltSpawn(){const c=car([0x8e2b2b,0xe8e8e8,0x5a3e36,0x4a4f57][Math.random()*4|0]);live.push(c);const s0=LTP.sW-95,p=at(LTP,s0);
  R.LT={c,s:s0,v:11,x:p[0],z:p[1],h:p[2],go:false,yT:0};R.tf.cars.forEach(o=>{if(!o.gone&&o.L==='S'&&Math.abs(o.z-p[1])<20){o.c.visible=false;o.gone=1}});
  R.haz.push(()=>{const T=R.LT;return!T||T.gone||T.s<LTP.sW+.5?null:boxHaz([T.x,T.z,T.h])})}      /* 它开始转了：挡在你前面时系统帮你刹车 */
 // 你在进口前停下来（不是为了行人）：它在等你、你在等它——等一会儿它先转进去，你这一步算“不清楚路权”

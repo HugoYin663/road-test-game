@@ -129,6 +129,7 @@ function cmd(m){if(!playing||R.over||R.crash||R.u>=ce+1)return;
  if(m==='stop'){const dA=uS-R.u;if(R.u<uS-.2&&dA>R.v*R.v/(2*AB)+.2){R.stopT=uS;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
  if(m==='turn'){if(R.v<.05)R.goAt=R.t;if(front(R.u)[1]>=-14.6)R.goN=true}      // 已经挪出来看清了再按行驶：正常起步转弯
  if(m==='turn'&&!R.turnU)R.turnU=R.u;
+ if(m==='turn'&&R.tG==null&&R.cyc&&R.cy.ph>=4){R.goConf=R.cy.LT.some(L=>!L.gone&&L.rel!=null&&R.t>=L.rel&&L.u>101.5&&!L.hold&&!L.wait);R.goOK=!R.goConf}      /* 红灯右转：全红、对面左转车还没开过停车线的那一两秒里起步，是可以的（它要让已经在转的你）；它已经开过停车线了你才走，算抢行 */
  if(m==='turn'&&R.mode==='stop'&&R.tG!=null&&R.entered&&!(R.lastLook>R.stopAt))ev('noLook2');      // 绿灯下转弯途中停车让行，再起步前要再看右后方                      // 从哪里开始转
  R.mode=m;mk()}
 function pickTgt(){return null}
@@ -148,7 +149,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  // 停在人行横道上
  // 开始转弯（车头进入横向道路）：检查观察和让行
  if(!R.entered&&f[1]>-9.5){R.entered=true;
-  if(lConf())ev('yieldL');      // 车头进入横向道路的这一刻，对面左转车正在转或马上开出来：没有让行（车头进横向道路之前停下都算让行）
+  if(R.tG==null&&R.goOK!=null?R.goConf:lConf())ev('yieldL');      // 车头进入横向道路的这一刻，对面左转车正在转或马上开出来：没有让行（车头进横向道路之前停下都算让行）
   if(!(R.lastScan!=null&&R.lastScan>=(R.fullT==null?0:R.fullT)))ev('noScan');
   else if(R.full&&R.tG==null&&!R.scanClear)ev('noCreep');      // 观察时视线真的被挡、看不到左边远处，才算没有挪出来看      // 车头要挪进人行横道约 1 米，才看得清 SUV 后面的远处      // 看过左边，但只是在 SUV 后面看的，没有挪出来看
 }
@@ -238,7 +239,7 @@ function cycle(dt){const C=R.cy,t=R.t;
   m.v=m.v>vm?Math.max(vm,m.v-8*dt):Math.min(vm,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
  C.LT.forEach((L,i)=>{if(L.gone)return;if(L.crash){L.v=0;return}const ah=C.LT[i-1];let vt=L.u<104?9:L.u<LTU1?7:11;
   if(L.rel==null||t<L.rel)vt=0;
-  if(L.hold||(C.ph>=7&&R.v>.3&&(R.entered||(R.goN&&R.mode==='turn'))&&R.u<ce+3&&L.u<101.5))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
+  if(L.hold||(R.v>.3&&R.mode==='turn'&&R.u<ce+3&&L.u<101.5&&(C.ph>=7?(R.entered||R.goN):R.goOK&&C.ph>=4)))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）
   if(L.wait)vt=Math.min(vt,Math.sqrt(7*Math.max(0,111-L.u)));      // lead：第 4 辆开进路口里等，本方变绿灯后它的路权低于你和直行车
   if(L.u<LTX&&R.peds.some(p=>{if(p.k!=='A')return false;const c=pedPos(p,t);return c[1]>-6.5&&c[1]<3.5}))vt=Math.min(vt,Math.sqrt(7*Math.max(0,LTX-L.u)));   // 让人行横道上的行人
   if(ah&&!ah.gone)vt=Math.min(vt,Math.max(0,1.5*(ah.u-L.u-6.6)));
@@ -255,7 +256,7 @@ function finish(){R.over=true;R.sig=false;$('sg').style.display='none';mk();cons
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
 let last=0,fovH=110;
-function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const t=R.t;
+function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t;
  R.TR.list.forEach(s=>{place(s.c,s.x,s.lane,Math.PI/2+(s.spin||0));s.c.visible=s.x>-160&&s.x<160});
  bgFlows.forEach(f=>{const q=f.p(f.off);place(f.c,q[0],q[1],q[2]+(f.spin||0))});
  R.peds.forEach(p=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));p.o.visible=true;place(p.o,q[0]+(p.ox||0),q[1]+(p.oz||0),q[2],.1);
@@ -268,8 +269,8 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(R.fol){const fq=myPath(R.fol.u);place(R.fol.car,fq[0],fq[1],fq[2])}
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
- if(view===1){const h=q[2]+R.yaw+yawD,L=R.lookT>=0||R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);      // 撞车时镜头晃一下
- cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+R.pit*L,q[1]+Math.cos(h)*L+oz);
+ if(view===1){const h=q[2]+HY.y+yawD,L=R.lookT>=0||R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);      // 撞车时镜头晃一下
+ cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(0,64,-9);cam.lookAt(0,0,-1)}      /* 俯视：固定从本方向（南边）往前看，不能转 */

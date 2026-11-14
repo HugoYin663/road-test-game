@@ -198,7 +198,7 @@ const LIM=()=>-RW-.05,blind=()=>sightL()<50||sightR()<50;      /* 前移最远�
 function sightL(){const z=ZE;for(let d=10;d<=90;d+=5)if(!seen(-d,z))return d-5;return 90}
 function sightR(){for(let d=10;d<=90;d+=5)if(!seen(d,ZWB)&&!seen(d,ZE))return d-5;return 90}
 // 行人在你车前的人行横道上（或马上要走上来）
-function pedNear(){const P=R.ped;if(!P||P.z<front()-.6)return false;return P.dir>0?P.x>-RW-6&&P.x<SW0+.2:P.x<RW+6&&P.x>-SW0-.2}      /* 还在路面上（路缘以内），或离路边不到 6 米、正走过来；已经走上对面人行道的不算 */
+function pedNear(){const P=R.ped;if(!P||P.z<front()-.6)return false;return P.dir>0?P.x>-RW-3&&P.x<RW+.3:P.x<RW+3&&P.x>-RW-.3}      /* 还在路面上，或离路边不到 3 米、正走过来；一走过对面路缘、上了对面人行道（缓坡）就可以走了 */
 const pedEv=()=>{const P=R.ped;ev('pedYield',P?{focus:[P.x,P.z],add:'（红圈是那位行人）'}:{})};
 // ---------- 转弯路线：从你现在的位置直走到转弯点，再左转进往西车道 ----------
 function turnPath(){if(AW4){const P0=path([[XL,R.z],[XL,160]]);const f=u=>[XL,R.z+u,0];f.len=P0.len;f.arcEnd=0;return f}const zc=R.z,zs=Math.max(zc,-6.3),Rr=ZWB-zs,pts=[[XL,zc]];if(zs>zc+.3)pts.push([XL,zs]);
@@ -296,14 +296,14 @@ let last=0,fovH=100;
 MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
 {const vf=h=>2*Math.atan(Math.tan(h/2*Math.PI/180)/2)*180/Math.PI;MRL.c.fov=vf(16);MRL.dir.set(Math.sin(7*Math.PI/180),-.03,-1).normalize();MRR.c.fov=vf(24);MRR.dir.set(-Math.sin(11*Math.PI/180),-.03,-1).normalize();[MRL,MRR].forEach(m=>m.c.updateProjectionMatrix())}
 function placeMine(){const p=me();place(mine,p[0],p[1],p[2],0);mine.userData.bl.forEach(m=>{m.position.x=.88})}
-function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;const p=me();
+function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;const p=me();
  R.cars.forEach(c=>{place(c.c,c.x,c.z,(c.dir>0?Math.PI/2:-Math.PI/2)+(c.spin||0),0);c.c.visible=Math.abs(c.x)<260});
  if(AW4)R.A.forEach(a=>{const q=a.P(a.u);place(a.c,q[0],q[1],q[2],0);if(a.st==='gone')a.c.visible=false;if(a.k==='O')a.c.userData.bl.forEach(m=>m.visible=bl&&a.st!=='gone'&&a.u<a.stopAt+16)});
  placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
  sun.target.position.set(-p[0],0,p[1]);sun.position.set(-p[0]+60,90,p[1]-40);if(!sun.target.parent)scene.add(sun.target);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;
- if(view===1){const h=q[2]+R.yaw+yawD,L=10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ if(view===1){const h=q[2]+HY.y+yawD,L=10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05,q[1]+Math.cos(h)*L+oz);

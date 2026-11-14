@@ -407,6 +407,7 @@ function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  // 看后视镜／回头看盲点（和换线项目一样）
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT2=t}
+   else if(R.q[0]==='sho'){R.look=null;mk();const n=R.q.shift();if(n)krAct(n)}      /* 右侧观察：看完右镜直接转头看右盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT2[L.side]=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT2[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}}}
@@ -435,7 +436,7 @@ function folStep(dt,u){if(DIFF==='hard'&&!R.psOn&&u>=ce+14&&!R.crash){const ok=w
  if(fo.x<-275){fo.gone=true;fo.car.visible=false}}
 // ================= 渲染循环 =================
 let last=0,fovH=110;
-function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const t=R.t,bl=Math.sin(ts/1000*15)>0;
+function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t,bl=Math.sin(ts/1000*15)>0;
  R.OC.forEach(s=>{place(s.c,s.lane,s.z,Math.PI+(s.spin||0));s.c.visible=!s.gone&&s.z<170});
  if(R.RT){const q=ORT(R.RT.u);place(R.RT.c,q[0],q[1],q[2]+(R.RT.spin||0));R.RT.c.visible=!R.RT.gone&&!!R.RT.on;R.RT.c.userData.bl.forEach(m=>m.visible=bl&&q[0]>-20)}
  if(R.BK){const q=BKP(R.BK.u);place(R.BK.c,q[0],q[1],q[2]+(R.BK.spin||0));R.BK.c.userData.bl.forEach(m=>m.visible=bl&&q[0]<19)}
@@ -451,8 +452,8 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);cons
  if(R.AQ){R.AQ.forEach(L=>{const q=PK.N.p(L.u);place(L.c,q[0],q[1],q[2]);L.c.visible=!L.gone;L.c.userData.bl.forEach(m=>m.visible=bl&&q[0]>-19)});R.OA.forEach(L=>{const q=BKP(L.u);place(L.c,q[0],q[1],q[2]);L.c.visible=!L.gone;L.c.userData.bl.forEach(m=>m.visible=bl&&q[0]<19)})}
  if((R.sig||(R.kr&&R.kr.sig))&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);{const sR=R.kr&&R.kr.sig==='R',on=R.kr?!!R.kr.sig:!!R.sig;if(mine.userData.bl[0]&&(mine.userData.bl[0].position.x<0)!==sR)mine.userData.bl.forEach(m=>m.position.x=-m.position.x);mine.userData.bl.forEach(m=>m.visible=on&&bl)}
- if(view===1){const ln=R.lean||0,h=q[2]+R.yaw+yawD-.2*ln,L=R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=(.38+.14*ln)*Math.cos(q[2]),oz=(.38+.14*ln)*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
-  cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+R.pit*L,q[1]+Math.cos(h)*L+oz);
+ if(view===1){const ln=R.lean||0,h=q[2]+HY.y+yawD-.2*ln,L=R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=(.38+.14*ln)*Math.cos(q[2]),oz=(.38+.14*ln)*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
+  cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(0,64,-9);cam.lookAt(0,0,-1)}      /* 俯视：固定从本方向（南边）往前看，不能转 */

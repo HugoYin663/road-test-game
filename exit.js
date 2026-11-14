@@ -132,7 +132,7 @@ function npcClear(x,z,h,dir,self){const s=Math.sin(h),c=Math.cos(h);let best=99;
  [R.P1,R.PE].forEach(P=>{if(P&&!P.gone)chk(P.x,P.z,.6)});return best}      // 行人留得宽一点（0.6 米）
 // 出车位时车道上过来的车：从你的左边（南边）往北开，走车道的东半边，从你车头前面经过，一直开到停车场北头
 const AX=1.8;
-function acSpawn(){const c=car([0x8e2b2b,0x23324f,0xb9bec4][Math.random()*3|0]);live.push(c);R.AC={c,x:AX,z:R.z-24,h:0,v:0,t0:R.t,seen:false,backD:0};R.haz.push(()=>{const A=R.AC;if(!A||A.gone)return null;const ds=boxCorners([A.x,A.z,A.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
+function acSpawn(){const c=car([0x8e2b2b,0x5a3e36,0xb9bec4][Math.random()*3|0]);live.push(c);R.AC={c,x:AX,z:R.z-24,h:0,v:0,t0:R.t,seen:false,backD:0};R.haz.push(()=>{const A=R.AC;if(!A||A.gone)return null;const ds=boxCorners([A.x,A.z,A.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
 function acStep(dt){const A=R.AC;if(!A||A.gone)return;if(sawScan(1.5)||((R.oT.XL||-99)>A.t0+.3))A.seen=true;
  const fx=frontX(),zs=corners().map(q=>q[1]);
  // 你的车头稍微伸到车道上：它往左边让一让，从你车头前面绕过去（车道够宽）；你挡得太多才停下来等

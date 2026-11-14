@@ -215,6 +215,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  // 看后视镜／看盲点（右边）
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=1;L.t+=dt;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=(.83-R.yaw)*k9;R.pit+=(-.27-R.pit)*k9;if(L.t>1)R.mT.R=t}
+   else if(R.q[0]==='sho'){R.look=null;mk();nextAct()}      /* 侧面观察：看完外后视镜直接转头看盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
   else{if(L.t<.95){R.yaw+=(sd*2.05-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT.R=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT.R=t;R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}}
@@ -243,16 +244,16 @@ MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
 {const vf=h=>2*Math.atan(Math.tan(h/2*Math.PI/180)/2)*180/Math.PI;MRL.c.fov=vf(16);MRL.dir.set(Math.sin(7*Math.PI/180),-.03,-1).normalize();MRR.c.fov=vf(24);MRR.dir.set(-Math.sin(11*Math.PI/180),-.03,-1).normalize();[MRL,MRR].forEach(m=>m.c.updateProjectionMatrix())}
 function placeMine(){const p=me();place(mine,p[0],p[1],p[2],myY());mine.userData.bl.forEach(m=>{m.position.x=R.sig==='R'?-.88:.88})}
 let TOPC=null;
-function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;const p=me();
+function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const bl=Math.sin(ts/1000*15)>0;const p=me();
  R.cars.forEach(c=>{const q=carPos(c);place(c.c,q[0],q[1],q[2]+(c.spin||0),carY(c));c.c.visible=!c.gone&&Math.hypot(q[0]-p[0],q[1]-p[1])<420;if(c.bk)c.bk.forEach(m=>m.visible=!!c.bOn)});
  placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
  sunFollow(p[1]+10,-p[0]);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;
- {const h=q[2]+R.yaw+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==="M"?(R.look.t<.55?75:R.look.t<1.35?60:110):100;fovH+=(fT-fovH)*Math.min(1,dt*7);{const sz=ren.getSize(new T.Vector2());cam.aspect=sz.x/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ {const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=!R.look?110:R.look.k==="M"?(R.look.t<.55?75:R.look.t<1.35?60:110):100;fovH+=(fT-fovH)*Math.min(1,dt*3.5);{const sz=ren.getSize(new T.Vector2());cam.aspect=sz.x/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   const Y=myY();cam.position.set(bx0+ox+(Math.random()-.5)*sk,Y+1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
-  const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*.05+R.pit*L+gr*L*Math.cos(R.yaw),q[1]+Math.cos(h)*L+oz);
+  const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*.05+HY.p*L+gr*L*Math.cos(HY.y),q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,Y+1.25,bz0);cockpit.rotation.order='YXZ';cockpit.rotation.y=-q[2];cockpit.rotation.x=-Math.atan(gr);
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  $('sp').textContent=Math.round(R.v*3.6);if(cluster)cluster(Math.round(R.v*3.6));

@@ -48,7 +48,7 @@ for(let k=-30;k<=30;k++)[-1,1].forEach(s=>{const p=mesh(SLINE,LOT.YEL,-(s*(AW+SD
 {for(let z=-150;z<150;z+=9+Math.random()*3)hTree(-(XC+4+Math.random()*1.5),z,0);
  hSlab(0,-XC-16,-XC-8,-300,300,-.02,LOT.ASF);box(30,6,160,LOT.BRK2,-(XC+40),3,0);box(30.4,.5,160.4,LOT.TAN,-(XC+40),6.2,0)}
 // 停着的车：右边一排、左边一排；空车位是第 0 个；参考车（白车）在第 1 个
-const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x23324f,0x4a4f57,0x5c6b7a,0xeceff1];
+const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x5a3e36,0x4a4f57,0x5c6b7a,0xeceff1];
 const PARKS=[],LX=PCX-LW.HL-2.2-LW.HW;      // 开过来时离参考车的车头（车道边）约 2.2 米
 for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
  if(s>0&&k===0)return;      // 空车位
@@ -97,7 +97,7 @@ function parkDone(){const cs=corners(),zs=cs.map(q=>q[1]),xs=cs.map(q=>q[0]),zl=
 // 困难模式：车道上一辆车从后面开过来，从你的左边过去
 //  · 停下以后第一次 360° 观察时它出现：你会看到它，等它过去再倒就对了
 //  · 没做观察就开始动车：它马上过来，你在动 → 没让行；你的车头已经摆到车道上，它就停下来等你（按喇叭）
-function acSpawn(R,d,seen){const c=car([0x8e2b2b,0x23324f,0xb9bec4][Math.random()*3|0]);live.push(c);const zMin=Math.min(...corners().map(q=>q[1]));R.ac={c,x:-1.9,z:zMin-d,v:0,t0:R.t,seen,phase:0}}
+function acSpawn(R,d,seen){const c=car([0x8e2b2b,0x5a3e36,0xb9bec4][Math.random()*3|0]);live.push(c);const zMin=Math.min(...corners().map(q=>q[1]));R.ac={c,x:-1.9,z:zMin-d,v:0,t0:R.t,seen,phase:0}}
 function acStep(R,dt){const A=R.ac;if(!A||A.gone)return;const cs=corners(),xL=Math.min(...cs.map(q=>q[0])),zMax=Math.max(...cs.map(q=>q[1])),zMin=Math.min(...cs.map(q=>q[1]));
  const need=Math.min(-1.9,xL-.5-LW.HW),room=need>=-(AW-.35-LW.HW);      // 它要从你左边过去，左边那排车的车尾（车道边）是界
  const front=A.z+LW.HL,blocked=!room&&front>zMin-3&&A.z<zMax+LW.HL;      // 过不去：在你车后面 3 米停住等

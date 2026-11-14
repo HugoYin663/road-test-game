@@ -119,14 +119,16 @@ function resumeCruise(){R.autoGo=false;R.goT=0;R.cruise=true;R.stopReq=false;R.c
 function startTP(){tagEv();R.task='tp';resumeCruise();const cz=PZB+95;SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+80,noMiss:true,side:'R',vcr:45/3.6,noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:6,pullX:HRW-.2-LW.TY-LW.TR,insText:TP_INSTXT};R.insT=null;setBtns('tp');      /* 两项之间开快一点（约 45 km/h） */
  R.insAt=null;R.tpWait=1;R.insTxt=TP_INSTXT;R.tr=null;R.trT=1e9;R.z0=null;R.goShown=0;$('bgas').style.visibility='hidden'}      /* 先往前开过路边停着的那两辆车，考官才发三点调头的指令（调头回来正好在它们后面平行停车）；指令之前不能停车 */
 // ---------------- 2. 三点调头（和“三点调头”一样） ----------------
-function tpSeg(dir,n){if(R.ph<1)return;if(dir<0&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');
- if(R.ph===1&&dir>0){R.ph=2;msb('L',{sig:'tp_noSigL',mir:'tp_noMirror',sh:'tp_noShoulderL'});if(R.oT.A==null||R.t-R.oT.A>15)E('noScan');tip('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前')}
- else if(R.ph===2&&dir<0){R.ph=3;if(R.sig!=='R')E('noSigR2');if(!sawMir(12))E('noMirror');tip('第二步：倒车，方向盘往右打到底，一直观察，停在路缘前')}
+function tpSeg(dir,n){if(R.ph<1)return;if(dir<0&&R.ph>=2&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');
+ if(R.ph===1&&dir>0)return;      /* 停好后往前（不打方向）：只是在调整位置，不算开始调头 */
+ if(R.ph===2&&dir<0){R.ph=3;if(R.sig!=='R')E('noSigR2');if(!sawMir(12))E('noMirror');tip('第二步：倒车，方向盘往右打到底，一直观察，停在路缘前')}
  else if(R.ph===3&&dir>0){R.ph=4;if(R.sig!=='L')E('noSigL3');tip('第三步：往前开，回到右边车道')}
  else if(R.ph>=4&&dir<0)E('tooMany')}
 function tpStep(R,dt){const t=R.t;
  if(R.ph===0&&!R.cruise&&R.x>2.45&&!R.c0){R.c0=1;msb('R',{sig:'tp_noSigR',mir:'tp_noMirror',sh:'tp_noShoulderR'})}
- if(R.ph===0&&!R.cruise&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}if(g.rear>.35)E('farCurb');tip('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始')}}
+ if(R.ph===0&&!R.cruise&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;tip('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始')}}
+ // 往前、方向盘往左打：这时才算开始调头。停的位置（挡没挡车道口、离路缘多远）也在这时候判——停下后还可以往前后调整
+ if(R.ph===1&&R.gear==='D'&&R.v>.05&&R.w<-.35){R.ph=2;R.z0=R.z;{const g=curbGap(1);if(g&&g.rear>.35)E('farCurb')}{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}msb('L',{sig:'tp_noSigL',mir:'tp_noMirror',sh:'tp_noShoulderL'});if(R.oT.A==null||R.t-R.oT.A>15)E('noScan');tip('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前')}
  if(!R.tr&&t>R.trT&&R.ph<5){const fromAhead=Math.random()<.5;R.tr={x:fromAhead?-2.1:2.1,lx:fromAhead?-2.1:2.1,z:fromAhead?R.z+140:R.z-140,dir:fromAhead?-1:1,v:11,wait:0};R.trc.visible=true}
  if(R.tr)trafficStep(R,dt);
  if(!R.autoGo&&!R.cruise&&Math.cos(R.h)<-.94&&R.revDist>.5){if(R.v>.1&&R.gear==='D'){R.autoGo=true;R.wl=R.wr=false;SCN.onGo(R);gasMode('go');mk()}else if(!R.goShown&&R.gear==='D'){R.goShown=1;R.gas=false;gasMode('go');tip('车头调过来了：按右下角“行驶”，系统开走')}}
