@@ -323,7 +323,7 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  if(!R.sigChk&&f[1]>SL){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-12)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
- if(R.scT>=0){R.scT+=dt;const sT=R.scT;
+ if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
   if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>1.5)R.scRel=sT;const tg=sT<.7?1.05:R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 路口里：先看右边（有没有紧急车辆），再看左边（人行横道上的行人）；按住就一直看左边 */
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
   if((R.scQ?sT>.9:sT>.3)&&R.scT>=0)R.lastScan=R.t}
@@ -405,7 +405,7 @@ function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  if(!K.right&&!K.lc&&!K.told&&u>=ce+10){if(krGap(TZR))K.gapT=0;else K.gapT=(K.gapT||0)+dt}      /* 右车道真的空着（有空档可以换）才计时；右边有车、只能等的时候不算 */
  if(!K.right&&!K.lc&&!K.told&&(K.gapT||0)>=(K.sig==='R'?10:7)){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 有空档可以换、你却一直没换（没打灯 7 秒；已经打了右转灯在准备 10 秒）：考官提醒你换到右车道，扣一分（不是严重错误） */
  // 看后视镜／回头看盲点（和换线项目一样）
- if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt;
+ if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT2=t}
    else if(R.q[0]==='sho'){R.look=null;mk();const n=R.q.shift();if(n)krAct(n)}      /* 右侧观察：看完右镜直接转头看右盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}

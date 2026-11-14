@@ -241,7 +241,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   if(!R.polE&&R.polPassT!=null&&!R.nsc&&fz>-9.5&&a[0]<16){R.nsc=true;if(!(R.lastScan>=R.pol.t0))ev('noScanP')}   // 警车过去后跟着走可以，但车头进路口前要再看一眼左边       // 警车通过路口时你还在开 → 严重错误
   if(P.chase){if(a[0]>16&&!R.po){R.po=true;R.mode=m='stop';R.stopA=3;R.stopT=Math.min(UEND-2,u+v*v/6+.5);mk();flash('警车示意你靠边停车')}
    if(v<.05){R.poT=(R.poT||0)+dt;if(R.poT>(R.po?2.5:3.5)){finish();return}}else R.poT=0}}
- if(R.scT>=0){R.scT+=dt;const sT=R.scT,tg=R.scQ?(sT<.75?-1.3:0):(sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0);R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>(R.scQ?1.1:2.2)){R.scT=-1;R.yaw=0}}   // 观察路口：左-右-左
+ if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT,tg=R.scQ?(sT<.75?-1.3:0):(sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0);R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>(R.scQ?1.1:2.2)){R.scT=-1;R.yaw=0}}   // 观察路口：左-右-左
  R.peds.forEach(p=>{if(!p.bike||p.hit)return;const c=pedPos(p,R.t),a=myPath(u),ahead=a[1]-c[1],blk=c[1]<-9&&ahead>0&&ahead<3.7&&Math.abs(a[0]-c[0])<1.4;   // 你的车挡在自行车道里：自行车刹车停在后面
   if(blk||p.dd!=null){if(p.dd==null)p.dd=pedD(p,R.t);const vb=blk?0:Math.min(5,(p.vb||0)+3*dt);p.vb=vb;p.blk=blk;p.dd+=vb*dt;p.sg=[{t:0,v:vb}]}});
  R.peds.forEach(p=>{if(p.hit||!p.o.visible||p.hide)return;const c=pedPos(p,R.t),a=myPath(u),dx=c[0]-a[0],dz=c[1]+(p.oz||0)-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
@@ -251,7 +251,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  {const a=myPath(u),fx=a[0]+2.35*Math.sin(a[2]);if(R.lane&&!R.llc&&fx>=11.5&&a[1]>-12){R.llc=true;if(R.light==='green'&&!(R.lastLook>=R.laneT)&&!R.ev.some(e=>e.key==='noLook2'))ev('noLastLook')}}   // 车头进入右侧人行横道前，要做过最后一次右后观察
  if(!R.sigChk&&u>=cs+6){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-15)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
- if(R.lookT>=0){R.lookT+=dt*1.4;const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
+ if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK;const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
   if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(.22-R.pit)*k9}              // 1 看中镜
   else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区

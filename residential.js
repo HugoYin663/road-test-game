@@ -1,7 +1,7 @@
 // ============================================================
 // residential.js — 小区路段连考：坡道停车 → 起步 → 三点调头 → 系统开走 → 路边平行停车（同一条街，像真路考一样一项接一项）
 // ============================================================
-// 一条南北向的街：南边一段是坡（上坡或下坡，有路缘），往北接平路。你往北开：先坡道停车；起步以后往北开到平路，三点调头；
+// 一条南北向的街：南边一段是坡（上坡或下坡，有路缘），往北接平路。你往北开：先坡道停车（路西边已经停着平行停车用的两辆车）；起步以后开过那两辆车就三点调头（紧凑：做完两项刚好回来平行停车）；
 // 调过头往南开，路西边停着两辆车，在白车后面平行停车
 // 错误的 key 都带前缀：hp_ 坡道停车、tp_ 三点调头、pk_ 平行停车（成绩单按三个小项分别填）
 const RM=[{k:'upC',up:1,name:'上坡、有路缘',en:'uphill, with curb'},{k:'downC',up:0,name:'下坡、有路缘',en:'downhill, with curb'}];
@@ -73,7 +73,7 @@ function setBtns(t){const B=BTN[t];if(!BG1){BG1={};['bsigL','bsigR'].forEach(id=
  ['bsigL','bsigR','bshL','bshR','bback','bmir'].forEach(id=>{const e=$(id);if(!e)return;const c=B[id];if(!c){e.style.display='none';return}e.style.display='';e.dataset.m=c[0];e.innerHTML=c[1];e.style.background=c[2]||BG1[id]||''});
  {const n=$('gN');if(n)n.style.display=B.gN?'':'none';const p=$('gPB');if(p)p.style.display=B.gPB?'':'none'}
  mk()}
-const EX_HP={laneX:2.1,startZ:-240,missZ:-40,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:6,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
+const EX_HP={laneX:2.1,startZ:-170,missZ:-30,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:7,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
 const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,keepIns:true,noBackCheck:true,
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  obst:[[-PX,PZA,Math.PI],[-PX,PZB,Math.PI]],
@@ -91,7 +91,7 @@ const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,ke
  peekR:R=>R.task==='pk'&&R.ph>=1,
  on360Start(R){if(R.task==='pk'&&HARD&&!R.bk&&R.ph>=1&&(R.n360||0)-(R.n360b||0)+1>=R.bkK){bikeSpawn(R,26);R.bk.seen=true}},
  autoV(R,dt){return pkAutoV(R,dt)},
- step(R,dt){if(R.tpWait&&R.z>PZB+25){R.tpWait=0;R.insAt=R.t;$('bgas').style.visibility=''}
+ step(R,dt){if(R.tpWait&&R.z>PZB+6){R.tpWait=0;R.insAt=R.t;$('bgas').style.visibility=''}
   if(R.insAt!=null&&R.t>=R.insAt){banner(R.insTxt,'#ffe27a',1);R.insAt=null;R.insT=R.t;if(R.task==='pk')PKARW.visible=true}
   if(R.task==='hp')hpStep(R,dt);else if(R.task==='tp')tpStep(R,dt);else if(R.task==='pk')pkStep(R,dt);
   if(R.t>420&&!R.over)finish()},
@@ -116,7 +116,7 @@ function hpNext(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banne
 // 起步开走以后：系统接着往北开（约 35 km/h），2 秒后考官发三点调头的指令；到了平路才开始慢下来
 function resumeCruise(){R.autoGo=false;R.goT=0;R.cruise=true;R.stopReq=false;R.crawl=false;R.slow=0;R.gear='D';R.gas=false;R.wl=R.wr=false;R.hb=false;R.pb=false;R.ph=0;R.revDist=0;R.revNoLook=0;R.lastDir=0;R.c0=0;R.touch={};
  SCN.vmax=2.0;SCN.stpLabel='停车<small>点一下<br>就停住</small>';cruiseUI(true);$('bgas').style.visibility=''}
-function startTP(){tagEv();R.task='tp';resumeCruise();const cz=PZB+95;SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+80,noMiss:true,side:'R',vcr:45/3.6,noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:6,pullX:HRW-.2-LW.TY-LW.TR,insText:TP_INSTXT};R.insT=null;setBtns('tp');      /* 两项之间开快一点（约 45 km/h） */
+function startTP(){tagEv();R.task='tp';resumeCruise();const cz=PZB+40;SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+80,noMiss:true,side:'R',vcr:32/3.6,noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:7,pullX:HRW-.2-LW.TY-LW.TR,insText:TP_INSTXT};R.insT=null;setBtns('tp');      /* 两项之间开快一点（约 45 km/h） */
  R.insAt=null;R.tpWait=1;R.insTxt=TP_INSTXT;R.tr=null;R.trT=1e9;R.z0=null;R.goShown=0;$('bgas').style.visibility='hidden'}      /* 先往前开过路边停着的那两辆车，考官才发三点调头的指令（调头回来正好在它们后面平行停车）；指令之前不能停车 */
 // ---------------- 2. 三点调头（和“三点调头”一样） ----------------
 function tpSeg(dir,n){if(R.ph<1)return;if(dir<0&&R.ph>=2&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');

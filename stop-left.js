@@ -267,7 +267,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   R.v=vt<R.v?Math.max(vt,R.v-7*dt):Math.min(vt,R.v+2.2*dt);R.u+=R.v*dt;if(AW4?me()[1]>40:me()[0]<-45){finish();return}}
  // 看左／看右：按住一直看，点一下也会看一眼（至少 0.6 秒）
  if(R.look&&R.lookUp>=R.lookT&&t-R.lookT>.6){R.look=0;mk()}
- const yt=R.look*1.25;R.yaw+=(yt-R.yaw)*Math.min(1,dt*7);if(R.yaw<-1)R.lookL=t;if(R.yaw>1)R.lookR=t;
+ const yt=R.look*1.25;R.yaw+=(yt-R.yaw)*Math.min(1,dt*5);if(R.yaw<-1)R.lookL=t;if(R.yaw>1)R.lookR=t;
  // 横路的车：跟前车；你挡在它车道上就刹车、按喇叭
  // 行人：车头离人行横道 35 米时出现，正好在你停下来前后走到你车前
  if(R.pedOn&&!R.ped&&fz>CW0-35){const dir=Math.random()<.5?1:-1,o=ped(PCOL[Math.random()*5|0]);live.push(o);scene.add(o);R.ped={o,dir,x:-dir*(RW+9+Math.random()*4),v:1.25+Math.random()*.3,ph:0}}

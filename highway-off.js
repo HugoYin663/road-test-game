@@ -213,7 +213,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;R.lastDone=t;setSig(null);mk()}}
  // 看后视镜／看盲点（右边）
- if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=1;L.t+=dt;
+ if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=1;L.t+=dt*LOOKK;
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=(.83-R.yaw)*k9;R.pit+=(-.27-R.pit)*k9;if(L.t>1)R.mT.R=t}
    else if(R.q[0]==='sho'){R.look=null;mk();nextAct()}      /* 侧面观察：看完外后视镜直接转头看盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}

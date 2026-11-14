@@ -195,14 +195,14 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(!R.sigChk&&f[1]>-17){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-12)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  // 观察路口：已经停在线前，左-右-左里重点看左边（看久一点）
- if(R.scT>=0){R.scT+=dt;const sT=R.scT;
+ if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
   const ex=a[0]-.38,ez=a[1]-.2,see=(x,z)=>R.tG!=null||R.suvGone||!hitBox(ex,ez,x,z,1.7,3.8,-21.7,-16.4);
   if(R.scQ){      // 从驾驶座看出去，视线有没有被左边的 SUV 挡住
    if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;      /* 离路口近：点一下看一眼左边就转回；按住就一直看左边，松开转回 */const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
   if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1]);if(see(-40,-2.75)&&see(-40,-6.25))R.scanClear=true}}
  // 右后观察：中镜→右镜→右后盲区
- if(R.lookT>=0){R.lookT+=dt*1.4;const lt=R.lookT,k9=Math.min(1,dt*12);
+ if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK;const lt=R.lookT,k9=Math.min(1,dt*12);
   if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(.22-R.pit)*k9}else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}
   else{R.lastLook=R.t;R.pit+=(0-R.pit)*k9;if(lt<2){R.yaw+=(1.9-R.yaw)*Math.min(1,dt*12)}else{R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt>2.5){R.lookT=-1;R.yaw=0;R.pit=0}}}}
  // 和其他车相撞：两车都停下，被撞的车被撞歪，路考结束

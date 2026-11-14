@@ -19,7 +19,7 @@ const TP_TXT={
  wrongLane:["调头后没有开在正确的车道","调过头以后要开在新方向的右边车道（原来的对面车道）。"]};
 const SCENE={g:0,Y:()=>0,TXT:TP_TXT,SER:['unsafe'],vmax:2.0,noSplit:true,noBackCheck:true,      /* 倒车前做 360° 观察（里面包括看正后面），不用按住回头看 */
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
- exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:60,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:6,pullX:HRW-.2-LW.TY-LW.TR,insText:'考官：在右边靠边停车，然后用三点调头往回开'},
+ exam:{laneX:2.1,startZ:-130,crawlZ:-25,missZ:60,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:7.5,pullX:HRW-.2-LW.TY-LW.TR,insText:'考官：在右边靠边停车，然后用三点调头往回开'},
  onHandover(R){R.trT=R.t+6+Math.random()*10},
  onStopReq(R){if(!R.c0){R.c0=1;msb('R')}},
  stpLabel:'刹车<small>点一下<br>减速靠边</small>',      // 考试模式：慢下来以后路上才开始有车
