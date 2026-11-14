@@ -117,7 +117,7 @@ section{display:flex;flex-direction:column;gap:12px}
 .dq li{display:flex;gap:7px;align-items:baseline;font-size:13.5px;color:#888}.dq li.on{color:#111;font-weight:700}.dq li i{flex:none;width:15px;height:15px;border:1.5px solid #333;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;color:#c8102e;position:relative;top:2px}.dq li small{font-weight:400;color:#666;margin-left:4px}
 details.route summary{cursor:pointer}
 #mkhost{position:fixed;inset:0;z-index:100;background:#000;display:none}
-#mkhost iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;transition:opacity 1.4s ease-in-out}
+#mkhost iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;transition:opacity .9s ease-out}
 </style>
 
 <div class="wrap">
@@ -225,7 +225,7 @@ details.route summary{cursor:pointer}
 <script src="lib/sheet.js?v=1112s"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1114b';
+const V='1114c';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -298,7 +298,8 @@ window.MKH={host:null,cur:null,nf:null,fb:null,
   this.fb=setTimeout(()=>{if(this.nf===f&&this.cur!==f)MST.nav(url)},25000)},      // 保险：框里 25 秒还没开始，就换成原来的整页跳转
  ready(w){const f=[...this.host.querySelectorAll('iframe')].find(x=>x.contentWindow===w);if(!f||f===this.cur)return;clearTimeout(this.fb);
   const old=this.cur;this.cur=f;f.style.opacity=1;if(old){old.style.opacity=0;old.dataset.rm=Date.now()+1600}try{f.contentWindow.focus()}catch(e){}},
- next(url){this.load(url)},
+ next(url){const old=this.cur;if(!old){this.load(url);return}      /* 先把这一项淡出到黑（车还在动），再在黑场里装下一项（装的时候画面会卡一下，黑着看不出来），装好了再淡入 */
+  old.style.transition='opacity .7s ease-in';old.style.opacity=0;setTimeout(()=>{old.remove();if(this.cur===old)this.cur=null;this.load(url)},750)},
  close(){VOX.stop();if(this.host){this.host.style.display='none';this.host.innerHTML=''}this.cur=null},
  finish(){const h=this.host;if(this.cur)this.cur.style.opacity=0;setTimeout(()=>{this.close();try{history.replaceState(null,'','#mock/result')}catch(e){}result()},1000)},
  quit(){this.close();try{history.replaceState(null,'','#mock')}catch(e){}view('mock')}};
