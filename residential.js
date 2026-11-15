@@ -132,7 +132,7 @@ function tpStep(R,dt){const t=R.t;
  if(R.ph===0&&!R.cruise&&R.x>2.45&&!R.c0){R.c0=1;msb('R',{sig:'tp_noSigR',mir:'tp_noMirror',sh:'tp_noShoulderR'})}
  if(R.ph===0&&!R.cruise&&R.v===0&&R.x>2.6&&Math.abs(R.h)<.2){const g=curbGap(1);if(g&&Math.min(g.front,g.rear)<.8){R.ph=1;R.lastDir=0;R.z0=R.z;tip('停好了。准备调头：打左转灯、看后视镜、两边看（左右盲点），没有车再开始')}}
  // 往前、方向盘往左打：这时才算开始调头。停的位置（挡没挡车道口、离路缘多远）也在这时候判——停下后还可以往前后调整
- if(R.ph===1&&R.gear==='D'&&R.v>.05&&R.w<-.35){R.ph=2;R.z0=R.z;{const g=curbGap(1);if(g&&g.rear>.35)E('farCurb')}{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}msb('L',{sig:'tp_noSigL',mir:'tp_noMirror',sh:'tp_noShoulderL'});if(R.oT.A==null||R.t-R.oT.A>15)E('noScan');tip('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前')}
+ if(R.ph===1&&R.gear==='D'&&R.v>.05&&R.w<-.35){R.ph=2;R.z0=R.z;{const g=curbGap(1);if(g&&g.rear>.35)E('farCurb')}{const bd=blocksDrive(1);if(bd)ev('blockDrive',bd.txt,bd.mark)}msb('L',{sig:'tp_noSigL',mir:'tp_noMirror',sh:'tp_noShoulderL'});tip('第一步：往前，方向盘往左打到底，过了路中间开始回方向盘，停在左边路缘前')}
  if(!R.tr&&t>R.trT&&R.ph<5){const fromAhead=Math.random()<.5;R.tr={x:fromAhead?-2.1:2.1,lx:fromAhead?-2.1:2.1,z:fromAhead?R.z+140:R.z-140,dir:fromAhead?-1:1,v:11,wait:0};R.trc.visible=true}
  if(R.tr)trafficStep(R,dt);
  if(!R.autoGo&&!R.cruise&&Math.cos(R.h)<-.94&&R.revDist>.5){if(R.v>.1&&R.gear==='D'){R.autoGo=true;R.wl=R.wr=false;SCN.onGo(R);gasMode('go');mk()}else if(!R.goShown&&R.gear==='D'){R.goShown=1;R.gas=false;gasMode('go');tip('车头调过来了：按右下角“行驶”，系统开走')}}

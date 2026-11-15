@@ -27,7 +27,7 @@ const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,myPathRaw,cs,ce,UEND,uW,ZC;
 // 广告牌原则：任务做完、结束前的 2～3 秒里玩家看得到——换到右车道以后，前方约 120 米右边路边慢慢出现一块，结束时它还在前面
 const BBX=-400,BBK=billboard('turn-left');placeBB(BBK,BBX,17.5,-Math.PI/2);
-{const g=speedSign(-(30+hwM),hwX+1.7);g.rotation.y=Math.PI}      // 左转进去以后约 30 米：限速 60      // 一直立在那里：转完弯就能远远看见，换完线后越来越近，结束时还在前面 40 多米
+[80,220].forEach(d=>{const g=speedSign(-(d+hwM),hwX+1.7);g.rotation.y=Math.PI})      /* 限速 60：放远一些（不和路口的灯杆、右边车门柱挡在一起），后面再立一块 */      // 左转进去以后约 30 米：限速 60      // 一直立在那里：转完弯就能远远看见，换完线后越来越近，结束时还在前面 40 多米
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPathRaw=P.p;myPath=u=>latPath(P.p,u);cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+215}      // 转完弯以后再往前开约 190 米：在这一段里要换到右车道      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 // 转完弯后换车道：在路线上加一个往右（+z）的横向偏移，按走过的距离平顺地过去
 const qn=k=>k*k*k*(10-15*k+6*k*k),qd=k=>30*k*k*(1-k)*(1-k);
@@ -38,7 +38,7 @@ usePath('N');
 const ZC0=PK.S.ZC,AB=4;      // 排车流时间表用的位置
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
 const uS=uAt(SL-2.7),      // 停车线后的停车位置（车头离停车线约 0.6 米）
-      uDiv=uAt(SL-2.05);     // 两条路线从这里分开
+      uDiv=uAt(SL-2.05),uZZ=uAt(SL-1.0);      // uZZ：到这里之前都还能选 Zig-Zag（前面有车待转、你停得稍微过了停车线一点，只要没到人行横道，也可以）     // 两条路线从这里分开
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
 const OLT=path(myPts.map(p=>[-p[0],-p[1]]));      // （对面车也做 Zig-Zag 时用的路线，现在先不用）
 // 对面左转车：不做 Zig-Zag，进路口后把车头歪向它自己的左边等着（车头不进你这边的直行车道）——不对的做法，但生活中很常见
@@ -204,7 +204,7 @@ function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(
  if(m==='scanL'||m==='scanR'){R.scT=0;R.scRel=null;yawD=0;R.scQ=true;R.scSide=m==='scanL'?'L':'R';R.scHold=true;return}      // 路口里等候：左侧观察（人行横道上的行人）、右侧观察（紧急车辆）分开两个键，按住一直看
  // 和绿灯右转一样：不按停车，车就一直开进路口、转弯；玩家决定什么时候停、停在哪里。玩家不能打方向盘，所以 Zig-Zag 单独一个键：出白线前按，系统做 Zig-Zag 并停在等候点
  if(m==='stopN')m='stop';
- if(m==='stopS'){if(R.u<uDiv-.3&&R.mode!=='enter'){usePath('S');R.PK='S';m='enter'}else return}
+ if(m==='stopS'){if(R.u<uZZ&&R.mode!=='enter'){usePath('S');R.PK='S';m='enter'}else return}
  if(m==='turn')m='go';      // 行驶
  if(m===R.mode)return;
  if(m==='stop'){R.stopA=Math.max(5,Math.min(7,R.v*R.v/8));R.stopT=R.u+R.v*R.v/(2*R.stopA)}      // 从现在的位置果断刹车停下（低速时不再往前溜太多）
@@ -323,7 +323,7 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  // 转向灯
  if(!R.sigChk&&f[1]>SL){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-12)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
- {const inI=!R.kr&&u>=uS-3,sh=(id,on)=>{const e=$(id);if(e&&(e.style.display==='none')===on)e.style.display=on?'':'none'};sh('bc',!R.kr&&!inI);sh('bcL',inI);sh('bcR',inI);if(!R.kr)sh('bs2',!inI)}      /* 进了路口：观察分成左侧、右侧两个键；Zig-Zag 键不用了 */
+ {const inI=!R.kr&&(R.mode==='enter'||R.PK==='S'||u>=uZZ),sh=(id,on)=>{const e=$(id);if(e&&(e.style.display==='none')===on)e.style.display=on?'':'none'};sh('bc',!R.kr&&!inI);sh('bcL',inI);sh('bcR',inI);if(!R.kr)sh('bs2',!inI)}      /* 进了路口：观察分成左侧、右侧两个键；Zig-Zag 键不用了 */
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
  if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
   if(R.scQ&&R.scSide){if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;const tg=R.scRel==null?(R.scSide==='R'?1.05:-1.35):0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);
@@ -428,7 +428,7 @@ function folStep(dt,u){if(DIFF==='hard'&&!R.psOn&&u>=ce+14&&!R.crash){const ok=w
   if(fo.go&&fo.u>=ce+2){const q=myPathRaw(fo.u);Object.assign(fo,{free:true,x:q[0],z:TZ,h:-Math.PI/2,lane:'L'})}
   return}
  if(fo.crash){fo.v=Math.max(0,fo.v-9*dt);fo.x-=fo.v*dt;return}
- const a=myPath(u);let vt=fo.lane==='R'?22.5:20;      /* 换到右车道后加速超过你（约 72 km/h） */
+ const a=myPath(u);let vt=fo.lane==='R'?18:17.2;      /* 转完以后：限速 60，别的车开 60～65 */
  // 跟前车（你的车在它车道上也算）
  const ahead=[{x:a[0],z:a[1],v:R.v}].concat(wCars().filter(c=>c.o!==fo));
  ahead.forEach(o=>{if(Math.abs(o.z-fo.z)>2.4)return;const al=fo.x-o.x;if(al>0&&al<70)vt=Math.min(vt,Math.sqrt(o.v*o.v+2*4*Math.max(0,al-4.6-6)))});

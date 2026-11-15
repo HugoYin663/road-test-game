@@ -36,6 +36,7 @@ const ASD=M(0x5f6168,{side:T.DoubleSide}),CRD=M(0xc9cbcf,{side:T.DoubleSide}),SW
   for(let i=0;i<N;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();const m=new T.Mesh(g,SWD);m.receiveShadow=true;scene.add(m)});
 });
+if(NOSTOP){box(.45,.03,RW,BM(WH),-(RW+1.25),.045,-RW/2);box(.45,.03,RW,BM(WH),RW+1.25,.045,RW/2)}      // 没有停牌的左转：横路两边有停车线（你这条路没有）
 // 人行横道（你这条路，以及对面那条路）：小区里只画两条细白线（不是大路口那种斑马线）
 const WLm=BM(WH);
 [[CW0,CW1],[-CW1,-CW0]].forEach(([a,b])=>{box(2*RW,.03,.18,WLm,0,.045,a+.09);box(2*RW,.03,.18,WLm,0,.045,b-.09)});
@@ -127,6 +128,7 @@ const TXT={
  hesitate:["有安全的空档却一直不走","两边都没车、看得也清楚的时候，要果断转弯。等了很久不走，会影响后面的车，也算犹豫不决。"],
  unsafeO:["对面来车太近还左转","你这条路没有停牌，对面的直行车也不停：左转要让它。离得太近（几秒内就到路口）时转过去，会挡在它前面，逼它急刹甚至撞上。要等它过去、或者等到足够大的空档再转。"],
  noLookN:["左转前没有观察","没有停牌的路口左转：转之前要看清对面的来车、你要转进去那条路上的行人（看左），也要看一眼右边。"],
+ yieldW:["不清楚路权：停下来让横路停牌后的车","横路有停牌、你这条路没有：停牌后的车必须让你，哪怕你是左转、它是直行。对面没车、没有行人时，应该直接转，不要停下来等它——你停下让它，它不知道该不该走，后面的车也被你挡住。"],
  hesitateN:["对面没有车却一直不转","没有停牌、对面也没有来车的时候，要果断左转。停在路口等太久，后面的车会被你挡住，也算犹豫不决。"],
  crash:["和别的车相撞","左转要让横路两个方向的车。看不清就慢慢前移再看，确认两边都有足够的空档再走。"]};
 if(AW4){TXT.stopOnCross=["停车压到了停车线","有停车线时，车头要停在粗白停车线后面，不要压线，更不能停到人行横道上。"];TXT.stopFar=["停车离停车线太远","车头要停在接近停车线的地方（1～2 米内）。停得太远，别的车看不出你已经停好在等。"];
@@ -142,7 +144,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  // 横路两个方向的车：间距随机（有长有短），40～50 km/h
  // 横路车流：一段一段的车，中间有大空档；两个方向的大空档差不多同时到路口，这样左右都空的机会多（左转要两边都空）
  R.onc=[];if(NOSTOP){const v=11.1;let z=60+Math.random()*30;while(z<520){const c=car(C[2+Math.random()*7|0]);live.push(c);R.onc.push({c,x:-XL,z,v:v+Math.random()*.5,cv:v});z+=hard?(Math.random()<.45?95+Math.random()*60:24+Math.random()*14):(Math.random()<.55?110+Math.random()*80:26+Math.random()*16)}      /* 对面的直行车：一小团、一个大空档 */
-  if(Math.random()<.6){const c=car(C[2+Math.random()*7|0]);live.push(c);place(c,-(RW+3.6),ZE,Math.PI/2,0)}}      /* 左边横路上一辆车停在 STOP 前等着（它让你） */
+  if(Math.random()<.75){const c=car(C[2+Math.random()*7|0]);live.push(c);R.W={c,x:-(RW+3.85),v:0,st:'wait',yT:0,clrT:null};place(c,R.W.x,ZE,Math.PI/2,0)}}      /* 左边横路上一辆车停在 STOP 前，要直行横过你这条路：它有停牌，要让你（你左转也是你先走） */
  if(!AW4&&!NOSTOP){const xs=[];let x=-230;while(x<230){xs.push(x);x+=hard?(Math.random()<.5?150+Math.random()*80:28+Math.random()*30):(Math.random()<.5?160+Math.random()*100:34+Math.random()*36)}
   const v=12.5;xs.forEach(x0=>{add(1,x0,v+Math.random()*.6);add(-1,-x0+(Math.random()*10-5),v+Math.random()*.6)})}
  R.spawnGap={'1':0,'-1':0};
@@ -226,6 +228,20 @@ function predict(){const P=turnPath();let u=0,v=Math.max(R.v,0),res=null;
    c.x+=c.dir*c.v*.1;
    if(bad){res={why:c.dir>0?'unsafeL':'unsafeR',x:c.x0,z:c.z,dist:Math.abs(c.x0-XL),kmh:Math.round(c.o.cv*3.6)};break}}}
  return res}
+// 横路停牌后的车（要直行横过你这条路）：等你（你没有停牌，路权高）；你转过去、离开了它的路线，它才走。
+// 你在路口停下来让它（对面没车、没行人），等一会儿它就先走——这算你不清楚路权
+function wStep(dt,p,fz){const W=R.W,t=R.t;
+ const oncNear=R.onc.some(c=>c.z>-12&&c.z<50);
+ const mine4=bc4([p[0],p[1],p[2],2.3,.95]),inPath=mine4.some(q=>q[1]>ZE-1.6&&q[1]<ZE+1.6&&q[0]>W.x-1&&q[0]<RW+4);
+ if(W.st==='wait'){
+  const near=R.mode!=='turn'&&fz>SL-45;      /* 你快到路口了：它等你 */
+  if(R.mode!=='turn'&&R.v<.05&&fz>SL-8&&!predO()&&!pedNear()){W.yT+=dt;if(W.yT>2.5&&!oncNear&&!inPath){if(!R.ev.some(e=>e.key==='yieldW'))ev('yieldW');W.st='go'}}else W.yT=0;
+  const gone=R.mode==='turn'&&!inPath&&p[0]<XL-1;      /* 你已经转过去、离开了它的路线 */
+  if(gone){W.clrT=W.clrT==null?t:W.clrT;if(t-W.clrT>.8&&!oncNear)W.st='go'}
+  if(!near&&R.mode!=='turn'&&fz<SL-45&&!oncNear&&t>4&&false)W.st='go'}
+ if(W.st==='go'){let vt=8;const ahead=mine4.filter(q=>q[1]>ZE-1.4&&q[1]<ZE+1.4&&q[0]>W.x);if(ahead.length){const g=Math.min(...ahead.map(q=>q[0]))-W.x-2.3;if(g<10)vt=Math.max(0,(g-1.5)*1.2)}
+  W.v=W.v>vt?Math.max(vt,W.v-6*dt):Math.min(vt,W.v+2*dt);W.x+=W.v*dt;if(W.x>200){W.c.visible=false;W.st='gone'}}
+ place(W.c,W.x,ZE,Math.PI/2,0)}
 // 对面直行车：如果现在开始转，它不减速开过来，会不会撞上（它前面留出 1.2 秒的距离）
 function predO(){if(!NOSTOP)return null;const P=turnPath();let u=0,v=Math.max(R.v,0),res=null;const cs=R.onc.map(c=>({o:c,z:c.z,v:c.cv}));
  for(let t=0;t<8&&!res;t+=.1){const vt=u<P.arcEnd?6:11;v=Math.min(vt,v+2.2*.1);u+=v*.1;const q=P(Math.min(u,P.len-.01)),me=[q[0],q[1],q[2],2.3,.95];
@@ -280,7 +296,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   // 有安全空档、看得清、两边都看过，却一直不走
   if(NOSTOP&&R.v<.05&&((t*4|0)!==(R.lastP||0))){R.lastP=t*4|0;const ok=!pedNear()&&!predO();R.safeT=ok?R.safeT+.25:0;if(R.safeT>8)ev('hesitateN')}      /* 停在路口：对面没车、没行人，等了 8 秒还不转 */
   if(!AW4&&!NOSTOP&&R.stopped&&((t*4|0)!==(R.lastP||0))){R.lastP=t*4|0;const ok=!pedNear()&&!predict()&&!blind()&&R.lookL>R.lastStop&&R.lookR>R.lastStop;R.safeT=ok?R.safeT+.25:R.safeT;if(R.safeT>10)ev('hesitate')}
- }else{const P=R.turnP;let vt=R.u<P.arcEnd?6:(AW4&&meIn()?7:11);if(AW4){const p0=me();R.A.forEach(a=>{if(a.st==='gone')return;const q=a.P(a.u);if(obbHit([p0[0],p0[1]+2.5,0,2.4,1],[q[0],q[1],q[2],2.3,.95]))vt=0})}      /* 你直行时前面有车挡着：先停（不会穿过去） */
+ }else{const P=R.turnP;let vt=R.u<P.arcEnd?6:(AW4&&meIn()?7:11);if(NOSTOP&&R.W&&R.W.st==='go'&&R.W.x>-RW-3&&R.W.x<RW+3){const p0=me(),q=P(Math.min(R.u+4,P.len-.01));if(obbHit([q[0],q[1],q[2],2.4,1],[R.W.x,ZE,Math.PI/2,2.3,.95]))vt=0}      /* 横路的车正横过路口：先停（不会撞上） */if(AW4){const p0=me();R.A.forEach(a=>{if(a.st==='gone')return;const q=a.P(a.u);if(obbHit([p0[0],p0[1]+2.5,0,2.4,1],[q[0],q[1],q[2],2.3,.95]))vt=0})}      /* 你直行时前面有车挡着：先停（不会穿过去） */
   R.v=vt<R.v?Math.max(vt,R.v-7*dt):Math.min(vt,R.v+2.2*dt);R.u+=R.v*dt;if(AW4?me()[1]>40:me()[0]<-45){finish();return}}
  // 看左／看右：按住一直看，点一下也会看一眼（至少 0.6 秒）
  if(R.look&&R.lookUp>=R.lookT&&t-R.lookT>.6){R.look=0;mk()}
@@ -298,6 +314,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   const g=(p[0]-c.x)*c.dir-4.6;if(g>-1&&g<45&&Math.abs(p[1]-c.z)<2.4){const need=Math.sqrt(Math.max(0,2*6*Math.max(0,g-3)));if(need<vt){if((c.cv*c.cv)/(2*Math.max(.5,g-3))>3&&!c.hk){c.hk=true;honk()}vt=need}}
   c.cv=c.cv>vt?Math.max(vt,c.cv-7*dt):Math.min(vt,c.cv+1.8*dt);c.x+=c.dir*c.cv*dt;
   if(c.dir>0&&c.x>240)Object.assign(c,{x:-240-Math.random()*60,hk:false});if(c.dir<0&&c.x<-240)Object.assign(c,{x:240+Math.random()*60,hk:false})});
+ if(NOSTOP&&R.W&&R.W.st!=='gone')wStep(dt,p,fz);
  // 对面直行车：跟前车；你挡在它的车道上就刹车（不会穿过你）
  if(NOSTOP)R.onc.forEach(c=>{if(c.crash){c.cv*=Math.max(0,1-3*dt);c.z-=c.cv*dt;place(c.c,c.x,c.z,Math.PI+(c.spin||0),0);return}let vt=c.v;
   R.onc.forEach(o=>{if(o===c)return;const g=c.z-o.z-4.6;if(g>-1&&g<60)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-6)))});
@@ -305,7 +322,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   c.cv=c.cv>vt?Math.max(vt,c.cv-7*dt):Math.min(vt,c.cv+1.8*dt);c.z-=c.cv*dt;if(c.z<-250)Object.assign(c,{z:Math.max(260,...R.onc.map(o=>o.z+30))+Math.random()*80,hk:false});
   place(c.c,c.x,c.z,Math.PI,0);c.c.visible=Math.abs(c.z)<300});
  // 相撞
- if(!R.crash){const mm=[p[0],p[1],p[2],2.3,.95];const H=R.cars.find(c=>Math.abs(c.x-p[0])<8&&Math.abs(c.z-p[1])<6&&obbHit(mm,[c.x,c.z,c.dir>0?Math.PI/2:-Math.PI/2,2.3,.95]))||(R.onc||[]).find(c=>Math.abs(c.z-p[1])<6&&obbHit(mm,[c.x,c.z,Math.PI,2.3,.95]));
+ if(!R.crash){const mm=[p[0],p[1],p[2],2.3,.95];const H=R.cars.find(c=>Math.abs(c.x-p[0])<8&&Math.abs(c.z-p[1])<6&&obbHit(mm,[c.x,c.z,c.dir>0?Math.PI/2:-Math.PI/2,2.3,.95]))||(R.onc||[]).find(c=>Math.abs(c.z-p[1])<6&&obbHit(mm,[c.x,c.z,Math.PI,2.3,.95]))||(R.W&&R.W.st!=='gone'&&obbHit(mm,[R.W.x,ZE,Math.PI/2,2.3,.95])?R.W:null);
   if(H){if(H.dir||H.x===-XL){H.crash=true;H.spin=.3}R.crash={t};R.v=0;crashSnd();ev('crash')}
   if(AW4&&!R.crash){const A=R.A.find(a=>{if(a.st==='gone')return false;const q=a.P(a.u);return obbHit(mm,[q[0],q[1],q[2],2.3,.95])});if(A){R.crash={t};R.v=0;A.v=0;A.st='gone2';crashSnd();ev('crash')}}}
  if(R.crash){R.v=0;if(t-R.crash.t>2.5){finish();return}}}
