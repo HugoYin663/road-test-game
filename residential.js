@@ -6,6 +6,8 @@
 // 错误的 key 都带前缀：hp_ 坡道停车、tp_ 三点调头、pk_ 平行停车（成绩单按三个小项分别填）
 const RM=[{k:'upC',up:1,name:'上坡、有路缘',en:'uphill, with curb'},{k:'downC',up:0,name:'下坡、有路缘',en:'downhill, with curb'}];
 const RQ=((typeof location!=='undefined'?location.search:'').match(/mode=(\w+)/)||[])[1];
+// 模拟考试里拆成两段（网址 var=）：hill＝只做坡道停车；tppk＝左转进来以后，开过路左边停着的两辆车做三点调头，回来平行停车
+const RVAR=((typeof location!=='undefined'?location.search:'').match(/var=(\w+)/)||[])[1];
 const HP=RM.find(m=>m.k===RQ)||RM[Math.random()<.5?0:1];HP.curb=1;
 const HPG=HP.up?.06:-.06,ZH0=-20,ZH1=10;      // 坡度 6%（缓一些，坡道可以长一些）      // 坡道在 z<-20；-20～10 慢慢变平；10 以北是平路
 const YF=z=>z>=ZH1?0:z>=ZH0?-HPG*(ZH1-z)*(ZH1-z)/60:-HPG*15+HPG*(z-ZH0);
@@ -73,13 +75,14 @@ function setBtns(t){const B=BTN[t];if(!BG1){BG1={};['bsigL','bsigR'].forEach(id=
  ['bsigL','bsigR','bshL','bshR','bback','bmir'].forEach(id=>{const e=$(id);if(!e)return;const c=B[id];if(!c){e.style.display='none';return}e.style.display='';e.dataset.m=c[0];e.innerHTML=c[1];e.style.background=c[2]||BG1[id]||''});
  {const n=$('gN');if(n)n.style.display=B.gN?'':'none';const p=$('gPB');if(p)p.style.display=B.gPB?'':'none'}
  mk()}
+const EX_TPD={laneX:2.1,startZ:PZA-40,missZ:999,noMiss:true,side:'R',noAutoSlow:true,vcr:32/3.6,insText:''};      // tppk：从路口转进来，直接开过来
 const EX_HP={laneX:2.1,startZ:-170,missZ:-30,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:7,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
 const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,keepIns:true,noBackCheck:true,
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  obst:[[-PX,PZA,Math.PI],[-PX,PZB,Math.PI]],
  exam:EX_HP,stpLabel:'刹车<small>点一下<br>减速靠边</small>',
  okText:'坡道停车、三点调头、平行停车都做得很好：每一步之前都做了观察、打了灯，停车位置准确。',
- setup(R){if(typeof PKARW!=='undefined')PKARW.visible=false;SCN.exam=EX_HP;SCN.stpLabel='刹车<small>点一下<br>减速靠边</small>';SCN.vmax=2.2;R.task='hp';setBtns('hp');
+ setup(R){if(typeof PKARW!=='undefined')PKARW.visible=false;SCN.exam=RVAR==='tppk'?EX_TPD:EX_HP;SCN.stpLabel='刹车<small>点一下<br>减速靠边</small>';SCN.vmax=2.2;R.task='hp';setBtns('hp');
   if(!R.trc){const c=car(C[1+Math.random()*8|0]);live.push(c);c.visible=false;R.trc=c}R.tr=null;R.trT=1e9;
   },
  onStopReq(R){if(R.task==='hp'){if(R.sig!=='R')E('noSigR');if(!sawMir(12))E('noMirror');if(!sawSh('R',10))E('noShoulderR')}else if(R.task==='tp'&&!R.c0){R.c0=1;msb('R',{sig:'tp_noSigR',mir:'tp_noMirror',sh:'tp_noShoulderR'})}},      /* 系统开始减速靠边时：应该已经打了右转灯、看了镜子和右盲点 */
@@ -91,7 +94,8 @@ const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,ke
  peekR:R=>R.task==='pk'&&R.ph>=1,
  on360Start(R){if(R.task==='pk'&&HARD&&!R.bk&&R.ph>=1&&(R.n360||0)-(R.n360b||0)+1>=R.bkK){bikeSpawn(R,26);R.bk.seen=true}},
  autoV(R,dt){return pkAutoV(R,dt)},
- step(R,dt){if(R.tpWait&&R.z>PZB+6){R.tpWait=0;R.insAt=R.t;$('bgas').style.visibility=''}
+ step(R,dt){if(RVAR==='tppk'&&!R.tpInit){R.tpInit=1;startTP()}
+  if(R.tpWait&&R.z>PZB+6){R.tpWait=0;R.insAt=R.t;$('bgas').style.visibility=''}
   if(R.insAt!=null&&R.t>=R.insAt){banner(R.insTxt,'#ffe27a',1);R.insAt=null;R.insT=R.t;if(R.task==='pk')PKARW.visible=true}
   if(R.task==='hp')hpStep(R,dt);else if(R.task==='tp')tpStep(R,dt);else if(R.task==='pk')pkStep(R,dt);
   if(R.t>420&&!R.over)finish()},
@@ -110,7 +114,7 @@ function hpStep(R,dt){const t=R.t;
  if(R.ph===3&&R.gas&&!R.autoGo){if(R.pb){R.gas=false;tip('先放下手刹（再点一下手刹键）');mk()}else if(R.gear!=='D'){R.gas=false;tip('先挂 D 档');mk()}
   else{R.autoGo=true;if(R.sig!=='L')E('noSigL');if(!sawMir(12))E('noMirror');if(!sawSh('L',10))E('noShoulderL');tip('开走了')}}
  if(R.autoGo){R.gear='D';SCN.vmax=4.5;R.gas=true;R.v=Math.min(4.5,R.v+1.2*dt);const hd=Math.atan2(2.1-R.x,6),e=hd-R.h;
-  R.w+=Math.max(-dt/.6,Math.min(dt/.6,Math.max(-1,Math.min(1,e*1.8))-R.w));R.goT=(R.goT||0)+dt;if(R.goT>3)startTP()}}
+  R.w+=Math.max(-dt/.6,Math.min(dt/.6,Math.max(-1,Math.min(1,e*1.8))-R.w));R.goT=(R.goT||0)+dt;if(R.goT>3){if(RVAR==='hill'){tagEv();finish()}else startTP()}}}
 function hpDone(){const wantLeft=HP.k==='upC',ok=wantLeft?R.w<-.05:R.w>.05;if(!ok)E('wrongWheels');else if(Math.abs(R.w)<.6)E('weakWheels');if(!R.rested&&!R.away)E('noRest')}
 function hpNext(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banner('考官：好。安全的话，请继续行驶（when safe, drive on）','#ffe27a',1)}
 // 起步开走以后：系统接着往北开（约 35 km/h），2 秒后考官发三点调头的指令；到了平路才开始慢下来

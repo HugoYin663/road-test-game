@@ -27,7 +27,8 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
 .b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
 .b small{display:block;font-size:11px;font-weight:400;opacity:.85}
-#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bs2{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bs2{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bt{background:#2aa24a}#bcL{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bcR{background:#7b5bd6;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -68,6 +69,8 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b" id="bg" data-m="sig">左转灯<small>Signal</small></button>
 <button class="b" id="bs2" data-m="stopS">Zig-Zag</button>
 <button class="b" id="bc" data-m="scan">观察路口<small>先看右，再看左</small></button>
+<button class="b" id="bcL" data-m="scanL" style="display:none">左侧观察<small>人行横道</small></button>
+<button class="b" id="bcR" data-m="scanR" style="display:none">右侧观察<small>紧急车辆</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html#practice">← 全部项目</a>
 <h2>绿灯左转 · 3D</h2>
@@ -100,7 +103,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/hq.js?v=1111i"></script>
 <script src="lib/rules.js?v=1028c"></script>
 <script src="lib/ui.js?v=1030c"></script>
-<script src="green-left.js?v=1114d"></script>
+<script src="green-left.js?v=1115a"></script>
 <script src="lib/voice.js?v=1112y"></script>
 <script src="lib/mock.js?v=1114d"></script>
 </body></html>

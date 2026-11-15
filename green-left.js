@@ -201,6 +201,7 @@ const pedConf=p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.
 function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(R.u>=ce+1)return;if(m==='look')return;
  if(m==='sig'){R.sig=!R.sig;$('sg').style.display=R.sig?'block':'none';if(R.sig){tick(true);if(R.sigU==null)R.sigU=R.u}mk();return}
  if(m==='scan'){R.scT=0;R.scRel=null;yawD=0;R.scQ=R.u>=uS-3;R.scHold=true;return}
+ if(m==='scanL'||m==='scanR'){R.scT=0;R.scRel=null;yawD=0;R.scQ=true;R.scSide=m==='scanL'?'L':'R';R.scHold=true;return}      // 路口里等候：左侧观察（人行横道上的行人）、右侧观察（紧急车辆）分开两个键，按住一直看
  // 和绿灯右转一样：不按停车，车就一直开进路口、转弯；玩家决定什么时候停、停在哪里。玩家不能打方向盘，所以 Zig-Zag 单独一个键：出白线前按，系统做 Zig-Zag 并停在等候点
  if(m==='stopN')m='stop';
  if(m==='stopS'){if(R.u<uDiv-.3&&R.mode!=='enter'){usePath('S');R.PK='S';m='enter'}else return}
@@ -208,7 +209,7 @@ function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(
  if(m===R.mode)return;
  if(m==='stop'){R.stopA=Math.max(5,Math.min(7,R.v*R.v/8));R.stopT=R.u+R.v*R.v/(2*R.stopA)}      // 从现在的位置果断刹车停下（低速时不再往前溜太多）
  R.mode=m;mk()}
-function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}
+function cmdUp(m){if(!/^scan/.test(m)||!R||!R.scHold)return;R.scHold=false}
 // 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 Zig-Zag，到等候点停住（约 6 km/h）
 // 默认（不按停车）的车速：快到路口时慢下来，顺着弧线转
 const vGo=u=>u<uS-20?11:u<cs?Math.max(5.2,11-(u-(uS-20))*.3):5.2+4.3*ss(cs+.4*(ce-cs),ce+6,u)+7.2*ss(ce+6,ce+55,u);      /* 转完弯后加速到约 60 km/h（这条路限速 60） */      // 转弯时约 19 km/h，后半段（斜进目标车道后）边回正边加速
@@ -322,11 +323,15 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  // 转向灯
  if(!R.sigChk&&f[1]>SL){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-12)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
+ {const inI=!R.kr&&u>=uS-3,sh=(id,on)=>{const e=$(id);if(e&&(e.style.display==='none')===on)e.style.display=on?'':'none'};sh('bc',!R.kr&&!inI);sh('bcL',inI);sh('bcR',inI);if(!R.kr)sh('bs2',!inI)}      /* 进了路口：观察分成左侧、右侧两个键；Zig-Zag 键不用了 */
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
  if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
-  if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>1.5)R.scRel=sT;const tg=sT<.7?1.05:R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 路口里：先看右边（有没有紧急车辆），再看左边（人行横道上的行人）；按住就一直看左边 */
+  if(R.scQ&&R.scSide){if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;const tg=R.scRel==null?(R.scSide==='R'?1.05:-1.35):0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);
+   if(sT>.5)R['scD'+R.scSide]=R.t;if(R.scRel!=null&&sT-R.scRel>.5){R.scT=-1;R.scRel=null;R.scSide=null;R.yaw=0}
+   if(R.scDL!=null&&R.scDR!=null&&Math.abs(R.scDL-R.scDR)<12)R.lastScan=Math.min(R.scDL,R.scDR)}      /* 左右都看过（12 秒内）才算观察过路口 */
+  else if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>1.5)R.scRel=sT;const tg=sT<.7?1.05:R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 路口里：先看右边（有没有紧急车辆），再看左边（人行横道上的行人）；按住就一直看左边 */
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
-  if((R.scQ?sT>.9:sT>.3)&&R.scT>=0)R.lastScan=R.t}
+  if(!R.scSide&&(R.scQ?sT>.9:sT>.3)&&R.scT>=0)R.lastScan=R.t}
  // 在路口里等候时，司机会稍微偏头、身体往左探，看对面远处的直行车
  {const w=R.atW!=null&&v===0&&m!=='go'&&R.scT<0&&u<cs;R.lean=(R.lean||0)+((w?1:0)-(R.lean||0))*Math.min(1,dt*2.5)}
  // 和其他车相撞
@@ -360,7 +365,8 @@ function lights(){const sc=R.sc,t=R.t,f=front(R.u);
  if(sc.Y7&&R.Ty==null){if(!R.p1&&f[1]>=-98-3.5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&f[1]>=-74-3.5){R.p1=2;setPedSig('M','hand')}if(f[1]>=-48.5){R.Ty=t;R.yD=SL-f[1]}}      // 到停车线前约 28 米时变黄
  if(sc.Y&&R.Ty==null){if(!R.p1&&t>=sc.Ty-5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&t>=sc.Ty-3){R.p1=2;setPedSig('M','hand')}if(t>=sc.Ty){R.Ty=t;R.yD=SL-f[1]}}
  if(R.Ty==null)return;
- if(R.light==='g'){setLight('y');R.OC.forEach(s=>{if(s.z-OSZ<=s.cv*s.cv/9+1&&s.z>0)s.run=true})}      // 黄灯时已经离停车线很近、停不下来的车照直开过去
+ if(R.light==='g'){setLight('y');R.OC.forEach(s=>{if(s.z-OSZ<=s.cv*s.cv/9+1&&s.z>0)s.run=true});
+  {const cap=Math.random()<.15?3:Math.random()<.4?1:2,L=R.OC.filter(s=>s.run&&s.z>OSZ-1).sort((a,b)=>a.z-b.z);L.slice(cap).forEach(s=>{s.run=false;s.rush=false;s.stop=true})}}      /* 抢黄灯直行过去的车：常见 1～2 辆，偶尔 3 辆，再后面的都停下 */      // 黄灯时已经离停车线很近、停不下来的车照直开过去
  if(R.light!=='g')R.SD.forEach(s=>{if(!s.run&&!s.stop){if(SDS-s.z>s.cv*s.cv/9+1)s.stop=true;else if(s.z<SDS+3)s.run=true}});      /* 我们这边的直行车：黄灯能停的停 */
  if(R.light!=='g'){R.OC.forEach(s=>{if(s.run&&!s.rush&&s.z-OSZ>s.cv*s.cv/9+.5){s.run=false}if(!s.run&&!s.stop&&s.z-OSZ>s.cv*s.cv/9+1)s.stop=true});      // 原来停不下的车被前车挡慢了、现在能停：也停      // 黄灯、红灯：还没到停车线、能安全停下的直行车和右转车都要停（后来才开到的车也一样）
   if(R.RT&&!R.RT.gone&&!R.RT.stop&&!R.RT.go){const q=ORT(R.RT.u);if(q[0]>-9.8&&q[1]-OSZ>R.RT.v*R.RT.v/14+.3)R.RT.stop=true;else R.RT.go=true}}      // 对面右转车车头还没过它的停车线：停（它转弯前车速很慢，基本都停得住）；已经过线、进了路口：正常转完
@@ -384,7 +390,7 @@ function wCars(){const L=[];const fo=R.fol;if(fo&&fo.free&&!fo.gone)L.push({o:fo
  R.XQ.forEach(q=>{if(q.dir<0&&q.x<-(hwM+2))L.push({o:q,x:q.x,z:q.z,v:q.cv})});return L}
 function krFollow(){const a=myPath(R.u);let vt=99;wCars().forEach(c=>{if(Math.abs(c.z-a[1])>2.6)return;const al=a[0]-c.x;if(al>0&&al<70)vt=Math.min(vt,Math.sqrt(c.v*c.v+2*4*Math.max(0,al-4.6-8)))});return vt}
 function krEnter(){R.kr=KRS={lane:'L',off:0,lc:null,sig:null,sigT:0,u0:R.u};R.look=null;R.q=[];R.yaw=0;R.pit=0;R.scT=-1;
- ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display=''});mk()}      // 右侧观察合成一个键
+ ['bg','bc','bcL','bcR','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display=''});mk()}      // 右侧观察合成一个键
 function krSetSig(sd){const K=R.kr;K.sig=K.sig===sd?null:sd;K.sigT=R.t;const e=$('sg');e.style.display=K.sig?'block':'none';e.textContent=K.sig==='R'?'➡':'⬅';if(K.sig)tick(true);mk()}
 function krCmd(m){if(m==='sigL'||m==='sigR'||m==='sig'){krSetSig(m==='sigR'?'R':'L');return}
  if(m==='obs'){if(R.look||R.q.length)return;krAct('mir');R.q.push('sho');return}      // 右侧观察：中镜＋右镜，接着回头看右盲点
