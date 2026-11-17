@@ -97,7 +97,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
  okText:'进停车场前打了右转灯、让了行人；左转进车道前打了灯、让了对面的车；找车位前看镜、打灯，看了左边盲点，一次开进车位正中间，车身摆正、和两边的车对齐，挂 P、拉手刹，做得很好。',
  setup(R){SCN.exam=null;const park=DIFF==='park';
   const ev0=HARD?{pe:1,ec:1,ac:1}:park?{pe:0,ec:0,ac:0}:{pe:Math.random()<.5,ec:Math.random()<.6,ac:Math.random()<.35};
-  const PK=buildParks();PK.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
+  const PK=buildParks();{const L=PK.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
   if(TURNIN){ev0.pe=Math.random()<.7;ev0.ec=false;ev0.ac=false}
   R.LT=null;      /* 右转回考场：常有行人在人行道上走 */
   Object.assign(R,{EV:ev0,haz:[],tf:{q:trafPlan(HARD),cars:[]},AC:null,EC:null,PE:null,moves:0,segD:0});
@@ -167,7 +167,7 @@ function pedStep(dt){const PE=R.PE;if(!PE||PE.gone)return;
 function npcPedClear(PE){const pts=[[R.x,R.z,R.h]];if(R.EC&&!R.EC.gone)pts.push([R.EC.x,R.EC.z,R.EC.h]);return!pts.some(b=>inBox(b,PE.x,PE.z+.6))}      // 车挡在前面：行人停下等
 function inBox(b,px,pz){const s=Math.sin(b[2]),c=Math.cos(b[2]),dx=px-b[0],dz=pz-b[1];return Math.abs(dx*s+dz*c)<LW.HL+.3&&Math.abs(dx*c-dz*s)<LW.HW+.3}
 // 对面（商铺那边）开过来的车
-function ecSpawn(){const c=car([0xb9bec4,0x2f6fe0,0x4a4f57][Math.random()*3|0]);live.push(c);const s0=(XC+40)-24,p=at(ECP,s0);R.EC={c,s:s0,v:3.4,x:p[0],z:p[1],h:p[2],st:'drive'};
+function ecSpawn(){const c=car([0xb9bec4,0x3a7d44,0x4a4f57][Math.random()*3|0]);live.push(c);const s0=(XC+40)-24,p=at(ECP,s0);R.EC={c,s:s0,v:3.4,x:p[0],z:p[1],h:p[2],st:'drive'};
  R.haz.push(()=>{const E=R.EC;return!E||E.gone?null:boxHaz([E.x,E.z,E.h])})}
 function ecStep(dt){const E=R.EC;if(!E||E.gone)return;let vt=E.st==='go'?(E.road?VR:6):3.5;
  if(E.st==='drive'){vt=Math.min(vt,Math.sqrt(2*1.5*Math.max(0,ECP.sH-E.s)));if(E.s>=ECP.sH-.05&&E.v<.1)E.st='wait'}
@@ -205,4 +205,5 @@ function ltStep(dt){const T=R.LT;if(!T||T.gone)return;
  const p=at(LTP,T.s);T.x=p[0];T.z=p[1];T.h=p[2];place(T.c,T.x,T.z,T.h,0);
  {const on=T.s<LTP.sW+11&&Math.sin(R.t*9.4)>0;T.c.userData.bl.forEach(m=>m.visible=on)}      /* 左转灯：开过来、等着、转弯时一直闪，转进去以后关掉 */
  if(T.s>LTP.L[LTP.L.length-1]-3){T.c.visible=false;T.gone=1}}
+window.FREEZE_STATIC=1;      // 停车场：不会动的东西合并（转头看时不卡）
 LS.start(SCENE);

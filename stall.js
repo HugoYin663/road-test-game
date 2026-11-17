@@ -63,7 +63,7 @@ const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.
  exam:{laneX:LX,startZ:-32,crawlZ:-7,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
  okText:'起始位置准确，倒车前做了 360° 观察，往右打到底、和旁边的车平行时回正，车停在车位正中间、车身摆正，挂 P、拉手刹，做得很好。',
  setup(R){Object.assign(R,{x:LX,z:5.3,h:0,gear:'D',ph:EXAM?0:1});R.ac=null;R.n360b=0;
-  PARKS.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});
+  {const L=PARKS.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */
   SCN.obst=PARKS.map(p=>[p[0],p[1],p[2]]);
   if(!EXAM)banner('挂 R，做 360° 观察，慢慢往后倒，方向盘往右打到底','#ffe27a',1)},
  onGear(g){R.gT=R.t;if(R.ph===2&&g==='P'){R.ph=3;R.pT=R.t}else if(R.ph===3&&g!=='P')R.ph=2},      /* 挂 P 又马上换回 R/D：当作误操作，继续 */
@@ -108,4 +108,5 @@ function acStep(R,dt){const A=R.ac;if(!A||A.gone)return;const cs=corners(),xL=Ma
  if(!A.done&&A.phase===1&&A.z-LW.HL>zMax){A.done=true;const seen=A.seen||Math.max(R.oT.A||-9,R.mT||-9,R.oT.L||-9)>A.t0+.5;
   if(!R.ev.some(e=>e.key==='noYieldCar')){if(seen)banner('看到车道上的车，停下让它先过去：正确','#7ee787');else ev('noSeeCar')}}
  if(A.z>R.z+120){A.c.visible=false;A.gone=1}}
+window.FREEZE_STATIC=1;      // 停车场：不会动的东西合并（转头看时不卡）
 LS.start(SCENE);

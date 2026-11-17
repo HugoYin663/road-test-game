@@ -72,7 +72,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
  okText:'出车位前看了左边、打了灯，慢慢挪到车道边先左右看；车道里让了行人和车；车头停到大路边，左右看清楚，等到安全的空档才左转上大路，做得很好。',
  setup(R){const ev0=HARD?{ac:1,aisle:['ped','back'],pe:1,ec:1}:{ac:Math.random()<.5,aisle:[Math.random()<.5?'ped':'back'],pe:Math.random()<.4,ec:Math.random()<.5};
   Object.assign(R,{x:PCX,z:0,h:-Math.PI/2,gear:'D',ph:0,EV:ev0,haz:[],auto:{pts:PATH.P,i:0},stopReq:true});      /* 一开始就由系统控制方向：玩家只管停车、前移、行驶 */
-  const PK=buildParks(ev0.aisle.includes('back'));PK.forEach(p=>{const c=car(p[3]);live.push(c);place(c,p[0],p[1],p[2],0)});SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
+  const PK=buildParks(ev0.aisle.includes('back'));{const L=PK.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
   if(ev0.aisle.includes('back')){const c=car(0x7b8794);live.push(c);const B={c,x:PCX,z:ZS(KB),h:Math.PI/2,v:0,st:0,rl:revLights(c)};place(c,B.x,B.z,B.h,0);R.B=B;SCN.obst.push([B.x,B.z,B.h])}else R.B=null;
   R.tf={q:trafPlan(HARD),cars:[]};R.AC=null;R.P1=null;R.PE=null;R.EC=null;R.ecChk=0;
   banner('考官：开出车位，左转（pull out of the spot and turn left）','#ffe27a',1)},
@@ -169,7 +169,7 @@ const ECP=(()=>{const P=[],seg=(a,b)=>{const n=Math.ceil(Math.hypot(b[0]-a[0],b[
  const Rr=3.6,cx=NX+Rr,cz=ZL+Rr;seg([XC+40,ZL],[cx,ZL]);const iH=P.length;for(let i=0;i<12;i++){const a=-Math.PI/2-Math.PI/2*i/12;P.push([cx+Rr*Math.cos(a),cz+Rr*Math.sin(a)])}seg([NX,cz],[NX,400]);P.push([NX,400]);
  const L=[0];for(let i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));return{P,L,sH:L[iH]-((XR+.3+LW.HL)-cx),s0:(XC+40)-(XC+18)}})();      // s0：从商铺南头附近出现      // sH：车头停在大路边的位置
 function ecAt(s){const{P,L}=ECP;let i=0;while(i<L.length-2&&L[i+1]<s)i++;const f=Math.min(1,Math.max(0,(s-L[i])/(L[i+1]-L[i]||1)));return[P[i][0]+(P[i+1][0]-P[i][0])*f,P[i][1]+(P[i+1][1]-P[i][1])*f,Math.atan2(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1])]}
-function ecSpawn(){const c=car([0xb9bec4,0x2f6fe0,0x4a4f57][Math.random()*3|0]);live.push(c);const p=ecAt(ECP.s0);R.EC={c,s:ECP.s0,v:3.2,x:p[0],z:p[1],h:p[2],st:'drive'};
+function ecSpawn(){const c=car([0xb9bec4,0x3a7d44,0x4a4f57][Math.random()*3|0]);live.push(c);const p=ecAt(ECP.s0);R.EC={c,s:ECP.s0,v:3.2,x:p[0],z:p[1],h:p[2],st:'drive'};
  R.haz.push(()=>{const E=R.EC;if(!E||E.gone)return null;const ds=boxCorners([E.x,E.z,E.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
 function ecStep(dt){const E=R.EC;if(!E||E.gone)return;let vt=E.st==='go'?(E.road?VR:6):3.5;
  if(E.st==='drive'){vt=Math.min(vt,Math.sqrt(2*1.5*Math.max(0,ECP.sH-E.s)));if(E.s>=ECP.sH-.05&&E.v<.1)E.st='wait'}
@@ -178,4 +178,5 @@ function ecStep(dt){const E=R.EC;if(!E||E.gone)return;let vt=E.st==='go'?(E.road
  E.v=vt<E.v?Math.max(vt,E.v-6*dt):Math.min(vt,E.v+(E.road?2.5:1.5)*dt);E.s+=E.v*dt;const p=ecAt(E.s);E.x=p[0];E.z=p[1];E.h=p[2];if(E.x<XR-.5&&E.h>-.2)E.road=true;
  if(R.ph===2&&R.v>.5){const ds=boxCorners([E.x,E.z,E.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);if(ds.length&&Math.min(...ds)<4)ev('noYieldEC')}      /* 它在你前面横过、离你不到 4 米你还在开（系统要帮你急刹） */
  place(E.c,E.x,E.z,E.h,0);if(E.z>ZC+200){E.c.visible=false;E.gone=1}}
+window.FREEZE_STATIC=1;      // 停车场：不会动的东西合并（转头看时不卡）
 LS.start(SCENE);
