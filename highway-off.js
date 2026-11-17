@@ -222,7 +222,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  // 其他车：保持速度、跟前车；你在它车道上时把你当前车；你切到它前面太近时它刹车、按喇叭
  R.cars.forEach(c=>{if(c.gone)return;if(c.crash){c.cv*=Math.max(0,1-3*dt);c.s+=c.cv*dt;return}
   const sg=Math.sign(c.vd)||1;let vt=Math.abs(c.vd);
-  if(c.road==='P'){if(c.s>UC2+40){c.gone=true;return}if(c.s>UG-320)vt=Math.min(vt,Math.sqrt(16.5*16.5+2*2.2*Math.max(0,UC1-c.s)));      /* 出口车道的车：快到出口减速，匝道弯道约 50 */
+  if(c.road==='P'){if(c.s>UC2+40&&(c.s>P.len-5||!(q=>inView(q[0],q[1]))(carPos(c)))){c.gone=true;return}      /* 只在你看不到它的时候才去掉 */if(c.s>UG-320)vt=Math.min(vt,Math.sqrt(16.5*16.5+2*2.2*Math.max(0,UC1-c.s)));      /* 出口车道的车：快到出口减速，匝道弯道约 50 */
    if(R.mz==null&&Math.abs(R.d)<2.7){const g=R.u-c.s-4.6;if(g>-1&&g<80){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}}}}}
   R.cars.forEach(o=>{if(o===c||o.gone||o.road!==c.road||o.lane!==c.lane)return;const g=(o.s-c.s)*sg-4.6;if(g>-1&&g<80)vt=Math.min(vt,Math.sqrt(o.cv*o.cv+2*4*Math.max(0,g-7)))});
   if(c.road==='F'&&onHwy()&&Math.abs(p[1]-c.lane)<2.7){const g=(p[0]-c.s)-4.6;if(g>-1&&g<80){const need=Math.sqrt(R.v*R.v+2*4*Math.max(0,g-6));if(need<vt){vt=need;if(c.cv-R.v>.5&&(c.cv*c.cv-R.v*R.v)/(2*Math.max(.5,g-2))>3.2&&!c.hk&&(R.lc||t-R.lastDone<3)){c.hk=true;honk()}}}}

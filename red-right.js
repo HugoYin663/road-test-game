@@ -236,7 +236,7 @@ function cycle(dt){const C=R.cy,t=R.t;
   C.idle=(R.v<.05&&!walk)?(C.idle||0)+dt:0;C.LT.forEach(L=>{if((L.hold||L.wait)&&(R.u>ce+1||C.idle>5)){L.hold=false;L.wait=false}})}
  C.MOV.forEach(m=>{if(t<m.t0||m.crash){if(m.crash)place(m.o,m.x,m.z,m.h+m.spin);return}let vm=16;const dir=Math.cos(m.h);      /* 前面（路口里）还有没转完的左转车、或者别的车：减速、停下等，不会开进它里面 */
   [...C.LT.filter(L=>!L.gone).map(L=>LTP(L.u)),...C.OL.filter(L=>!L.gone).map(L=>OLP(L.u)),...C.MOV.filter(o=>o!==m&&t>=o.t0).map(o=>[o.x,o.z])].forEach(q=>{if(Math.abs(q[0]-m.x)>2.6)return;const d=(q[1]-m.z)*dir;if(d>0&&d<40)vm=Math.min(vm,Math.sqrt(2*5*Math.max(0,d-6.5)))});
-  m.v=m.v>vm?Math.max(vm,m.v-8*dt):Math.min(vm,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<150;place(m.o,m.x,m.z,m.h)});
+  m.v=m.v>vm?Math.max(vm,m.v-8*dt):Math.min(vm,m.v+2.5*dt);m.z+=Math.cos(m.h)*m.v*dt;m.o.visible=Math.abs(m.z)<330;place(m.o,m.x,m.z,m.h)});
  C.LT.forEach((L,i)=>{if(L.gone)return;if(L.crash){L.v=0;return}const ah=C.LT[i-1];let vt=L.u<104?9:L.u<LTU1?7:11;
   if(L.rel==null||t<L.rel)vt=0;
   if(L.hold||(R.v>.3&&R.mode==='turn'&&R.u<ce+3&&L.u<101.5&&(C.ph>=7?(R.entered||R.goN):R.goOK&&C.ph>=4)))      /* 只在你正在开出来转弯时让你；你停着不动它们就走 */vt=Math.min(vt,Math.sqrt(7*Math.max(0,100.4-L.u)));      // 停在停车线后（黄箭头停车，或让已经在转的你）

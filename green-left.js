@@ -18,7 +18,7 @@ function turnShape(D,TH){const T=TURN,ds=.05,out=[[0,0]];let x=0,z=0,h=0,n=0;con
 function turnPts(x0){let best=null;for(let d=60;d<=82;d+=.5){const TH=d*Math.PI/180,a=turnShape(0,TH);let D=(TZ-TURN.Z0-a[a.length-1][1])/Math.cos(TH);if(D<0)continue;let b=turnShape(D,TH);D+=(TZ-TURN.Z0-b[b.length-1][1])/Math.cos(TH);b=turnShape(D,TH);const e=Math.abs(x0+b[b.length-1][0]-TURN.END);if(!best||e<best.e)best={e,b}}
  return best.b.map(q=>[x0+q[0],TURN.Z0+q[1]])}
 function mkPath(xw){const TR=turnPts(xw),z0=TR[0][1],zW=z0-TURN.W,SP=[[XL,SL-2.05],[XL,SL+1.4],[xw,zW-2.2],[xw,zW]];      // Zig-Zag 做完停在等候点；起步后先直走一小段再转
- const pre=[[XL,-220],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-560,TZ]],p=path(pts);
+ const pre=[[XL,-220],...Array.from({length:21},(_,i)=>cub(SP,i/20))],pts=[...pre,...TR,[-900,TZ]],p=path(pts);
  let L=0,cs=0,ce=0;for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(i===pre.length)cs=L;if(i===pts.length-2)ce=L}
  const at=zz=>{for(let u=0;u<L;u+=.05)if(p(u)[1]>=zz)return u;return L};
  const ZC={};[-1.75,-5.25,-8.75,-11.25].forEach(Ln=>{for(let u=cs;u<L;u+=.05){const q=p(u);if(q[0]<=Ln){ZC[Ln]=q[1];break}}});
@@ -42,9 +42,9 @@ const uS=uAt(SL-2.7),      // 停车线后的停车位置（车头离停车线�
 const front=u=>{const a=myPath(u);return[a[0]+2.35*Math.sin(a[2]),a[1]+2.35*Math.cos(a[2])]};
 const OLT=path(myPts.map(p=>[-p[0],-p[1]]));      // （对面车也做 Zig-Zag 时用的路线，现在先不用）
 // 对面左转车：不做 Zig-Zag，进路口后把车头歪向它自己的左边等着（车头不进你这边的直行车道）——不对的做法，但生活中很常见
-const BKP=path([[-1.75,120],...Array.from({length:41},(_,i)=>cub([[-1.75,15.5],[-1.75,1],[6,-5.25],[26,-5.25]],i/40)),[170,-5.25]]);
+const BKP=path([[-1.75,120],...Array.from({length:41},(_,i)=>cub([[-1.75,15.5],[-1.75,1],[6,-5.25],[26,-5.25]],i/40)),[500,-5.25]]);
 // 对面右转车：转进西边道路的外侧车道（z=5.25）
-const ORT=path([[-8.75,150],...Array.from({length:31},(_,i)=>cub([[-8.75,33],[-8.75,20],[-(hwM-1),8.75],[-(hwM+10),8.75]],i/30)),[-280,8.75]]);      // 对面外侧直行道右转，转进西边道路的外侧车道
+const ORT=path([[-8.75,150],...Array.from({length:31},(_,i)=>cub([[-8.75,33],[-8.75,20],[-(hwM-1),8.75],[-(hwM+10),8.75]],i/30)),[-900,8.75]]);      // 对面外侧直行道右转，转进西边道路的外侧车道
 const mine=car(C[0]);
 let DIFF='easy',R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=0,ly=0,STD='g2',LASTK=null;
 const live=[];
@@ -78,7 +78,7 @@ function vLead(P,u){return u<P.cs?Math.min(11,5.5+Math.max(0,P.cs-6-u)*.35):5.5+
 function stepAQ(Ls,t,dt){const P=PK.N;Ls.forEach((L,k)=>{if(L.gone)return;let vt=t<L.rel?0:vLead(P,L.u);const ah=Ls[k-1];if(ah&&!ah.gone)vt=Math.min(vt,Math.max(0,(ah.u-L.u-7)*1.5));
   if(L.hold)vt=Math.min(vt,Math.sqrt(2*3*Math.max(0,L.uH-L.u)));L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+3*dt);L.u+=L.v*dt;if(ocBlock(P.p(L.u))){L.u-=L.v*dt;L.v=0}if(L.u>P.len-3)L.gone=true})}
 function stepOA(Ls,t,dt,us){Ls.forEach((L,k)=>{if(L.gone)return;const q=BKP(L.u);let vt=t<L.rel?0:L.u<us?Math.min(11,7+(us-L.u)*.3):(q[0]<14?7:9);const ah=Ls[k-1];if(ah&&!ah.gone)vt=Math.min(vt,Math.max(0,(ah.u-L.u-7)*1.5));
-  if(L.hold)vt=Math.min(vt,Math.sqrt(2*3*Math.max(0,us-.3-L.u)));L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+3*dt);L.u+=L.v*dt;if(ocBlock(BKP(L.u))){L.u-=L.v*dt;L.v=0}if(q[0]>150)L.gone=true})}
+  if(L.hold)vt=Math.min(vt,Math.sqrt(2*3*Math.max(0,us-.3-L.u)));L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+3*dt);L.u+=L.v*dt;if(ocBlock(BKP(L.u))){L.u-=L.v*dt;L.v=0}if(q[0]>420)L.gone=true})}
 const PN=()=>PK.N,uOfZ=zz=>{const P=PK.N;for(let u=0;u<P.len;u+=.05)if(P.p(u)[1]>=zz)return u;return 0},frontZ=u=>{const q=PK.N.p(u);return q[1]+2.35*Math.cos(q[2])};
 function mkAQ(n,rel0){const L=[];for(let k=0;k<n;k++)L.push({u:uOfZ(SL-.6-2.35-k*7.2),v:0,rel:rel0+k*.9});return L}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;KRS=null;
@@ -298,7 +298,7 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  if(R.RT&&!R.RT.gone&&R.RT.on){const T=R.RT,q=ORT(T.u);if(T.crash)T.v=0;else{let vt=q[1]>45?16:q[1]>16?Math.max(4.5,16-(45-q[1])*.45):4.5;if(q[0]<-(hwM+10))vt=Math.min(18,4.5+(-(hwM+10)-q[0])*.4);      /* 转进去以后加速到约 65 km/h，跟上车流 */if(T.stop)vt=Math.min(vt,Math.sqrt(14*Math.max(0,q[1]-OSZ)));if(q[0]>-(hwM-1.7))R.OC.forEach(o=>{if(!o.gone&&o.lane===-8.75&&o.z<q[1]&&q[1]-o.z<30)vt=Math.min(vt,Math.max(0,o.cv+(q[1]-o.z-8)*1.2))});      /* 跟着前面的直行车，不会撞上去 */
    const pb=R.peds.some(p=>{if(p.bike||p.hit||!walking(p))return false;const c=pedPos(p,R.t);return c[0]>-(hwM+6.8)&&c[0]<-(hwM+.7)&&(c[1]>5&&c[1]<hwX+1||(p.dir>0&&c[1]>-hwX&&c[1]<=5))});
    if(pb&&q[0]>-12.3)vt=Math.min(vt,Math.sqrt(7*Math.max(0,q[0]+12.3)));      // 车头停在人行横道前
-   T.v=T.v>vt?Math.max(vt,T.v-(T.stop?7:5)*dt):Math.min(vt,T.v+2.2*dt);T.u+=T.v*dt;if(q[0]<-270)T.gone=true}}
+   T.v=T.v>vt?Math.max(vt,T.v-(T.stop?7:5)*dt):Math.min(vt,T.v+2.2*dt);T.u+=T.v*dt;if(q[0]<-880)T.gone=true}}
  // 对面在路口里等的大车：时机到了就左转
  // 我们这边的直行车：跟车；黄灯能停的停在停车线后；对面左转车挡在车道上时减速
  R.SD.forEach(s=>{if(s.gone)return;if(s.crash){s.cv=0;return}let vt=s.v;
@@ -439,7 +439,7 @@ function folStep(dt,u){if(DIFF==='hard'&&!R.psOn&&u>=ce+14&&!R.crash){const ok=w
  if(fo.sig&&fo.offT&&R.t-fo.offT>1)fo.sig=false;
  fo.v=fo.v>vt?Math.max(vt,fo.v-6*dt):Math.min(vt,fo.v+2.6*dt);fo.x-=fo.v*dt;
  {const me=[a[0],a[1],a[2],2.3,.95];for(let k=0;k<40&&obbHit(me,[fo.x,fo.z,fo.h,2.3,.95]);k++){fo.x+=.1;fo.v=Math.min(fo.v,R.v)}}      /* 无论如何不会开进你的车里 */
- if(fo.x<-275){fo.gone=true;fo.car.visible=false}}
+ if(fo.x<-880){fo.gone=true;fo.car.visible=false}}      /* 开到很远（雾里看不见）才去掉，不会在眼前突然消失 */
 // ================= 渲染循环 =================
 let last=0,fovH=110;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t,bl=Math.sin(ts/1000*15)>0;
@@ -447,7 +447,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  if(R.RT){const q=ORT(R.RT.u);place(R.RT.c,q[0],q[1],q[2]+(R.RT.spin||0));R.RT.c.visible=!R.RT.gone&&!!R.RT.on;R.RT.c.userData.bl.forEach(m=>m.visible=bl&&q[0]>-20)}
  if(R.BK){const q=BKP(R.BK.u);place(R.BK.c,q[0],q[1],q[2]+(R.BK.spin||0));R.BK.c.userData.bl.forEach(m=>m.visible=bl&&q[0]<19)}
  if(R.LC){const q=PK.S.p(R.LC.u);place(R.LC.c,q[0],q[1],q[2]+(R.LC.spin||0));R.LC.c.userData.bl.forEach(m=>m.visible=bl&&q[0]>-19)}
- R.XQ.forEach(q=>{place(q.c,q.x,q.z,q.h+(q.spin||0));q.c.visible=Math.abs(q.x)<170});
+ R.XQ.forEach(q=>{place(q.c,q.x,q.z,q.h+(q.spin||0));q.c.visible=Math.abs(q.x)<880});
  R.SD.forEach(s=>{place(s.c,s.lane,s.z,s.spin||0);s.c.visible=!s.gone&&s.z>-170});
  R.peds.forEach(p=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));p.o.visible=true;place(p.o,q[0]+(p.ox||0),q[1]+(p.oz||0),q[2],.1);
   if(p.hit){p.o.rotation.order='YXZ';if(p.bike){p.o.rotation.z=Math.min(1.45,(p.o.rotation.z||0)+.12);p.o.position.y=.15}else{p.o.rotation.x=Math.max(-1.45,(p.o.rotation.x||0)-.12);p.o.position.y=.2}return}

@@ -46,7 +46,7 @@ let R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=
 const live=[];
 let LASTF={},HIST=[],R0={},MODE='free',DIFF='easy',EX=null;
 // 每个路口的情况：简单＝一种；困难＝2–3 种可同时出现的（后方行人／对面行人／自行车／左转车），或单独的黄灯、警车
-function pickList(){for(let n=0;n<60;n++){const L=pick1(),sg=L.slice().sort().join('+');if(EX?!EX.used.includes(sg):!HIST.includes(sg)){if(EX)EX.used.push(sg);else{HIST.push(sg);if(HIST.length>4)HIST.shift()}return L}}return pick1()}   // 模拟考中 5 个路口不重复
+function pickList(){const mk=typeof window!=='undefined'&&window.MOCK;for(let n=0;n<60;n++){const L=pick1();if(mk&&L.some(c=>/^5[a-d]/.test(c)))continue;      /* 模拟考试里这一项是“绿灯右转”：不出绿灯变黄的情况（让行人、可能有警车） */const sg=L.slice().sort().join('+');if(EX?!EX.used.includes(sg):!HIST.includes(sg)){if(EX)EX.used.push(sg);else{HIST.push(sg);if(HIST.length>4)HIST.shift()}return L}}{let L;do L=pick1();while(mk&&L.some(c=>/^5[a-d]/.test(c)));return L}}   // 模拟考中 5 个路口不重复
 // 每个路口抽一种：行人和自行车（合成一种，成员随机）／对面左转车待转（一半是不闪灯的警车）／黄灯／警车鸣笛
 function pedSet(nbMax){const P=a=>a[Math.random()*a.length|0],L=[],q=Math.random(),nb=q<.15?0:q<.55?1:q<.85?2:3;      // 后方行人 0–3 个＋对面行人＋自行车，至少一样
  if(nb>0)L.push(P(['1a','1a','1c']));if(nb>1)L.push('1m');if(nb>2)L.push('1n');
@@ -154,7 +154,7 @@ function crossCar(f,dt){if(f.x0==null){const q=f.p(0);f.x0=q[0];f.z0=q[1];f.dir=
  const x=f.x0+f.dir*f.s2;let vt=R.t-R.xgT<(Math.abs(f.x0)>22?2.6:1.3)||(polHold()&&f.dir*x<-12)?0:16.5;      // 绿灯后约 1.3 秒才起步；警车过来时不进路口
  flows.forEach(o=>{if(o===f||o.v!==0||o.dir!==f.dir||Math.abs(o.z0-f.z0)>.5||o.s2==null)return;const g=(o.x0+o.dir*o.s2-x)*f.dir;if(g>0)vt=Math.min(vt,Math.max(0,1.5*(g-7)))});
  [myPath(R.u),R.lc&&R.lc.state!=='idle'?R.lc.path(R.lc.u):null].forEach(a=>{if(!a)return;const g=(a[0]-x)*f.dir;if(Math.abs(a[1]-f.z0)<3.6&&g>0&&g<25)vt=Math.min(vt,Math.max(0,1.5*(g-7)))});   // 前方有你的车或左转车：减速跟车
- f.cv2=f.cv2>vt?Math.max(vt,f.cv2-7*dt):Math.min(vt,f.cv2+1.8*dt);f.s2+=f.cv2*dt;const nx=f.x0+f.dir*f.s2;f.c.visible=Math.abs(nx)<170;place(f.c,nx,f.z0,f.h)}
+ f.cv2=f.cv2>vt?Math.max(vt,f.cv2-7*dt):Math.min(vt,f.cv2+1.8*dt);f.s2+=f.cv2*dt;const nx=f.x0+f.dir*f.s2;f.c.visible=Math.abs(nx)<330;place(f.c,nx,f.z0,f.h)}
 function setCross(c){CHEADS.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}      // 横向道路的信号灯
 function setLight(c){R.light={g:'green',y:'yellow',r:'red'}[c];HEADS.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off});
  const b=$('bn');b.textContent={g:'绿灯右转',y:'黄灯！',r:'红灯'}[c];b.style.color={g:'',y:'#ffc21a',r:'#ff5a5a'}[c];const d=$('lt'),k={g:'#2ee66b',y:'#ffc21a',r:'#ff3b3b'}[c];d.style.background=k;d.style.boxShadow='0 0 8px '+k}
