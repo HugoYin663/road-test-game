@@ -224,7 +224,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   if(L.k==='M'){if(L.t<.55){R.yaw+=((sd<0?.12:.42)-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.36:.83)-R.yaw)*k9;R.pit+=((sd<0?-.26:-.27)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */if(L.t>1)R.mT[L.side]=t}
    else if(R.q[0]==='sho'){R.look=null;mk();nextAct()}      /* 侧面观察：看完外后视镜直接转头看盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
-  else{if(L.t<.95){R.yaw+=((sd<0?-1.25:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
+  else{if(L.t<.95){R.yaw+=((sd<0?-1.6:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}}
  // 其他车：保持速度、跟前车；你在它车道上时把你当前车；你切到它前面太近时它刹车、按喇叭
  R.cars.forEach(c=>{if(c.crash){c.cv*=Math.max(0,1-3*dt);c.s+=c.cv*dt;return}
@@ -254,7 +254,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  sunFollow(p[1]+10,-p[0]);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;
- if(view===1){const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=!R.look?96:R.look.k==='M'?(R.look.t<.55?70:R.look.t<1.35?56:96):90;fovH+=(fT-fovH)*Math.min(1,dt*3.5);{const sz=ren.getSize(new T.Vector2());cam.aspect=Math.floor(sz.x/2)/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ if(view===1){const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=96;      /* 观察时不放大画面，只转头 */fovH+=(fT-fovH)*Math.min(1,dt*3.5);{const sz=ren.getSize(new T.Vector2());cam.aspect=Math.floor(sz.x/2)/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   const Y=myY();cam.position.set(bx0+ox+(Math.random()-.5)*sk,Y+1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*.05+HY.p*L+gr*L*Math.cos(HY.y),q[1]+Math.cos(h)*L+oz);      /* 上坡时视线跟着往上 */

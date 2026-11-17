@@ -137,7 +137,7 @@ const SER=['noStop','unsafeL','unsafeR','unsafeO','crash','pedYield','yield4'];
 function add(dir,x,v){const c=car(C[1+Math.random()*8|0]);live.push(c);const k={c,dir,x,v,cv:v,z:dir>0?ZE:ZWB};R.cars.push(k);return k}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
  const hard=DIFF==='hard';
- R={t:0,mode:'app',z:-75,v:11.1,sig:null,sigT:-9,sigZ:null,ev:[],over:false,cars:[],stopped:false,lastStop:-9,firstStop:true,lookL:-9,lookR:-9,yaw:0,look:0,lookT:0,hard,park:false,stopReq:false,creep:false,turnP:null,u:0,safeT:0,hk:0};
+ R={t:0,mode:'app',z:NOSTOP?-150:-110,v:11.1,sig:null,sigT:-9,sigZ:null,ev:[],over:false,cars:[],stopped:false,lastStop:-9,firstStop:true,lookL:-9,lookR:-9,yaw:0,look:0,lookT:0,hard,park:false,stopReq:false,creep:false,turnP:null,u:0,safeT:0,hk:0};
  // 人行横道上的行人：你快到路口时，沿着横路的人行道走过来，从你车前的人行横道过去（简单约一半、困难大多数时候有）
  R.pedOn=Math.random()<(hard?.75:.45);
  // 横路两个方向的车：间距随机（有长有短），40～50 km/h

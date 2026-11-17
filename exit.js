@@ -144,7 +144,7 @@ function acStep(dt){const A=R.AC;if(!A||A.gone)return;if(sawScan(1.5)||((R.oT.XL
  if(A.v<.05&&R.v<.05&&ahead){A.waitT=(A.waitT||0)+dt;if(A.waitT>1.5&&turned&&A.backD<4){const d=.5*dt;A.z-=d;A.backD=(A.backD||0)+d;A.x+=Math.max(-.3*dt,Math.min(.3*dt,2.65-A.x))}      /* 你已经转进车道、它挡在你前面：它往后倒一点、靠到东边，给你让出来 */
   else if(A.waitT>2&&fx-LW.HW-.4>-2.3&&!turned){const dx=Math.max(-.18*dt,Math.min(0,fx-.6-LW.HW-A.x));A.x+=dx;A.z+=.6*dt;A.h=Math.atan2(dx,.6*dt)}}else A.waitT=0;
  A.z+=A.v*dt;place(A.c,A.x,A.z,A.h,0);
- if(R.ph<=1){const near=A.z+LW.HL>Math.min(...zs)-8&&A.z-LW.HL<Math.max(...zs)+1,inWay=fx<AX+LW.HW+.6;if(near&&inWay&&R.v>.1)ev('noYieldCar');      /* 车头稍微挪出来看两边不算错；它离你不到 8 米、你的车头已经伸到它要走的地方还在往外开，才算没让 */
+ if(R.ph<=1){const near=A.z+LW.HL>Math.min(...zs)-8&&A.z-LW.HL<Math.max(...zs)+1,inWay=fx<AX+LW.HW+.6;if(near&&inWay&&R.v>.25)A.nyT=(A.nyT||0)+dt;else A.nyT=Math.max(0,(A.nyT||0)-dt*.5);const close=A.z+LW.HL>Math.min(...zs)-3;if(A.nyT>1.2||close&&inWay&&R.v>.3)ev('noYieldCar');      /* 看到车停下来（车头伸出去一点也行）不算错：它在 8 米内你还继续开 1 秒多、或离你不到 3 米你还在开，才算没让 */      /* 车头稍微挪出来看两边不算错；它离你不到 8 米、你的车头已经伸到它要走的地方还在往外开，才算没让 */
   if(!A.done&&A.z-LW.HL>Math.max(...zs)+1){A.done=true;if(!R.ev.some(e=>e.key==='noYieldCar')){if(A.seen)banner('看到车道上的车，停下让它先过去：正确','#7ee787');else ev('noSeeCar')}}}
  if(A.z>78){A.c.visible=false;A.gone=1}}      // 开到停车场北头
 // 行人：车道里横过去的（从西边的车中间走出来，走向东边的商铺）；出口人行道上走的

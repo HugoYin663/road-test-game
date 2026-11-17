@@ -76,7 +76,7 @@ function setBtns(t){const B=BTN[t];if(!BG1){BG1={};['bsigL','bsigR'].forEach(id=
  {const n=$('gN');if(n)n.style.display=B.gN?'':'none';const p=$('gPB');if(p)p.style.display=B.gPB?'':'none'}
  mk()}
 const EX_TPD={laneX:2.1,startZ:PZA-40,missZ:999,noMiss:true,side:'R',noAutoSlow:true,vcr:32/3.6,insText:''};      // tppk：从路口转进来，直接开过来
-const EX_HP={laneX:2.1,startZ:-170,missZ:-30,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:7,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
+const EX_HP={laneX:2.1,startZ:-170,missZ:-30,noMiss:true,side:'R',noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:8,pullX:HRW-.2-LW.TY-LW.TR,insText:HP_INSTXT};
 const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,keepIns:true,noBackCheck:true,
  curbs:[{side:1,x:HRW,gaps:HOOD.drives.filter(d=>d.side>0)},{side:-1,x:-HRW,gaps:HOOD.drives.filter(d=>d.side<0)}],
  obst:[[-PX,PZA,Math.PI],[-PX,PZB,Math.PI]],
@@ -85,7 +85,7 @@ const SCENE={Y:YF,TXT:RS_TXT,SER:RS_SER,vmax:2.2,noSplit:true,alwaysExam:true,ke
  setup(R){if(typeof PKARW!=='undefined')PKARW.visible=false;SCN.exam=RVAR==='tppk'?EX_TPD:EX_HP;SCN.stpLabel='刹车<small>点一下<br>减速靠边</small>';SCN.vmax=2.2;R.task='hp';setBtns('hp');
   if(!R.trc){const c=car(C[1+Math.random()*8|0]);live.push(c);c.visible=false;R.trc=c}R.tr=null;R.trT=1e9;
   },
- onStopReq(R){if(R.task==='hp'){if(R.sig!=='R')E('noSigR');if(!sawMir(12))E('noMirror');if(!sawSh('R',10))E('noShoulderR')}else if(R.task==='tp'&&!R.c0){R.c0=1;msb('R',{sig:'tp_noSigR',mir:'tp_noMirror',sh:'tp_noShoulderR'})}},      /* 系统开始减速靠边时：应该已经打了右转灯、看了镜子和右盲点 */
+ onStopReq(R){if(R.task==='hp'){if(R.sig!=='R')E('noSigR');if(!sawMir(12))E('noMirror');if(!sawSh('R',13))E('noShoulderR')}else if(R.task==='tp'&&!R.c0){R.c0=1;msb('R',{sig:'tp_noSigR',mir:'tp_noMirror',sh:'tp_noShoulderR'})}},      /* 系统开始减速靠边时：应该已经打了右转灯、看了镜子和右盲点 */
  onHandover(R){if(R.task==='tp')R.trT=R.t+6+Math.random()*10},
  onGear(g){if(R.task==='hp')hpGear(g);else if(R.task==='pk')pkGear(g)},
  onTouch(){if(R.task==='tp'&&R.ph>=1)E('touchCurb')},
@@ -120,7 +120,7 @@ function hpNext(){R.ph=3;gasMode('gas');$('bgas').style.visibility='';mk();banne
 // 起步开走以后：系统接着往北开（约 35 km/h），2 秒后考官发三点调头的指令；到了平路才开始慢下来
 function resumeCruise(){R.autoGo=false;R.goT=0;R.cruise=true;R.stopReq=false;R.crawl=false;R.slow=0;R.gear='D';R.gas=false;R.wl=R.wr=false;R.hb=false;R.pb=false;R.ph=0;R.revDist=0;R.revNoLook=0;R.lastDir=0;R.c0=0;R.touch={};
  SCN.vmax=2.0;SCN.stpLabel='停车<small>点一下<br>就停住</small>';cruiseUI(true);$('bgas').style.visibility=''}
-function startTP(){tagEv();R.task='tp';resumeCruise();const cz=PZB+40;SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+80,noMiss:true,side:'R',vcr:32/3.6,noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:7,pullX:HRW-.2-LW.TY-LW.TR,insText:TP_INSTXT};R.insT=null;setBtns('tp');      /* 两项之间开快一点（约 45 km/h） */
+function startTP(){tagEv();R.task='tp';resumeCruise();const cz=PZB+40;SCN.exam={laneX:2.1,crawlZ:cz,missZ:cz+80,noMiss:true,side:'R',vcr:32/3.6,noAutoSlow:true,twoStage:true,crawlV:1.2,autoCrawl:8,pullX:HRW-.2-LW.TY-LW.TR,insText:TP_INSTXT};R.insT=null;setBtns('tp');      /* 两项之间开快一点（约 45 km/h） */
  R.insAt=null;R.tpWait=1;R.insTxt=TP_INSTXT;R.tr=null;R.trT=1e9;R.z0=null;R.goShown=0;$('bgas').style.visibility='hidden'}      /* 先往前开过路边停着的那两辆车，考官才发三点调头的指令（调头回来正好在它们后面平行停车）；指令之前不能停车 */
 // ---------------- 2. 三点调头（和“三点调头”一样） ----------------
 function tpSeg(dir,n){if(R.ph<1)return;if(dir<0&&R.ph>=2&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');
@@ -161,7 +161,7 @@ function startPK(){tagEv();R.task='pk';R.autoGo=false;R.goT=0;R.gear='D';R.gas=f
  const pts=[];for(let z=R.z;z>Math.min(R.z-20,PZA-60);z-=2)pts.push([LANEW,z]);R.auto={pts,i:0,brk:3};R.cruise=false;cruiseUI(true);gasMode('stp');$('bgas').style.visibility='';setBtns('pk');obsLbl(0);
  R.insAt=R.t+1.5;R.insTxt=PK_INSTXT;R.bk=null}
 function pkAutoV(R,dt){const VC=35/3.6,d=R.z-(PZA+14),vt=Math.min(VC,Math.sqrt(1.8*1.8+2*1.6*Math.max(0,d)));
- if(!R.slow&&vt<VC-.3){R.slow=1;if(!sawMir(12))ev('brkNoMir');if(R.sig!=='R')ev('brkNoSig')}return vt}
+ if(!R.slow&&vt<VC-.3){R.slow=1;R.slowT=R.t}if(R.slow===1&&(R.t-R.slowT>3||sawMir(3)&&R.sig==='R')){R.slow=2;if(!sawMir(15))ev('brkNoMir');if(R.sig!=='R')ev('brkNoSig')}return vt}      /* 系统开始减速后再给 3 秒：这期间看了镜子、打了灯都算 */
 function pkGear(g){R.gT=R.t;if(R.ph===2&&g==='P'){R.ph=3;R.pT=R.t}else if(R.ph===3&&g!=='P')R.ph=2}
 function pkSeg(dir,n){if(HARD&&!R.bk&&R.ph>=1&&(R.oT.A==null||R.t-R.oT.A>15))bikeSpawn(R,14);
  if(dir<0&&R.ph>=1&&(R.oT.A==null||R.t-R.oT.A>15))E('no360');
