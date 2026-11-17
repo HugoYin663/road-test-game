@@ -412,10 +412,10 @@ function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  if(!K.right&&!K.lc&&!K.told&&(K.gapT||0)>=(K.sig==='R'?10:7)){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 有空档可以换、你却一直没换（没打灯 7 秒；已经打了右转灯在准备 10 秒）：考官提醒你换到右车道，扣一分（不是严重错误） */
  // 看后视镜／回头看盲点（和换线项目一样）
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK;
-  if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.46:.83)-R.yaw)*k9;R.pit+=((sd<0?-.34:-.27)-R.pit)*k9;if(L.t>1)R.mT2=t}
+  if(L.k==='M'){if(L.t<.55){R.yaw+=((sd<0?.3:.42)-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.4:.83)-R.yaw)*k9;R.pit+=((sd<0?-.3:-.27)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */if(L.t>1)R.mT2=t}
    else if(R.q[0]==='sho'){R.look=null;mk();const n=R.q.shift();if(n)krAct(n)}      /* 右侧观察：看完右镜直接转头看右盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}
-  else{if(L.t<.95){R.yaw+=((sd<0?-1.55:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT2[L.side]=t}
+  else{if(L.t<.95){R.yaw+=((sd<0?-1.35:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT2[L.side]=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT2[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}}}
 // 后车：停在停车线后面等下一次绿灯（简单模式：转完弯后后面没有车）。
 // 困难模式：你转完弯开出约 14 米时，后面路口出来一辆车，在左车道快速追上来，打右转灯换到右车道，从右边超过你——你要等它过去再换
