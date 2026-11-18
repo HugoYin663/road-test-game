@@ -150,7 +150,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  if(!AW4&&!NOSTOP){const xs=[];let x=-230;while(x<230){xs.push(x);x+=hard?(Math.random()<.5?150+Math.random()*80:28+Math.random()*30):(Math.random()<.5?160+Math.random()*100:34+Math.random()*36)}
   const v=12.5;xs.forEach(x0=>{add(1,x0,v+Math.random()*.6);add(-1,-x0+(Math.random()*10-5),v+Math.random()*.6)})}
  R.spawnGap={'1':0,'-1':0};
- if(AW4){$('sg').textContent='➡';R.pedOn=Math.random()<(hard?.4:.25);R.A=[mkA('O',-4.5),mkA('L',1.6)];if(hard)R.A.push(mkA('Rt',3.6))}      /* 你右转：对面左转车最先到；你第二；左边一辆直行车比你晚到（它和你转进同一条车道，有冲突，但你先停稳，你先走）；困难再加右边一辆更晚的 */      /* 对面左转车比你早约 4 秒停下；困难：左边直行车更早到，右边直行车等你停稳后才开到路口（明显比你晚） */
+ if(AW4){$('sg').textContent='➡';R.pedOn=false;/* 四面停牌不放行人：让行人和“该走不走”的判定会打架 */R.A=[mkA('O',-4.5),mkA('L',1.6)];if(hard)R.A.push(mkA('Rt',3.6))}      /* 你右转：对面左转车最先到；你第二；左边一辆直行车比你晚到（它和你转进同一条车道，有冲突，但你先停稳，你先走）；困难再加右边一辆更晚的 */      /* 对面左转车比你早约 4 秒停下；困难：左边直行车更早到，右边直行车等你停稳后才开到路口（明显比你晚） */
  mine.visible=view===2;R.sig=null;$('sg').style.display='none';banner('Maple Dr 往北','');mk();$('sp').textContent='40'}
 // ---------- 四面停牌：其他车 ----------
 const SZ0=AW4?SL-.3-FR:-(SW1+.3+FR);      // 横路的车停下时车中心的位置（车头在人行道前）

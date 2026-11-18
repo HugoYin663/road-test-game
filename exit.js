@@ -27,7 +27,7 @@ const EX_TXT={
  cutOff:["大路上的车没有安全空档就开出去了","你没有路权：要等两个方向都有足够的空档。左边过来的车（你要横过它的车道）至少要 3 秒以上，右边过来的车（你要并进它的车道）要更远。"]};
 {const g=billboard('exit-left');placeBB(g,XW-6,-100,Math.PI)}      // 上了大路往南开，右手边的广告牌
 // 停着的车：右边一排 k＝-8～22（你在第 0 个），左边一排 k＝-7～22；右边第 -5 个可能是要倒车出来的车
-const KB=-5;
+const KB=-7;      /* 倒车的车放远一点：你出了车位、系统开始帮你开时，它离你还有 8～12 米，有时间看到、停下 */
 function buildParks(withB){const P=[];P.extra=new Set();{const n=1+(Math.random()<.5?1:0);for(let i=0;i<n;i++){const s=Math.random()<.5?1:-1,k=[-3,3,5,8,11,14][Math.random()*6|0];P.extra.add(s+'_'+k)}}
  for(let k=-8;k<=22;k++)[1,-1].forEach(s=>{if(s>0&&k===0)return;if(s<0&&k<-7)return;if(s>0&&(k===KB||k===KB+1)&&withB)return;      /* 倒车出来的车北边那个车位空着：它倒车往右打时车头会往北摆，不然会扫到旁边的车 */
   const near=s>0&&Math.abs(k)<=1,pedHide=s<0&&(k===-5||k===-6);if(!near&&!pedHide&&!P.extra.has(s+'_'+k))return;      /* 出车位：只要你左右两边有车；对面挡住行人的车；其他零星一两辆 */
@@ -101,7 +101,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
   if(R.ph===2){
    if(!R.p1T&&R.EV.aisle.includes('ped')&&R.z<ZS(-6)+SWD/2+12){R.p1T=1;const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.P1={o,x:-4.6,z:ZS(-6)+SWD/2,v:1.25,ph:0,t0:t};
     R.haz.push(()=>R.P1&&!R.P1.gone?inPath(R.P1.x,R.P1.z,.35):null)}
-   if(R.B&&!R.B.st&&R.z<ZS(KB)+12.5&&!(R.AC&&!R.AC.gone&&Math.abs(R.AC.z-ZS(KB))<14)&&!(R.P1&&!R.P1.gone&&Math.abs(R.P1.z-ZS(KB))<5&&R.P1.x<XC)){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
+   if(R.B&&!R.B.st&&(R.z<ZS(KB)+12.5&&R.z>ZS(KB)+7.5||R.z+LW.HL<ZS(KB)-4)&&      /* 只在你还没开到它后面时才开始倒（或者你已经开过去了）：你已经在它车后，就等你过去 */!(R.AC&&!R.AC.gone&&Math.abs(R.AC.z-ZS(KB))<14)&&!(R.P1&&!R.P1.gone&&Math.abs(R.P1.z-ZS(KB))<3&&R.P1.x<XC)){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
    if(R.z<-5&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1);R.insRT=t}
    if(R.insR===1){R.insR=2;const b=$('bsig');b.dataset.m='sigR';b.innerHTML='右转灯<small>Signal</small>'}      /* 车道尽头右转：自己打右转灯、看左右，有车就停下让，没车就慢慢转过去 */
    if(R.EV.ec&&!R.EC&&R.z<ZA+16)ecSpawn();
