@@ -17,6 +17,8 @@ const EX_TXT={
  noSeeCar:["没有发现车道上过来的车","那辆车过去时你正好停着，但它过来之前你没有左右看车道。出车位前一定要左右看。"],
  noYieldPed:["没有让过车道的行人","停车场里行人常常从车中间走出来横过车道：看到就停下让他走过去。"],
  noYieldBack:["有车倒车出来时没有停下","看到车尾的白色倒车灯亮了、车在往外倒，就要停下等它倒出来。它倒车时很难看到你。"],
+ noSigR:["车道尽头右转没有打右转灯","听到考官说右转，就要自己打右转灯，转完再关。"],
+ noScanEnd:["车道尽头转弯前没有左右看","车道尽头接上横着的通道：转弯前看左、看右（按住看左、看右）。通道上有车过来就停下让它；没有车就慢慢转过去，不用停。"],
  noSigL2:["上大路左转前没有打左转灯","往出口开的时候就要打好左转灯。"],
  noYieldEC:["车道尽头没有让通道上开过来的车","车道尽头接上横着的通道：左边（商铺前面）开过来的车在通道上直行，你要转进去，先停下让它过去。转弯前看左、看右。"],
  noPedE:["没有让人行道上的行人","出口要横过人行道：有行人在走，停在人行道前面让他先过。"],
@@ -93,19 +95,20 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
   if(R.ph>=1&&!R.outChk&&Math.hypot(R.x-R.ox,R.z-R.oz)>1.5){R.outChk=1;if(!((R.oT.XL||-99)>t-15))ev('noLookL');if(R.sig!=='L')ev('noSigOut')}
   if(R.ph===1){const fx=frontX();
    if(!R.scanChk&&fx<AW-1.5){R.scanChk=1;if(!sawScan(10))ev('noScanAisle')}
-   if(R.auto.i>=PATH.iS-4){R.ph=2;if(R.sig==='L')setSig(null);tip('进了车道：系统继续慢慢开。看到行人、倒车出来的车，点“停车”让；可以走了点“行驶”')}}
+   if(R.auto.i>=PATH.iS-4){R.ph=2;if(R.sig==='L')setSig(null);tip('进了车道：系统继续慢慢开。看到行人、倒车出来的车，点“停车”让；可以走了点“行驶”。到车道尽头右转：自己打右转灯、看左右')}}
   acStep(dt);
   // ---------- 车道里（系统开） ----------
   if(R.ph===2){
    if(!R.p1T&&R.EV.aisle.includes('ped')&&R.z<ZS(-6)+SWD/2+12){R.p1T=1;const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.P1={o,x:-4.6,z:ZS(-6)+SWD/2,v:1.25,ph:0,t0:t};
     R.haz.push(()=>R.P1&&!R.P1.gone?inPath(R.P1.x,R.P1.z,.35):null)}
    if(R.B&&!R.B.st&&R.z<ZS(KB)+12.5&&!(R.AC&&!R.AC.gone&&Math.abs(R.AC.z-ZS(KB))<14)&&!(R.P1&&!R.P1.gone&&Math.abs(R.P1.z-ZS(KB))<5&&R.P1.x<XC)){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
-   if(R.z<-12&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1);R.insRT=t}
-   if(R.insRT&&!R.sigRon&&t-R.insRT>1.2){R.sigRon=1;setSig('R')}      /* 右转灯由系统来打（考官说完约 1 秒） */
+   if(R.z<-5&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1);R.insRT=t}
+   if(R.insR===1){R.insR=2;const b=$('bsig');b.dataset.m='sigR';b.innerHTML='右转灯<small>Signal</small>'}      /* 车道尽头右转：自己打右转灯、看左右，有车就停下让，没车就慢慢转过去 */
    if(R.EV.ec&&!R.EC&&R.z<ZA+16)ecSpawn();
+   if(!R.endChk&&Math.min(...corners().map(q=>q[1]))<ZA-.3){R.endChk=1;if(R.sig!=='R')ev('noSigR');if(!sawScan(12))ev('noScanEnd')}
    if(R.EC&&!R.ecChk&&Math.min(...corners().map(q=>q[1]))<ZA-.3){R.ecChk=1;const E=R.EC,xs=corners().map(q=>q[0]);if(!E.gone&&E.x+LW.HL>Math.min(...xs)-1&&E.x-LW.HL<Math.max(...xs)+12)ev('noYieldEC')}      /* 你转进通道时，左边开过来的车还没过去、离你又不远 */
    if(R.EV.pe&&!R.PE&&R.z<-15.5){const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.PE={o,x:-(XC+1.3),z:ZB-3.5,v:1.3,ph:0,t0:t};R.haz.push(()=>R.PE&&!R.PE.gone?inPath(R.PE.x,R.PE.z,.35):null)}
-   if(R.auto.i>=PATH.i2){R.ph=3;if(R.sig==='R')setSig(null);      /* 转完右转灯自己灭 */banner('考官：前面左转，上大路（turn left onto the road）','#ffe27a',1)}}
+   if(R.auto.i>=PATH.i2){R.ph=3;if(R.sig==='R')setSig(null);{const b=$('bsig');b.dataset.m='sigL';b.innerHTML='左转灯<small>Signal</small>';mk()}      /* 转完右转灯自己灭 */banner('考官：前面左转，上大路（turn left onto the road）','#ffe27a',1)}}
   pedStep(dt);backStep(dt);ecStep(dt);
   // ---------- 往出口、上大路 ----------
   if(R.ph===3){const fx=frontX();
