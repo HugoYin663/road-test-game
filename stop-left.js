@@ -58,7 +58,8 @@ const STOPT=cv(256,256,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,1
 const BLADE=t=>cv(256,48,(x,w,h)=>{x.fillStyle='#1d6b3a';x.fillRect(0,0,w,h);x.strokeStyle='#fff';x.lineWidth=3;x.strokeRect(3,3,w-6,h-6);x.fillStyle='#fff';x.font='bold 30px Arial';x.textAlign='center';x.fillText(t,w/2,34)});
 const blades=(g,top)=>{const a=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('BIRCH CRES'),side:T.DoubleSide}),0,top+.42,0);a.rotation.y=Math.PI/2;g.add(a);
  const b=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('MAPLE DR'),side:T.DoubleSide}),0,top+.18,0);b.rotation.y=Math.PI;g.add(b)};
-if(NOSTOP){signPost(CW0-1.0,-(RW+1.0),Math.PI/2,STOPT,.75,.75,1.55,blades);signPost(-CW0+1.0,RW+1.0,-Math.PI/2,STOPT,.75,.75,1.55)}      // 没有停牌的左转：STOP 在横路上（左右两边）
+if(NOSTOP){{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.05,.05,3.1,8),M(0x8a9099),0,1.55,.05));blades(g,2.5);place(g,RW+1.0,CW0-1.4,0);scene.add(g)}      /* 没有停牌：你这边路角也有绿色路名牌，路口更明显 */
+ signPost(CW0-1.0,-(RW+1.0),Math.PI/2,STOPT,.75,.75,1.55,blades);signPost(-CW0+1.0,RW+1.0,-Math.PI/2,STOPT,.75,.75,1.55)}      // 没有停牌的左转：STOP 在横路上（左右两边）
 else{signPost(RW+1.0,(AW4?SL+.4:CW0)-1.4,0,STOPT,.75,.75,1.55,blades);      // 你这边：右边路角
 signPost(-RW-1.0,-(AW4?SL+.4:CW0)+1.4,Math.PI,STOPT,.75,.75,1.55)}      // 对面也有停牌（你看到它的背面）
 const AWT=cv(160,80,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#c8102e';x.lineWidth=6;x.strokeRect(6,6,w-12,h-12);x.fillStyle='#c8102e';x.font='bold 40px Arial Narrow,Arial';x.textAlign='center';x.fillText('ALL-WAY',w/2,54,w-24)});      /* 白底红字红边：短小，宽度和下面的条纹牌差不多 */      /* 白底红字红边 */
@@ -266,7 +267,7 @@ function cmd(m){if(!R||R.over||!playing)return;
    if(dA>R.v*R.v/(2*5)+.2){R.stopT=tg;R.stopA=5}else{R.stopT=fz+R.v*R.v/14;R.stopA=7}}
   R.stopReq=true;R.creep=false;mk();return}
  if(m==='creep'){if(R.v<.2&&R.stopped){if(pedNear())pedEv();R.creep=true;R.stopReq=false;mk()}else if(!R.stopped)flash('先停车，再前移');return}
- if(m==='go')startTurn()}
+ if(m==='go'){if(NOSTOP&&front()<LIM()-12){if(R.stopReq||R.stopped){R.stopReq=false;R.stopped=false;R.stopT=null;mk()}return}startTurn()}}      /* 没有停牌：离路口还远时按行驶只是接着慢慢往前开 */
 function cmdUp(m){if(!R)return;if((m==='lookL'&&R.look<0)||(m==='lookR'&&R.look>0)){R.lookUp=R.t;mk()}if(m==='creep'&&R.creep){R.creep=false;R.stopReq=true;mk()}}
 addEventListener('keydown',e=>{if(e.repeat)return;const k={ArrowLeft:'lookL',ArrowRight:'lookR',s:'stop',c:'creep',g:'go',l:'sig'}[e.key];if(k)cmd(k)});
 addEventListener('keyup',e=>{const k={ArrowLeft:'lookL',ArrowRight:'lookR',c:'creep'}[e.key];if(k)cmdUp(k)});
@@ -288,7 +289,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  const fz=front();
  if(R.mode!=='turn'){
   // 车速：平常 40；离人行横道 25 米内自己慢到 20 左右（准备停车）；按停车就停；前移时很慢
-  let vt=fz<SL-25?11.1:5.6;
+  let vt=NOSTOP?(fz<SL-40?11.1:2.8):(fz<SL-25?11.1:5.6);      /* 没有停牌：指令后系统帮你减到很慢（约 10 km/h），停不停、走不走你来 */
   if(R.stopReq){if(R.stopT!=null){const dS=R.stopT-fz;vt=dS>.05?Math.min(vt,Math.sqrt(2*R.stopA*dS)):0}else vt=0}if(R.creep)vt=1.3;if(R.stopped&&!R.creep)vt=0;
   // 一直不停车：冲过人行横道时算严重错误，系统帮你在路边停下
   if(!NOSTOP&&!R.everStop&&!R.stopReq&&fz>SL+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true;R.stopT=fz+R.v*R.v/14;R.stopA=7}      /* 按了停车、正在刹车的不算没停：停在哪里再判断位置 */
