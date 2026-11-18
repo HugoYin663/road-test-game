@@ -24,7 +24,8 @@ notAlign:["没有和两边的车对齐","后面离路缘多远不好看，要用
  no360:["倒车前没有做 360° 观察","每次开始倒车之前，都要把四周看一遍（360° 观察：左后盲点、左镜、中镜、右镜、右后盲点、正后面），确认没有车、行人再倒。"],
  noYieldCar:["车道上有车过来时没有停下让它先过","停车场的车道上有车开过来时，先停住让它过去，再倒车。你一动，车头就会摆到车道上挡住它。"],
  noSeeCar:["没有发现车道上过来的车","这次你正好停着，那辆车过去了，但它过来之前你没有观察（360° 观察、左镜）。倒车前和倒车时要一直观察四周。"],
- noP:["没有挂 P 停好","停好车的最后一步要挂 P，再拉手刹。"]};
+ noP:["没有挂 P 停好","停好车的最后一步要挂 P，再拉手刹。"],
+ hitCone:["碰到了锥桶","放了锥桶的车位不能停。倒车时看着两边的车和锥桶，慢慢倒，随时准备停车。"]};
 // ---------------- 场景 ----------------
 const LOT={ASF:M(0xffffff,{map:noise('#6f7176',40,70)}),CAP:M(0xf2efe8),AWN:M(0x2f7d6d),S1:M(0x2f6fe0),S2:M(0xd9483b),S3:M(0x3a9a5b),S4:M(0xf0b429),PAT:M(0x707277),YEL:M(0xd9b23c),CRB:M(0xc9cbcf),SWK:M(0xd5d3cc),GRS:M(0xffffff,{map:noise('#79a95a',50,40)}),
  BRK:M(0xc49a72),BRK2:M(0xc9ad8c),TAN:M(0xc8b79a),GLS:M(0x6f93ad),FRM:M(0xd9dcdf),SGN:M(0xf3efe6),DK:M(0x3a3d42)};
@@ -49,18 +50,26 @@ for(let k=-30;k<=30;k++)[-1,1].forEach(s=>{const p=mesh(SLINE,LOT.YEL,-(s*(AW+SD
  hSlab(0,-XC-16,-XC-8,-300,300,-.02,LOT.ASF);box(30,6,160,LOT.BRK2,-(XC+40),3,0);box(30.4,.5,160.4,LOT.TAN,-(XC+40),6.2,0)}
 // 停着的车：右边一排、左边一排；空车位是第 0 个；参考车（白车）在第 1 个
 const PCOLS=[0xf4f6f8,0x1f2328,0x1f2328,0xb9bec4,0x7b8794,0x5a3e36,0x4a4f57,0x5c6b7a,0xeceff1];
-const PARKS=[],LX=PCX-LW.HL-2.2-LW.HW;      // 开过来时离参考车的车头（车道边）约 2.2 米
+const PARKS=[],CONES=[],LX=PCX-LW.HL-2.2-LW.HW;      // 开过来时离参考车的车头（车道边）约 2.2 米
+// 只有空车位两边各一辆车（尾进，绿色）；再往外右边 2 个车位放红白锥桶（不能停），其他车位零星几辆车：画得少，转头、360° 观察不卡
 for(let k=-22;k<=22;k++)[1,-1].forEach(s=>{
  if(s>0&&k===0)return;      // 空车位
- const near=s>0&&Math.abs(k)<=1;      // 除了指定的车位，其他车位都停满（不留空车位，免得停错）
- const nose=near?false:Math.random()<.75,h=(s>0)===nose?Math.PI/2:-Math.PI/2;      /* 空车位两边的两辆车都是尾进（车头朝车道），能看到它们的外后视镜 */      // 大多数车头朝里停（尾朝车道）
- const NCOL=[0x2e9d4f,0xe8802a,0xc8352c],col=s>0&&Math.abs(k)<=3?NCOL[Math.abs(k)-1]:PCOLS[Math.random()*PCOLS.length|0];      /* 空车位两边各三辆：绿、橙、红（两边对称），数车位时不会数错；参考车是前面那辆绿车 */
+ if(s>0&&Math.abs(k)>=2&&Math.abs(k)<=3){CONES.push([s*PCX,ZS(k)]);return}
+ const near=s>0&&Math.abs(k)===1;
+ if(!near&&(Math.abs(k)<(s>0?6:3)||Math.random()>.14))return;      // 零星的车：离空车位远一点
+ const nose=near?false:Math.random()<.75,h=(s>0)===nose?Math.PI/2:-Math.PI/2;      /* 空车位两边的两辆车都是尾进（车头朝车道），能看到它们的外后视镜 */
+ const col=near?0x2e9d4f:PCOLS[Math.random()*PCOLS.length|0];
  const jz=near?0:(Math.random()-.5)*.25,jh=near?0:(Math.random()-.5)*.05;
  PARKS.push([s*PCX,ZS(k)+jz,h+jh,col])});
+// 红白条纹的施工锥桶（放在车位中间）
+{const RD=M(0xe0402a),WT=M(0xf4f4f0),BK=M(0x2a2b2e);
+ CONES.forEach(([x,z])=>{const g=new T.Group();g.add(mesh(new T.BoxGeometry(.5,.05,.5),BK,0,.025,0));
+  [[0,.2,RD],[.2,.32,WT],[.32,.46,RD],[.46,.56,WT],[.56,.72,RD]].forEach(([y0,y1,m])=>{const r=y=>.2-.17*y/.72;g.add(mesh(new T.CylinderGeometry(r(y1),r(y0),y1-y0,12),m,0,.05+(y0+y1)/2,0))});
+  g.userData.st=1;place(g,x,z,0,0);scene.add(g)})}
 const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,      // 倒车时只有右镜往下翻，左镜保持原位（地平线在中间）
  curbs:[{side:1,x:XC},{side:-1,x:-XC}],
  // 考试模式：在停车场的车道里约 15 km/h 开过来，一开始考官就发指令；开过空车位时系统减到很慢，你在合适的地方点“停车”
- exam:{laneX:LX,startZ:-32,crawlZ:-7,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
+ exam:{laneX:LX,startZ:-32,crawlZ:-13,crawlV:1.2,missZ:11,side:'R',vcr:15/3.6,insText:'考官：右边那个空车位（上方有蓝色箭头），倒车停进去（back into the parking spot on your right）'},
  okText:'起始位置准确，倒车前做了 360° 观察，往右打到底、和旁边的车平行时回正，车停在车位正中间、车身摆正，挂 P、拉手刹，做得很好。',
  setup(R){Object.assign(R,{x:LX,z:5.3,h:0,gear:'D',ph:EXAM?0:1});R.ac=null;R.n360b=0;
   {const L=PARKS.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */
@@ -78,6 +87,7 @@ const SCENE={g:0,Y:()=>0,TXT:ST_TXT,SER:['notIn','frontIn','noYieldCar'],vmax:2.
   if(R.ph===1&&R.v<-.05){R.ph=2;R.moves=0;R.segD=0}
   if(R.ph===2)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
   acStep(R,dt);
+  if(!R.cHit){const me=[R.x,R.z,R.h,LW.HL,LW.HW];if(CONES.some(c=>boxPtDist(me,c)<.22)){R.cHit=1;ev('hitCone');crashSnd()}}
   if(R.ph===3&&!R.over){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();finish()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');finish()}}      /* 挂 P、拉手刹以后，停 1.5 秒没有别的操作才算做完；挂 P 后 5 秒还没拉手刹，判错再结束 */
   if(t>240&&!R.over){if(R.ph<3)ev('noP');finish()}},
  draw(R){},
