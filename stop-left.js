@@ -80,7 +80,7 @@ function house(x,z,h,setL){const o=buildHouse(),g=o.g;      // 式样见 lib/hou
  // 车道：窄的占房子宽度一半以上，宽的和房子一样宽；水泥或沥青；人行道照常从车道上穿过去；路边那一段路缘是平的
  const W=Math.min(o.bw,o.bw*(.55+Math.random()*.45)),cx=o.side?o.gx:Math.max(-o.bw/2+W/2,Math.min(o.bw/2-W/2,W>o.bw*.9?0:o.gx)),dm=Math.random()<.4?DRA:DRV;
  const seg=(z0,z1,y,m)=>{if(z1>z0)g.add(mesh(new T.BoxGeometry(W,.05,z1-z0),m,cx,y,(z0+z1)/2))};
- seg(o.fz,setL-(SW1-RW),.13,dm);seg(setL-(SW0-RW),setL-.25,.13,dm);seg(setL-.25,setL,.05,CRB);
+ const dy=((Math.round(x/17)+Math.round(z/17))&1)*.008;seg(o.fz,setL-(SW1-RW),.13+dy,dm);seg(setL-(SW0-RW),setL-.25,.13+dy,dm);      /* 相邻两家的车道偶尔会叠在一起：一家高一点点，不会互相闪 */seg(setL-.25,setL,.05,CRB);
  place(g,x,z,h);scene.add(g);g.updateMatrixWorld(true);
  const p=[cx-W/2,cx+W/2].map(lx=>new T.Vector3(lx,0,setL).applyMatrix4(g.matrixWorld)),ns=Math.abs(Math.sin(h))>.5;
  const v=ns?p.map(q=>q.z):p.map(q=>-q.x);MOUTH.push({road:ns?'ns':'ew',s:ns?(x>0?1:-1):(z>0?1:-1),a:Math.min(...v),b:Math.max(...v)});
@@ -266,9 +266,9 @@ function predO(){if(!NOSTOP)return null;const P=turnPath();let u=0,v=Math.max(R.
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sig'){R.sig=R.sig?null:AW4?'R':'L';if(R.sig){R.sigT=R.t;if(R.sigZ==null)R.sigZ=front();tick(true)}$('sg').style.display=R.sig?'block':'none';mk();return}
  if(m==='lookL'||m==='lookR'){R.look=m==='lookL'?-1:1;R.lookT=R.t;mk();return}
- if(R.mode==='turn')return;
- if(m==='stop'){if(!R.stopReq&&!R.stopped&&!R.creep){const fz=front(),tg=SL-.3,dA=tg-fz;      /* 和红灯停车一样：来得及就正好停在人行横道前，来不及就就地急停 */
-   if(dA>R.v*R.v/(2*5)+.2){R.stopT=tg;R.stopA=5}else{R.stopT=fz+R.v*R.v/14;R.stopA=7}}
+ if(R.mode==='turn'){if(NOSTOP&&(m==='stop'||m==='go')){R.tStop=m==='stop';mk()}return}      /* 没有停牌：已经开始转了也可以停下等、再按行驶接着转 */
+ if(m==='stop'){if(!R.stopReq&&!R.stopped&&!R.creep){const fz=front(),tg=NOSTOP?fz+R.v*R.v/(2*3)+.1:SL-.3,dA=tg-fz;      /* 没有停牌：按了就在原地慢慢停住（不是开到路口才停） */      /* 和红灯停车一样：来得及就正好停在人行横道前，来不及就就地急停 */
+   if(dA>R.v*R.v/(2*5)+.2){R.stopT=tg;R.stopA=NOSTOP?3:5}else{R.stopT=fz+R.v*R.v/14;R.stopA=7}}
   R.stopReq=true;R.creep=false;mk();return}
  if(m==='creep'){if(R.v<.2&&R.stopped){if(pedNear())pedEv();R.creep=true;R.stopReq=false;mk()}else if(!R.stopped)flash('先停车，再前移');return}
  if(m==='go'){if(NOSTOP&&front()<LIM()-12){if(R.stopReq||R.stopped){R.stopReq=false;R.stopped=false;R.stopT=null;mk()}return}startTurn()}}      /* 没有停牌：离路口还远时按行驶只是接着慢慢往前开 */
@@ -312,7 +312,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   // 有安全空档、看得清、两边都看过，却一直不走
   if(NOSTOP&&R.v<.05&&((t*4|0)!==(R.lastP||0))){R.lastP=t*4|0;const ok=!pedNear()&&!ped2In()&&!predO();R.safeT=ok?R.safeT+.25:0;if(R.safeT>8)ev('hesitateN')}      /* 停在路口：对面没车、没行人，等了 8 秒还不转 */
   if(!AW4&&!NOSTOP&&R.stopped&&((t*4|0)!==(R.lastP||0))){R.lastP=t*4|0;const ok=!pedNear()&&!predict()&&!blind()&&R.lookL>R.lastStop&&R.lookR>R.lastStop;R.safeT=ok?R.safeT+.25:R.safeT;if(R.safeT>10)ev('hesitate')}
- }else{const P=R.turnP;let vt=R.u<P.arcEnd?6:(AW4&&meIn()?7:11);if(NOSTOP&&ped2In()){const q=P(Math.min(R.u+3.5,P.len-.01));if(q[0]<CW1+.6&&q[0]>CW0-1)vt=0}      /* 横路人行横道上有行人：停在人行横道前等他走完 */
+ }else{const P=R.turnP;let vt=R.u<P.arcEnd?6:(AW4&&meIn()?7:11);if(R.tStop)vt=0;if(NOSTOP&&ped2In()){const q=P(Math.min(R.u+3.5,P.len-.01));if(q[0]<CW1+.6&&q[0]>CW0-1)vt=0}      /* 横路人行横道上有行人：停在人行横道前等他走完 */
  if(NOSTOP&&R.W&&R.W.st==='go'&&R.W.x>-RW-3&&R.W.x<RW+3){const p0=me(),q=P(Math.min(R.u+4,P.len-.01));if(obbHit([q[0],q[1],q[2],2.4,1],[R.W.x,ZE,Math.PI/2,2.3,.95]))vt=0}      /* 横路的车正横过路口：先停（不会撞上） */if(AW4){const qq=P(Math.min(R.u+2.5,P.len-.01));R.A.forEach(a=>{if(a.st==='gone')return;const q=a.P(a.u);if(obbHit([qq[0],qq[1],qq[2],2.4,1],[q[0],q[1],q[2],2.3,.95]))vt=0})}      /* 你前面有车挡着：先停（不会穿过去） */
   R.v=vt<R.v?Math.max(vt,R.v-7*dt):Math.min(vt,R.v+2.2*dt);R.u+=R.v*dt;if(AW4?me()[0]>45:me()[0]<-45){finish();return}}
  // 看左／看右：按住一直看，点一下也会看一眼（至少 0.6 秒）
@@ -379,4 +379,4 @@ function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{D
 bindHome();
 $('hm').onclick=()=>{if(R)R.over=true;playing=false;const o=$('ov');o.innerHTML=HOME;o.style.display='flex';bindHome()};
 
-addEventListener('load',()=>{if(window.SGPAIR)SGPAIR('bstop','bgo',()=>R.mode!=='turn'&&(R.stopReq||R.stopped||R.creep))});      // 停车／行驶合成一个键
+addEventListener('load',()=>{if(window.SGPAIR)SGPAIR('bstop','bgo',()=>R.mode!=='turn'?(R.stopReq||R.stopped||R.creep):!!R.tStop)});      // 停车／行驶合成一个键
