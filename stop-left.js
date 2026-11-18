@@ -58,6 +58,10 @@ const STOPT=cv(256,256,(x,w,h)=>{x.clearRect(0,0,w,h);x.save();x.translate(128,1
 const BLADE=t=>cv(256,48,(x,w,h)=>{x.fillStyle='#1d6b3a';x.fillRect(0,0,w,h);x.strokeStyle='#fff';x.lineWidth=3;x.strokeRect(3,3,w-6,h-6);x.fillStyle='#fff';x.font='bold 30px Arial';x.textAlign='center';x.fillText(t,w/2,34)});
 const blades=(g,top)=>{const a=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('BIRCH CRES'),side:T.DoubleSide}),0,top+.42,0);a.rotation.y=Math.PI/2;g.add(a);
  const b=mesh(new T.PlaneGeometry(1.1,.21),new T.MeshBasicMaterial({map:BLADE('MAPLE DR'),side:T.DoubleSide}),0,top+.18,0);b.rotation.y=Math.PI;g.add(b)};
+if(NOSTOP&&!/[?&]mock=1/.test(location.search)){document.title='无停牌左转 · 3D 路考练习';$('bn').textContent='无停牌左转';const pn=document.querySelector('#ov .pn');      /* 单项练习：开始卡片换成“无停牌左转”的说明 */
+ pn.querySelector('h2').textContent='无停牌左转 · 3D';pn.querySelector('h2').nextElementSibling.innerHTML='加拿大的住宅小区，双向一条车道、路上不画线。前面是<b>没有停牌</b>的十字路口（四个方向都不停），考官让你在这里<b>左转</b>。对面的直行车不停，你要让它；你要转进去那条路上有人行横道，有行人也要让。';
+ const md=pn.querySelectorAll('.md span');md[0].textContent='对面直行车一小团、一个大空档，有时有行人过马路';md[1].textContent='对面车更密、空档更短，更常有行人';
+ pn.querySelector('details div').innerHTML='<p>1. 听到“前面路口左转”，打<b>左转灯</b>。系统会提前<b>慢慢减速</b>，到路口前开得很慢（约 10 km/h）。</p><p>2. 你只管<b>停车</b>和<b>行驶</b>（同一个键）：对面有直行车开过来、你要转进去那条路的人行横道上有行人，就按<b>停车</b>等；对面车过去了、空档够、行人走过了，按<b>行驶</b>，系统转过去。</p><p>3. 都不按：车开到路口边会<b>自己转过去</b>。这时对面有车或者有行人，就是抢了路权（严重错误）。</p><p>4. 转之前按<b>看左</b>、<b>看右</b>观察。对面没车、也没有行人还一直停着不走，算犹豫。</p><p>违规和危险驾驶会当场闪现提示，结束后汇总成卡片。</p>'}
 if(NOSTOP){{const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.05,.05,3.1,8),M(0x8a9099),0,1.55,.05));blades(g,2.5);place(g,RW+1.0,CW0-1.4,0);scene.add(g)}      /* 没有停牌：你这边路角也有绿色路名牌，路口更明显 */
  signPost(CW0-1.0,-(RW+1.0),Math.PI/2,STOPT,.75,.75,1.55,blades);signPost(-CW0+1.0,RW+1.0,-Math.PI/2,STOPT,.75,.75,1.55)}      // 没有停牌的左转：STOP 在横路上（左右两边）
 else{signPost(RW+1.0,(AW4?SL+.4:CW0)-1.4,0,STOPT,.75,.75,1.55,blades);      // 你这边：右边路角
@@ -287,9 +291,10 @@ function startTurn(){const t=R.t;if(pedNear())pedEv();
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(!R.b0&&t>=.6){R.b0=1;banner(AW4?'考官：前面停牌路口右转':NOSTOP?'考官：前面路口左转（turn left at the next intersection）':'考官：前面停牌路口左转','#ffe27a',1)}
  const fz=front();
+ if(NOSTOP&&!window.MOCK&&R.mode!=='turn'){if(!R.h1&&t>4){R.h1=1;banner('打左转灯。系统会慢慢减速，到路口前开得很慢','#ffe27a')}if(!R.h2&&R.v<3.3&&fz>SL-40){R.h2=1;banner('对面有直行车、人行横道上有行人，就按“停车”等；安全了按“行驶”。都不按，车到路口边会自己转过去','#ffe27a')}}      /* 单项练习才有文字提示；考试里不提示该怎么做 */
  if(R.mode!=='turn'){
   // 车速：平常 40；离人行横道 25 米内自己慢到 20 左右（准备停车）；按停车就停；前移时很慢
-  let vt=NOSTOP?(fz<SL-40?11.1:2.8):(fz<SL-25?11.1:5.6);      /* 没有停牌：指令后系统帮你减到很慢（约 10 km/h），停不停、走不走你来 */
+  let vt=NOSTOP?Math.min(11.1,Math.sqrt(2.8*2.8+2*.8*Math.max(0,SL-25-fz))):(fz<SL-25?11.1:5.6);      /* 没有停牌：指令后不久就开始均匀地慢慢减速（约 0.8 m/s²），离路口约 25 米时减到很慢 */      /* 没有停牌：指令后系统帮你减到很慢（约 10 km/h），停不停、走不走你来 */
   if(R.stopReq){if(R.stopT!=null){const dS=R.stopT-fz;vt=dS>.05?Math.min(vt,Math.sqrt(2*R.stopA*dS)):0}else vt=0}if(R.creep)vt=1.3;if(R.stopped&&!R.creep)vt=0;
   // 一直不停车：冲过人行横道时算严重错误，系统帮你在路边停下
   if(!NOSTOP&&!R.everStop&&!R.stopReq&&fz>SL+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true;R.stopT=fz+R.v*R.v/14;R.stopA=7}      /* 按了停车、正在刹车的不算没停：停在哪里再判断位置 */
@@ -301,7 +306,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   R.z+=R.v*dt;
   // 停稳
   if(R.v<.05&&!R.stopped&&R.stopReq){R.stopT=null;R.stopped=true;if(R.stop1==null)R.stop1=t;R.everStop=true;R.lastStop=t;R.v=0;
-   if(R.firstStop){R.firstStop=false;if(NOSTOP){}else if(!R.ns){if(fz>SL+.3)ev('stopOnCross');else if(fz<SL-3)ev('stopFar')}banner(AW4?'停稳了：看左、看右，先停下的车先走':'停稳了：看左、看右；看不清就前移','#ffe27a')}}
+   if(R.firstStop){R.firstStop=false;if(NOSTOP){}else if(!R.ns){if(fz>SL+.3)ev('stopOnCross');else if(fz<SL-3)ev('stopFar')}if(NOSTOP){if(!window.MOCK)banner('停住了：看对面的直行车、看左右人行横道上的行人；安全了按“行驶”','#ffe27a')}else banner(AW4?'停稳了：看左、看右，先停下的车先走':'停稳了：看左、看右；看不清就前移','#ffe27a')}}
   if(R.creep&&R.v>.1)R.stopped=false;
   if(R.sig&&R.sigZ!=null&&!R.ls&&R.sigZ>SL-15){R.ls=1;ev('lateSig')}
   // 有安全空档、看得清、两边都看过，却一直不走
