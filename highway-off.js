@@ -217,7 +217,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
   if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=(.83-R.yaw)*k9;R.pit+=(-.27-R.pit)*k9;if(L.t>1)R.mT.R=t}
    else if(R.q[0]==='sho'){R.look=null;mk();nextAct()}      /* 侧面观察：看完外后视镜直接转头看盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
-  else{if(L.t<.95){R.yaw+=((sd<0?-1.6:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT.R=t}
+  else{if(L.t<.95){R.yaw+=((sd<0?-2.0:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT.R=t}
    else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT.R=t;R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}}
  // 其他车：保持速度、跟前车；你在它车道上时把你当前车；你切到它前面太近时它刹车、按喇叭
  R.cars.forEach(c=>{if(c.gone)return;if(c.crash){c.cv*=Math.max(0,1-3*dt);c.s+=c.cv*dt;return}
