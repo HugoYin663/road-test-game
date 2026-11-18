@@ -183,3 +183,5 @@ function ecStep(dt){const E=R.EC;if(!E||E.gone)return;let vt=E.st==='go'?(E.road
  place(E.c,E.x,E.z,E.h,0);if(E.z>ZC+200){E.c.visible=false;E.gone=1}}
 window.FREEZE_STATIC=1;      // 停车场：不会动的东西合并（转头看时不卡）
 LS.start(SCENE);
+
+addEventListener('load',()=>{if(window.SGPAIR)SGPAIR('bstop','bgo',()=>!!(R.stopReq||R.creep))});      // 停车／行驶合成一个键

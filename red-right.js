@@ -284,3 +284,5 @@ const HOME=$('ov').innerHTML;
 function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{STD=b.dataset.std;const r=document.querySelector('input[name=df]:checked');DIFF=r?r.value:'easy';$('ov').style.display='none';newRun(true);playing=true})}
 bindHome();
 $('hm').onclick=()=>{if(R)R.over=true;playing=false;const o=$('ov');o.innerHTML=HOME;o.style.display='flex';bindHome()};
+
+addEventListener('load',()=>{if(window.SGPAIR)SGPAIR('bs','bt',()=>R.mode==='stop')});      // 停车／行驶合成一个键

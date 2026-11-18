@@ -316,3 +316,5 @@ function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{M
 bindHome();
 // 中途退出：回到首页（模拟考也一并取消）
 $('hm').onclick=()=>{if(R)R.over=true;playing=false;sirenOff();EX=null;const o=$('ov');o.innerHTML=HOME;o.style.display='flex';bindHome()};
+
+addEventListener('load',()=>{if(window.SGPAIR)SGPAIR('bs','bt',()=>R.mode==='stop')});      // 停车／行驶合成一个键

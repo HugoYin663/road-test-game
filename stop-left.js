@@ -296,7 +296,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
   const lim=LIM();      // 前移最远到这里（再往前就进了横路的车道）
   if(fz>lim-.2&&(R.creep||!R.stopReq)){vt=0;if(R.creep){R.creep=false;R.stopReq=true;flash('已经到横路边上了，不能再往前');mk()}}
   if(fz>lim-3&&!R.stopReq&&!R.creep&&!R.stopped)vt=Math.min(vt,Math.sqrt(2*4*Math.max(0,lim-fz)));
-  if(NOSTOP&&fz>lim-8&&!R.stopReq&&!R.creep)vt=Math.min(vt,Math.sqrt(2*2.4*Math.max(0,lim-.2-fz)));      /* 没有停牌：不按“行驶”就在路口边上慢慢停下等着 */
+  if(NOSTOP&&fz>lim-1.5&&!R.stopReq&&!R.creep&&!R.stopped){startTurn();return}      /* 没有停牌：不按“停车”，到路口边系统就慢慢转过去（没让对面车、行人就是抢路权） */
   const a=R.v>vt?(R.stopReq?(R.stopT!=null?(R.stopA||4)+1:4):2.5):1.5;R.v=R.v>vt?Math.max(vt,R.v-a*dt):Math.min(vt,R.v+a*dt);
   R.z+=R.v*dt;
   // 停稳
@@ -373,3 +373,5 @@ const HOME=$('ov').innerHTML;
 function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{DIFF=b.dataset.diff||'easy';$('ov').style.display='none';newRun(true);playing=true})}
 bindHome();
 $('hm').onclick=()=>{if(R)R.over=true;playing=false;const o=$('ov');o.innerHTML=HOME;o.style.display='flex';bindHome()};
+
+addEventListener('load',()=>{if(window.SGPAIR)SGPAIR('bstop','bgo',()=>R.mode!=='turn'&&(R.stopReq||R.stopped||R.creep))});      // 停车／行驶合成一个键
