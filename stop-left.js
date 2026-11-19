@@ -15,6 +15,11 @@ const NOSTOP=!AW4&&/[?&]var=nostop/.test(typeof location!=='undefined'?location.
 // 车头要停在 SL 前面：单面停牌没有停车线，SL 就是人行横道；四面停牌每个方向都有粗白停车线（人行横道外面 0.6 米，0.45 米宽），SL 是停车线靠你这边的边
 const SL=AW4?CW0-1.05:CW0;
 // ---------- 地面、道路 ----------
+sun.shadow.bias=-.0006;
+// 太阳（阴影）跟着你走：在“阳光方向”的坐标里按阴影贴图的格子对齐，草地上的树影、房影就不会一直闪（和大路场景一样）
+const SUNO=new T.Vector3(60,90,-40),SUNF=SUNO.clone().negate().normalize(),SUNR=new T.Vector3().crossVectors(SUNF,new T.Vector3(0,1,0)).normalize(),SUNU=new T.Vector3().crossVectors(SUNR,SUNF),SUNTS=150/1024;
+function sunFollow(wx,z){const c=new T.Vector3(wx,0,z),a=Math.round(c.dot(SUNR)/SUNTS)*SUNTS,b=Math.round(c.dot(SUNU)/SUNTS)*SUNTS,f=c.dot(SUNF);
+ const q=SUNR.clone().multiplyScalar(a).add(SUNU.clone().multiplyScalar(b)).add(SUNF.clone().multiplyScalar(f));sun.target.position.copy(q);sun.position.copy(q).add(SUNO)}
 const GRS=M(0xffffff,{map:noise('#79a95a',50,40)}),ASF=M(0xffffff,{map:noise('#5f6168',70,30)}),CRB=M(0xc9cbcf),SWK=M(0xd5d3cc),DRV=M(0xcfccc4);
 {const g=new T.Mesh(new T.PlaneGeometry(700,700),GRS);g.rotation.x=-Math.PI/2;g.receiveShadow=true;scene.add(g)}
 box(2*RW,.04,420,ASF,0,.02,0);box(460,.04,2*RW,ASF,0,.021,0);      // 你这条路（南北）、横路（东西）
@@ -291,10 +296,10 @@ function startTurn(){const t=R.t;if(pedNear())pedEv();
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  if(!R.b0&&t>=.6){R.b0=1;banner(AW4?'考官：前面停牌路口右转':NOSTOP?'考官：前面路口左转（turn left at the next intersection）':'考官：前面停牌路口左转','#ffe27a',1)}
  const fz=front();
- if(NOSTOP&&!window.MOCK&&R.mode!=='turn'){if(!R.h1&&t>4){R.h1=1;banner('打左转灯。系统会慢慢减速，到路口前开得很慢','#ffe27a')}if(!R.h2&&R.v<3.3&&fz>SL-40){R.h2=1;banner('对面有直行车、人行横道上有行人，就按“停车”等；安全了按“行驶”。都不按，车到路口边会自己转过去','#ffe27a')}}      /* 单项练习才有文字提示；考试里不提示该怎么做 */
+ if(NOSTOP&&!window.MOCK&&R.mode!=='turn'){if(!R.h1&&t>4){R.h1=1;banner('打左转灯。系统会慢慢减速，到路口前开得很慢','#ffe27a')}if(!R.h2&&fz>SL-30){R.h2=1;banner('对面有直行车、人行横道上有行人，就按“停车”等；安全了按“行驶”。都不按，车到路口边会自己转过去','#ffe27a')}}      /* 单项练习才有文字提示；考试里不提示该怎么做 */
  if(R.mode!=='turn'){
   // 车速：平常 40；离人行横道 25 米内自己慢到 20 左右（准备停车）；按停车就停；前移时很慢
-  let vt=NOSTOP?Math.min(11.1,Math.sqrt(2.8*2.8+2*.8*Math.max(0,SL-25-fz))):(fz<SL-25?11.1:5.6);      /* 没有停牌：指令后不久就开始均匀地慢慢减速（约 0.8 m/s²），离路口约 25 米时减到很慢 */      /* 没有停牌：指令后系统帮你减到很慢（约 10 km/h），停不停、走不走你来 */
+  let vt=NOSTOP?Math.min(11.1,Math.sqrt(2.8*2.8+2*.6*Math.max(0,LIM()-3-fz))):(fz<SL-25?11.1:5.6);      /* 没有停牌：离路口约 100 米开始均匀减速（约 0.6 m/s²），一直减到路口边才到很慢（约 10 km/h），不在远处慢慢溜 */      /* 没有停牌：指令后系统帮你减到很慢（约 10 km/h），停不停、走不走你来 */
   if(R.stopReq){if(R.stopT!=null){const dS=R.stopT-fz;vt=dS>.05?Math.min(vt,Math.sqrt(2*R.stopA*dS)):0}else vt=0}if(R.creep)vt=1.3;if(R.stopped&&!R.creep)vt=0;
   // 一直不停车：冲过人行横道时算严重错误，系统帮你在路边停下
   if(!NOSTOP&&!R.everStop&&!R.stopReq&&fz>SL+.3&&R.v>.5&&!R.ns){R.ns=1;ev('noStop');R.stopReq=true;R.stopT=fz+R.v*R.v/14;R.stopA=7}      /* 按了停车、正在刹车的不算没停：停在哪里再判断位置 */
@@ -358,7 +363,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  R.cars.forEach(c=>{place(c.c,c.x,c.z,(c.dir>0?Math.PI/2:-Math.PI/2)+(c.spin||0),0);c.c.visible=Math.abs(c.x)<260});
  if(AW4)R.A.forEach(a=>{const q=a.P(a.u);place(a.c,q[0],q[1],q[2],0);if(a.st==='gone')a.c.visible=false;if(a.k==='O')a.c.userData.bl.forEach(m=>m.visible=bl&&a.st!=='gone'&&a.u<a.stopAt+16)});
  placeMine();mine.userData.bl.forEach(m=>m.visible=!!R.sig&&bl);
- sun.target.position.set(-p[0],0,p[1]);sun.position.set(-p[0]+60,90,p[1]-40);if(!sun.target.parent)scene.add(sun.target);
+ sunFollow(-p[0],p[1]);if(!sun.target.parent)scene.add(sun.target);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;
  if(view===1){const h=q[2]+HY.y+yawD,L=10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
