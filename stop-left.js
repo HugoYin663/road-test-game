@@ -22,7 +22,7 @@ function sunFollow(wx,z){const c=new T.Vector3(wx,0,z),a=Math.round(c.dot(SUNR)/
  const q=SUNR.clone().multiplyScalar(a).add(SUNU.clone().multiplyScalar(b)).add(SUNF.clone().multiplyScalar(f));sun.target.position.copy(q);sun.position.copy(q).add(SUNO)}
 const GRS=M(0xffffff,{map:noise('#79a95a',50,40)}),ASF=M(0xffffff,{map:noise('#5f6168',70,30)}),CRB=M(0xc9cbcf),SWK=M(0xd5d3cc),DRV=M(0xcfccc4);
 {const g=new T.Mesh(new T.PlaneGeometry(700,700),GRS);g.rotation.x=-Math.PI/2;g.receiveShadow=true;scene.add(g)}
-box(2*RW,.04,420,ASF,0,.02,0);box(460,.04,2*RW,ASF,0,.021,0);      // 你这条路（南北）、横路（东西）
+box(2*RW,.04,420,ASF,0,.02,0);box(460,.04,2*RW,ASF,0,.015,0);      // 你这条路（南北）、横路（东西）
 // 路缘（到转角为止）、人行道（一直通到转角，和横路的人行道接上）
 // 路缘在后面画（车道口那一段是平的，要等车道位置定了）
 [-1,1].forEach(s=>{
@@ -75,17 +75,20 @@ const AWT=cv(160,80,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeSty
 const STRT=cv(64,256,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.fillStyle='#c8102e';for(let i=0;i<5;i++)x.fillRect(4,6+i*50,w-8,26)});      /* 停牌下面红白横条的竖牌 */
 if(AW4)[[RW+1.0,SL-1.0,0],[-RW-1.0,-SL+1.0,Math.PI],[SL-1.0,-(RW+1.0),Math.PI/2],[-SL+1.0,RW+1.0,-Math.PI/2]].forEach((a,i)=>{if(i>=2)signPost(a[0],a[1],a[2],STOPT,.75,.75,1.55);signPost(a[0],a[1],a[2],AWT,.3,.15,1.36);signPost(a[0],a[1],a[2],STRT,.26,.86,.44)});      /* 横路两个方向也有停牌；四个停牌下面都有 ALL WAY 小牌 */
 {const t=cv(200,280,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#111';x.lineWidth=6;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#111';x.textAlign='center';x.font='bold 40px Arial';x.fillText('MAXIMUM',w/2,62);x.font='bold 130px Arial';x.fillText('40',w/2,200)});
- signPost(RW+1.0,-80,0,t,.6,.84,1.6)}
+ var SPD40=t}      /* 限速牌：房子和车道定了以后再立（立在草地上，避开车道口） */
 // ---------- 房子、车道、树、路灯、消防栓、信箱 ----------
 const WALLS=[0xb5654a,0x9c5a43,0xc9b28f,0xd8d2c4,0x8d6e5a,0xe2dccd,0xa8a29a],ROOFS=[0x3b3f45,0x4a4038,0x5b4a3d,0x2f3338,0x6b6e72];
 const WIN=M(0x2a3540),DOORc=[0x6b2b2b,0x234a6b,0x2f4f3a,0x111111],GAR=M(0xeeeeec),TRIM=M(0xf2f2ee);
 const MOUTH=[];      // 车道口：{road:'ns'|'ew',s:哪一边,a,b：沿路的范围}
 const DRA=M(0x4a4c51),CRBS=M(0x8e9196);
+// 车道总是盖在人行道、路缘上面；相邻两家的车道叠在一起时，高一点的那家再往前一点：交界处不会闪
+[DRA,DRV].forEach(m=>Object.assign(m,{polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));
+const DRA2=DRA.clone(),DRV2=DRV.clone();[DRA2,DRV2].forEach(m=>Object.assign(m,{polygonOffsetFactor:-2,polygonOffsetUnits:-6}));
 function house(x,z,h,setL){const o=buildHouse(),g=o.g;      // 式样见 lib/houses.js：平房、科德角、殖民式、两层砖房、工匠平房
  // 车道：窄的占房子宽度一半以上，宽的和房子一样宽；水泥或沥青；人行道照常从车道上穿过去；路边那一段路缘是平的
  const W=Math.min(o.bw,o.bw*(.55+Math.random()*.45)),cx=o.side?o.gx:Math.max(-o.bw/2+W/2,Math.min(o.bw/2-W/2,W>o.bw*.9?0:o.gx)),dm=Math.random()<.4?DRA:DRV;
  const seg=(z0,z1,y,m)=>{if(z1>z0)g.add(mesh(new T.BoxGeometry(W,.05,z1-z0),m,cx,y,(z0+z1)/2))};
- const dy=((Math.round(x/17)+Math.round(z/17))&1)*.008;seg(o.fz,setL-(SW1-RW),.13+dy,dm);seg(setL-(SW0-RW),setL-.25,.13+dy,dm);      /* 相邻两家的车道偶尔会叠在一起：一家高一点点，不会互相闪 */seg(setL-.25,setL,.05,CRB);
+ const dy=((Math.round(x/17)+Math.round(z/17))&1)*.008;const dmm=dy?(dm===DRA?DRA2:DRV2):dm;seg(o.fz,setL-(SW1-RW),.13+dy,dmm);seg(setL-(SW0-RW),setL-.25,.13+dy,dmm);      /* 相邻两家的车道偶尔会叠在一起：一家高一点点，不会互相闪 */seg(setL-.25,setL,.05,CRB);
  place(g,x,z,h);scene.add(g);g.updateMatrixWorld(true);
  const p=[cx-W/2,cx+W/2].map(lx=>new T.Vector3(lx,0,setL).applyMatrix4(g.matrixWorld)),ns=Math.abs(Math.sin(h))>.5;
  const v=ns?p.map(q=>q.z):p.map(q=>-q.x);MOUTH.push({road:ns?'ns':'ew',s:ns?(x>0?1:-1):(z>0?1:-1),a:Math.min(...v),b:Math.max(...v)});
@@ -98,6 +101,7 @@ for(let z=30;z<210;z+=17)[-1,1].forEach(s=>{const hz=z+Math.random()*2;house(s*H
 for(let x=30;x<240;x+=17)[-1,1].forEach(sx=>[-1,1].forEach(sz=>{house(sx*(x+Math.random()*2),sz*HD,sz>0?Math.PI:0,HD-RW)}));
 // 路口四个角的房子：侧面朝横路
 [[1,-1],[-1,-1],[1,1],[-1,1]].forEach(([sx,sz])=>house(sx*(HD+1),sz*(HD+2),sx>0?-Math.PI/2:Math.PI/2,HD+1-RW));
+{let z=-80;const hit=z=>MOUTH.some(m=>m.road==='ns'&&m.s===1&&z>m.a-1.2&&z<m.b+1.2);for(let k=0;k<40&&hit(z);k++)z=-80+(k%2?1:-1)*Math.ceil((k+1)/2)*.8;signPost(RW+1.0,z,0,SPD40,.6,.84,1.6)}      // 限速 40：路边草地上，不立在车道口
 // 路缘（到转角为止）：车道口断开；立面颜色深一点（有阴影），脚下一条深色边沟
 {const GUT=M(0x4c4e54);
  [-1,1].forEach(s=>{[['ns',[-230,-RW-RC]],['ns',[RW+RC,230]],['ew',[-230,-RW-RC]],['ew',[RW+RC,230]]].forEach(([rd,[a,b]])=>{
