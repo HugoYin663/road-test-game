@@ -402,7 +402,7 @@ function krCmd(m){if(m==='sigL'||m==='sigR'||m==='sig'){krSetSig(m==='sigR'?'R':
  if(m==='mir'||m==='sho'||m==='lc'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}krAct(m)}}
 function krAct(m){if(m==='lc'){if(R.kr.lc)krCancel();else krStart();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.kr.lane==='L'?'R':'L'};mk()}
 function krGap(laneZ){const a=myPath(R.u);let w=null;wCars().forEach(c=>{if(w||Math.abs(c.z-laneZ)>1.6)return;const al=a[0]-c.x,dv=c.v-R.v;      // al>0：那辆车在你前面
-  if(al<5.6&&al>-12)w='B';else if(al<0){const g=-al-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.v+2.5*Math.max(0,dv)))w='R'}else{const g=al-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='F'}});return w}
+  if(al<5.6&&al>-12)w='B';else if(al<0){const g=-al-4.6;if(g<Math.max(6,.6*c.v)+Math.max(0,dv)**2/4)w='R'}else{const g=al-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='F'}});return w}
 function krStart(){const K=R.kr;if(K.lc||R.crash)return;const to=K.lane==='L'?'R':'L',t=R.t;
  if(K.sig!==to)ev('lcNoSig');else if(t-K.sigT<2)ev('lcSigShort');
  if(!(R.mT2!=null&&t-R.mT2<10))ev('lcNoMir');if(!(R.oT2[to]!=null&&t-R.oT2[to]<10))ev('lcNoSho');

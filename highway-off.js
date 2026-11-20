@@ -165,7 +165,7 @@ addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc'
 // 空档：L＝目标车道上其他车 [{s,cv}]，s 是沿车道的位置；S＝你的位置
 function gapWhy(L,S){let w=null;L.forEach(c=>{if(w)return;const dz=c.s-S,dv=c.cv-R.v;
   if(dz<5.6&&dz>-12)w='unsafeB';
-  else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))w='unsafeR'}
+  else if(dz<0){const g=-dz-4.6;if(g<Math.max(6,.6*c.cv)+Math.max(0,dv)**2/4)w='unsafeR'}
   else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
 function startChange(){if(!canRight())return;const x=me()[0],t=R.t,toExit=R.d<5;
  if(toExit&&x>XG-12){flash('已经到分岔口，来不及了');return}

@@ -66,7 +66,7 @@ function cmdUp(){}
 // 空档够不够：旁边／盲区里有车不行；后车比你快、换过去会逼它刹车不行；前车比你慢、离得太近不行（前车比你快、正在开远就没关系）
 function gapWhy(to){let w=null;R.cars.forEach(c=>{if(c.lane!==to||w)return;const dz=c.z-R.z,dv=c.cv-R.v;
   if(dz<5.6&&dz>-12)w='unsafeB';      /* 并排或在侧后方盲区里 */
-  else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))w='unsafeR'}
+  else if(dz<0){const g=-dz-4.6;if(g<Math.max(6,.6*c.cv)+Math.max(0,dv)**2/4)w='unsafeR'}
   else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
 // 换线前的检查：S → M → O → G
 function startChange(){const to=other(),t=R.t,X1=LX[to];

@@ -166,7 +166,7 @@ addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc'
 // 空档：L＝目标车道上其他车 [{s,cv}]，s 是沿车道的位置；S＝你的位置
 function gapWhy(L,S){let w=null;L.forEach(c=>{if(w)return;const dz=c.s-S,dv=c.cv-R.v;
   if(dz<5.6&&dz>-12)w='unsafeB';
-  else if(dz<0){const g=-dz-4.6-Math.max(0,dv)*2;if(g<Math.max(6,.6*c.cv+2.5*Math.max(0,dv)))w='unsafeR'}
+  else if(dz<0){const g=-dz-4.6;if(g<Math.max(6,.6*c.cv)+Math.max(0,dv)**2/4)w='unsafeR'}
   else{const g=dz-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='unsafeF'}});return w}
 function targetCars(to){const p=me();if(onArt())return{L:R.cars.filter(c=>c.road==='Q'),S:p[1]};return{L:R.cars.filter(c=>c.road==='F'&&c.lane===ZF1),S:p[0]}}
 function startChange(){if(onArt()&&(me()[1]<H.L0+30||R.d<1.8))return;if(!onArt()&&!onAcc())return;if(onAcc()&&me()[0]<XJ-5){flash('还没到加速车道');return}      // 城市道路上：匝道车道出现以后，从右车道换进去；匝道弯道上不能换；加速车道上并入高速

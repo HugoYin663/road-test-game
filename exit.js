@@ -101,7 +101,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
   if(R.ph===2){
    if(!R.p1T&&R.EV.aisle.includes('ped')&&R.z<ZS(-6)+SWD/2+12){R.p1T=1;const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.P1={o,x:-4.6,z:ZS(-6)+SWD/2,v:1.25,ph:0,t0:t};
     R.haz.push(()=>R.P1&&!R.P1.gone?inPath(R.P1.x,R.P1.z,.35):null)}
-   if(R.B&&!R.B.st&&(R.z<ZS(KB)+12.5&&R.z>ZS(KB)+7.5||R.z+LW.HL<ZS(KB)-4)&&      /* 只在你还没开到它后面时才开始倒（或者你已经开过去了）：你已经在它车后，就等你过去 */!(R.AC&&!R.AC.gone&&Math.abs(R.AC.z-ZS(KB))<14)&&!(R.P1&&!R.P1.gone&&Math.abs(R.P1.z-ZS(KB))<3&&R.P1.x<XC)){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
+   if(R.B&&!R.B.st&&(R.z<ZS(KB)+18&&R.z>ZS(KB)+9||R.z+LW.HL<ZS(KB)-4)&&      /* 只在你还没开到它后面时才开始倒（或者你已经开过去了）：你已经在它车后，就等你过去 */!(R.AC&&!R.AC.gone&&Math.abs(R.AC.z-ZS(KB))<14)&&!(R.P1&&!R.P1.gone&&Math.abs(R.P1.z-ZS(KB))<3&&R.P1.x<XC)){R.B.st=1;R.B.t0=t;R.B.rl.forEach(m=>m.visible=true);R.haz.push(()=>{const B=R.B;if(B.gone)return null;const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>inPath(q[0],q[1],.1)).filter(d=>d!=null);return ds.length?Math.min(...ds):null})}
    if(R.z<-5&&!R.insR){R.insR=1;banner('考官：前面右转（turn right at the end）','#ffe27a',1);R.insRT=t}
    if(R.insR===1){R.insR=2;const b=$('bsig');b.dataset.m='sigR';b.innerHTML='右转灯<small>Signal</small>'}      /* 车道尽头右转：自己打右转灯、看左右，有车就停下让，没车就慢慢转过去 */
    if(R.EV.ec&&!R.EC&&R.z<ZA+16)ecSpawn();
@@ -164,7 +164,7 @@ function backStep(dt){const B=R.B;if(!B||!B.st||B.gone)return;const t=R.t-B.t0;
  else if(B.st===1){B.v=-.9;const d=.6;const rx=B.x-Math.sin(B.h)*LW.TX+Math.sin(B.h)*B.v*dt,rz=B.z-Math.cos(B.h)*LW.TX+Math.cos(B.h)*B.v*dt;B.h+=B.v*Math.tan(d)/LW.L*dt;B.x=rx+Math.sin(B.h)*LW.TX;B.z=rz+Math.cos(B.h)*LW.TX;
   if(B.h<=.02){B.h=0;B.st=2;B.v=0;B.t2=R.t;B.rl.forEach(m=>m.visible=false)}
   // 它在倒的时候你还在往前开、离它很近
-  const ds=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]).map(q=>Math.hypot(q[0]-R.x,q[1]-R.z)),dmin=Math.min(...ds);if(t>1.3&&R.v>.3&&dmin<9&&B.z<R.z+2)ev('noYieldBack')}
+  const bc=boxCorners([B.x,B.z,B.h,LW.HL,LW.HW]),dmin=Math.min(...bc.map(q=>Math.hypot(q[0]-R.x,q[1]-R.z))),fx=Math.sin(R.h),fz=Math.cos(R.h),mf=Math.max(...corners().map(q=>q[0]*fx+q[1]*fz)),ahead=bc.every(q=>q[0]*fx+q[1]*fz>mf-.5);if(t>2&&R.v>.3&&dmin<9&&ahead)ev('noYieldBack')}      /* 它开始倒以后给 2 秒反应时间 */      /* 只在它整辆车还在你车头前面（它往你要开过去的地方倒）时才算；你的车头已经开到它旁边、开过去了，就不算 */
  else if(B.st===2){if(R.t-B.t2>.8){const cl=npcClear(B.x,B.z,B.h,1,'B'),vt=cl<2.5?0:Math.min(3,(cl-2.5)*1.2);B.v=vt<B.v?Math.max(vt,B.v-6*dt):Math.min(vt,B.v+1.5*dt);B.x+=(1.6-B.x)*Math.min(1,dt*.8);B.z+=B.v*dt}}
  SCN.obst[SCN.obst.length-1]=[B.x,B.z,B.h];place(B.c,B.x,B.z,B.h,0);if(B.z>60){B.c.visible=false;B.gone=1}}
 // 商铺前面那条通道上开过来的车：往西开，横过车道尽头，到出口停在大路边，等近处车道有空档就右转上大路
