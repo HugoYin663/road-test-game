@@ -1,4 +1,5 @@
 const TURNIN=/[?&]var=turnin/.test(typeof location!=='undefined'?location.search:'');      // 模拟考试：只做“右转回考场”这一段
+const TINP=/[?&]var=turninp/.test(typeof location!=='undefined'?location.search:'');      // G 模拟考试：右转回考场以后接着车头进车位（头进）
 // ============================================================
 // headin.js — 项目：从大路右转进停车场，左转进车道，车头朝里停进左边的空车位（头进）
 //  · 大路上往北开（系统控制方向，玩家只管停车／行驶、打灯）。考官：前面右转进停车场
@@ -89,7 +90,7 @@ function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1
   place(o.c,o.x,o.z,o.dir>0?0:Math.PI,0);if(Math.abs(o.z-ZC)>230){o.c.visible=false;o.gone=1}})}
 // ---------------- 按键：大路和通道里（系统开）用右转灯；自己停车时换成看左边、360° 观察 ----------------
 function keys(manual){const sh=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none'};sh('bsigRR',!manual);sh('bsigR',manual);sh('bmir',manual);
- if(TURNIN){sh('bsigL',0);sh('bshL',0);sh('bshR',0);sh('bshRR',!manual)}else sh('bshRR',0)}      /* 右转回考场：只要右转灯和“右后观察”（不用左右镜） */
+ if(TURNIN&&(!TINP||R.ph===0)){sh('bsigL',0);sh('bshL',0);sh('bshR',0);sh('bshRR',!manual)}else{sh('bshRR',0);if(TINP){sh('bsigL',1);sh('bshL',1);sh('bshR',1)}}}      /* G：进了考场以后换回停车用的按键 */      /* 右转回考场：只要右转灯和“右后观察”（不用左右镜） */
 // ---------------- 场景 ----------------
 const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','backIn','noYieldCar'],vmax:2.0,noSplit:true,noBackCheck:true,tiltL:true,keepIns:true,pkYaw:-.35,
  curbs:[{side:1,x:XC,z0:ZA,z1:200},{side:-1,x:-XC,z0:ZA,z1:200}],
@@ -98,14 +99,14 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
  setup(R){SCN.exam=null;const park=DIFF==='park';
   const ev0=HARD?{pe:1,ec:1,ac:1}:park?{pe:0,ec:0,ac:0}:{pe:Math.random()<.5,ec:Math.random()<.6,ac:Math.random()<.35};
   const PK=buildParks();{const L=PK.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
-  if(TURNIN){ev0.pe=Math.random()<.7;ev0.ec=false;ev0.ac=false}
+  if(TURNIN){ev0.pe=Math.random()<.7;if(!TINP){ev0.ec=false;ev0.ac=false}}
   R.LT=null;      /* 右转回考场：常有行人在人行道上走 */
   Object.assign(R,{EV:ev0,haz:[],tf:{q:trafPlan(HARD),cars:[]},AC:null,EC:null,PE:null,moves:0,segD:0});
   if(park){Object.assign(R,{x:LXA,z:ZT-9,h:0,gear:'D',ph:3,auto:null,cruise:false});keys(true);
    banner('考官：左边那个空车位（上方有蓝色箭头），车头朝里停进去（park front-in in the spot on your left）','#ffe27a',1);
    tip('打左转灯，按住油门往前开到合适的位置停住；转头看左边，方向盘往左打到底，慢慢开进去')}
   else{const p=PATH.P[0];Object.assign(R,{x:p[0],z:p[1]+LW.TX,h:0,v:30/3.6,gear:'D',ph:0,auto:{pts:PATH.P,i:0},stopReq:false});keys(false);
-   banner(TURNIN?'考官：前面右转，回考场（turn right into the test centre）':'考官：前面右转，进停车场（turn right into the plaza）','#ffe27a',1);if(TURNIN)ltSpawn()}},
+   banner(TURNIN?'考官：前面右转，回考场（turn right into the test centre）':'考官：前面右转，进停车场（turn right into the plaza）','#ffe27a',1);if(TURNIN&&!TINP)ltSpawn()}},
  onGear(g){R.gT=R.t;if(R.ph===4&&g==='P'){R.ph=5;R.pT=R.t}else if(R.ph===5&&g!=='P')R.ph=4},      /* 挂 P 又马上换回 R/D：当作误操作，继续 */
  autoV(R,dt){const A=R.auto,i=A.i,s=PATH.L[i],Lp=PATH.L;let v;A.brk=2.5;
   if(i<PATH.i1)v=Math.min(30/3.6,Math.sqrt(9+2*1.3*Math.max(0,Lp[PATH.i1]-s-3)));      // 大路上：快到进口时平稳地减速
@@ -130,7 +131,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
    if(TURNIN)ltYieldChk(dt,s);
    if(R.EV.pe&&!R.PE&&s>PATH.L[PATH.i1]-28){const o=ped(PCOL[Math.random()*5|0]);live.push(o);R.PE={o,x:-(XC+1.3),z:ZB-10.5,v:1.3,ph:0};R.haz.push(()=>R.PE&&!R.PE.gone?inPath(R.PE.x,R.PE.z,.35):null)}
    if(R.EV.ec&&!R.EC&&i>=PATH.i1)ecSpawn();
-   if(i>=PATH.i2){if(TURNIN){R.ph=9;R.endT=R.t+2.5;if(R.sig==='R')setSig(null)}else{R.ph=1;if(R.sig==='R')setSig(null);banner('考官：前面左转，进车道（turn left into the aisle）','#ffe27a',1)}}}      /* 转完右转灯自己灭 */
+   if(i>=PATH.i2){if(TURNIN&&!TINP){R.ph=9;R.endT=R.t+2.5;if(R.sig==='R')setSig(null)}else{R.ph=1;if(R.sig==='R')setSig(null);if(TINP)keys(false);banner('考官：前面左转，进车道（turn left into the aisle）','#ffe27a',1)}}}      /* 转完右转灯自己灭 */
   if(R.ph===9&&R.t>R.endT&&!R.over){finish();return}      /* 模拟考试（var=turnin）：右转进了考场就结束，接倒车入位 */
   // ---------- 通道里：左转进车道 ----------
   if(R.ph===1){
