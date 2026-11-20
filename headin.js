@@ -30,16 +30,26 @@ const HI_TXT={
  no360:["倒车前没有做 360° 观察","每次开始倒车之前，都要把四周看一遍（360° 观察），确认没有车、行人再倒。"],
  noYieldCar:["车道上有车开过来时没有停下让它","车道上对面开过来的车离你很近时，不要把车头摆进它的车道：先停住让它过去，再转进车位。"],
  noP:["没有挂 P 停好","停车的最后一步要挂 P，再拉手刹。"],
+ hitCone:["碰到了锥桶","放了锥桶的车位不能停。开进车位时看着两边的车和锥桶，慢慢开，随时准备停车。"],
  noShRIn:["右转前没有看右后方","右转进考场之前要回头看右后方（右盲点）：右边可能有自行车或从后面上来的车。按“右后观察”。"],
  yieldLT:["不清楚路权：停下来让对面的左转车","你右转、对面的车左转，进的是同一个口：右转车的路权比左转车高（左转车要让直行和右转的车），哪怕它先到、先在那里等。没有行人的话，应该直接转进去，不要停下来让它——停下让会让对方不知道该不该走，还会挡住后面的车。只有行人比你路权高。"]};
 // 指定车位上方的蓝色箭头
 {const a=new T.Mesh(new T.ConeGeometry(.6,1.4,4),BM(0x1f6feb));a.rotation.x=Math.PI;a.position.set(PCX,3.2,ZT);scene.add(a)}      // 左边一排：x＝-PCX（画到场景里是 +PCX）
-// 停着的车：空车位两边的车都是头进（车头朝里），能对齐外后视镜；右边第 -8 个空着（转进车道时车头会扫过去）
+// 停着的车：只有空车位两边各一辆（头进，车头朝里，能对齐外后视镜）；再往外两边各 2 个车位放红白锥桶（不能停）；其他车位零星几辆车：画得少，转头观察不卡
+//  右边第 -8 个空着（转进车道时车头会扫过去）
+const CONES=[];for(let k=KT-3;k<=KT+3;k++)if(Math.abs(k-KT)>=2)CONES.push([-PCX,ZS(k)]);
 function buildParks(){const P=[];
  for(let k=-8;k<=22;k++)[1,-1].forEach(s=>{if(s<0&&k<-7)return;if(s>0&&k===-8)return;if(s<0&&k===KT)return;
-  const near=s<0&&Math.abs(k-KT)<=1;      // 除了指定的车位，其他车位都停满（不留空车位，免得停错）
+  const d=Math.abs(k-KT),near=s<0&&d===1;
+  if(s<0&&d>=2&&d<=3)return;      // 锥桶
+  if(!near&&(d<(s<0?6:3)||Math.random()>.14))return;      // 零星的车：离空车位远一点
   const nose=near?true:Math.random()<.7,h=(s>0)===nose?Math.PI/2:-Math.PI/2;
   P.push([s*PCX,ZS(k)+(near?0:(Math.random()-.5)*.25),h+(near?0:(Math.random()-.5)*.05),PCOLS[Math.random()*PCOLS.length|0]])});return P}
+// 红白条纹的施工锥桶（放在车位中间）
+{const RD=M(0xe0402a),WT=M(0xf4f4f0),BK=M(0x2a2b2e);
+ CONES.forEach(([x,z])=>{const g=new T.Group();g.add(mesh(new T.BoxGeometry(.5,.05,.5),BK,0,.025,0));
+  [[0,.2,RD],[.2,.32,WT],[.32,.46,RD],[.46,.56,WT],[.56,.72,RD]].forEach(([y0,y1,m])=>{const r=y=>.2-.17*y/.72;g.add(mesh(new T.CylinderGeometry(r(y1),r(y0),y1-y0,12),m,0,.05+(y0+y1)/2,0))});
+  g.userData.st=1;place(g,x,z,0,0);scene.add(g)})}
 // ---------------- 系统开的路线（后轴走的线） ----------------
 const mkPts=()=>{const P=[],seg=(a,b)=>{const n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.5);for(let i=0;i<n;i++)P.push([a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n])},
  arc=(cx,cz,r,a0,a1)=>{const n=Math.ceil(Math.abs(a1-a0)*r/.5);for(let i=0;i<n;i++){const a=a0+(a1-a0)*i/n;P.push([cx+r*Math.cos(a),cz+r*Math.sin(a)])}};return{P,seg,arc}};
@@ -139,12 +149,13 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
    if(!R.oncChk&&Math.max(...corners().map(q=>q[1]))>ZC){R.oncChk=1;const E=R.EC;if(E&&!E.gone&&E.st==='drive'){const xs=corners().map(q=>q[0]),ef=E.x-LW.HL;if(ef>Math.min(...xs)-.5&&ef-Math.max(...xs)<13)ev('noYieldOnc')}}      /* 车头进了通道北半边（对面车的车道）时，对面的车还没过去、离你不到 13 米 */
    if(i>=PATH.i4){R.ph=2;if(R.sig==='L')setSig(null);banner('考官：左边那个空车位（上方有蓝色箭头），车头朝里停进去（park front-in in the spot on your left）','#ffe27a',1)}}
   // ---------- 车道里：系统开，快到车位时减到很慢，玩家点“停车” ----------
-  if(R.ph===2&&R.auto&&!R.stopReq&&Math.abs(R.h)<.04&&Math.abs(R.x-LXA)<.15&&R.z>ZA+1){R.auto=null;R.cruise=true;R.stopReq=false;SCN.exam={laneX:LXA,crawlZ:ZT-7.5,vcr:15/3.6,side:'L'};cruiseUI(true)}
+  if(R.ph===2&&R.auto&&!R.stopReq&&Math.abs(R.h)<.04&&Math.abs(R.x-LXA)<.15&&R.z>ZA+1){R.auto=null;R.cruise=true;R.stopReq=false;SCN.exam={laneX:LXA,crawlZ:ZT-11,crawlV:1.2,vcr:15/3.6,side:'L'};cruiseUI(true)}
   if(R.ph===2&&R.cruise&&!R.stopReq&&R.z>ZT+3&&!R.over){ev('missed');finish();return}
   // ---------- 自己开进车位 ----------
   if(R.ph===3&&R.v>.05&&(R.w<-.3||R.h<-.12)){R.ph=4;      /* 开始往左转进车位（之前直着往前、往后挪位置不算） */
    R.moves=0;R.segD=0;if(!(R.oT.XL!=null&&R.t-R.oT.XL<10)&&!sawSh('L',10))ev('noShoulderL')}      /* 往左转之前 10 秒内转头看过左边 */
   if(R.ph>=4)R.segD=(R.segD||0)+Math.abs(R.v)*dt;
+  if(!R.cHit&&R.ph>=3){const me=[R.x,R.z,R.h,LW.HL,LW.HW];if(CONES.some(c=>boxPtDist(me,c)<.22)){R.cHit=1;ev('hitCone');crashSnd()}}
   if(R.ph===5&&!R.over){const lo=Math.max(R.pT,R.pbT||0,R.gT||0);if(R.pb&&t-lo>1.5){parkDone();finish()}else if(!R.pb&&t-R.pT>5&&t-lo>1.5){parkDone();ev('noPB');finish()}}      /* 挂 P、拉手刹以后，停 1.5 秒没有别的操作才算做完 */
   pedStep(dt);ecStep(dt);acStep(dt);ltStep(dt);trafStep(dt);
   if(t>300&&!R.over){if(R.ph<5)ev('noP');finish()}},

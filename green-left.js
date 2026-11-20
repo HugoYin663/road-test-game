@@ -318,8 +318,8 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  if(R.LC){const L=R.LC,P=PK.S;let vt=11;if(L.st==='drive'){const us=uAt(SL-2.7);vt=L.u<us?11:Math.min(2.6,Math.sqrt(2*1.2*Math.max(0,P.uW-L.u))+.05);if(L.u>=P.uW-.3&&L.v<.1)L.st='wait'}
   if(R.v===0)R.stopAt=R.stopAt==null?R.t:R.stopAt;else R.stopAt=null;
   if(L.st==='wait'&&R.t>=L.goAt&&lcSafe())L.st='go';      /* 前车一到路口里就找空档：对面车少、车距大，它很快就能安全转走 */
-  if(L.st==="wait"&&(R.t>=R.G.s+.3||R.Ty!=null&&R.t>=R.Ty+1.5)&&lcSafe())L.st="go";      /* 黄灯、红灯时对面停下了，也转走（清空路口） */      /* 万一错过了空档，就用后面那个大空档 */if(L.st==='wait')vt=0;if(L.st==='go')vt=L.u<P.cs-6?11:5.5+3*ss(P.ce-6,P.ce+14,L.u);
-  L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+3*dt);L.u+=L.v*dt;if(ocBlock(P.p(L.u))){L.u-=L.v*dt;L.v=0}if(L.u>myLen-2)L.u=myLen-2}      /* 前面那辆左转车：不会开进对面直行车里 */
+  if(L.st==="wait"&&(R.t>=R.G.s+.3||R.Ty!=null&&R.t>=R.Ty+1.5)&&lcSafe())L.st="go";      /* 黄灯、红灯时对面停下了，也转走（清空路口） */      /* 万一错过了空档，就用后面那个大空档 */if(L.st==='wait')vt=0;if(L.st==='go')vt=L.u<P.cs-6?11:5.5+3*ss(P.ce-6,P.ce+14,L.u)+9*ss(P.ce+14,P.ce+70,L.u);      /* 转完弯以后加速到 60 出头（这段限速 60），不会在左车道前面慢慢开挡着你 */
+  L.v=L.v>vt?Math.max(vt,L.v-4*dt):Math.min(vt,L.v+3*dt);L.u+=L.v*dt;if(ocBlock(P.p(L.u))){L.u-=L.v*dt;L.v=0}if(L.u>myLen-2)L.u=myLen-2;if(L.u>myLen-40)L.c.visible=false}      /* 开到路的尽头（远处雾里）就去掉 */      /* 前面那辆左转车：不会开进对面直行车里 */
  // 横向车：横向变绿后起步；你挡在它的车道上就不走
  const inBox=Math.abs(a[0])<hwM&&f[1]>CWE&&a[1]<hwX+2&&u<ce;      // 你过了停车线、还在路口里      // 你还在路口里：横向的车看到了，先不走
  R.XQ.forEach(q=>{if(R.xgT==null||R.t<R.xgT+1.3||q.crash){q.cv=0;return}let vt=inBox&&q.dir*q.x<-(hwM+4)?0:18;if(q.dir<0)wCars().forEach(o=>{if(o.o===q||Math.abs(o.z-q.z)>2.4)return;const al=q.x-o.x;if(al>0&&al<60)vt=Math.min(vt,Math.sqrt(o.v*o.v+2*4*Math.max(0,al-4.6-7)))});const g=(a[0]-q.x)*q.dir;if(Math.abs(a[1]-q.z)<2.6&&g>0&&g<40)vt=Math.min(vt,Math.max(0,(g-6)*1.3));if(q.dir>0&&R.BK){const b=BKP(R.BK.u);if(Math.abs(b[1]-q.z)<2.6){const al=b[0]-q.x;if(al>0&&al<60)vt=Math.min(vt,Math.sqrt(R.BK.v*R.BK.v+2*4*Math.max(0,al-4.6-4)))}}
