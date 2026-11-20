@@ -101,6 +101,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  MP=pathN;
  LASTF={sp:spT,E:!!R.emg,cru:!!(lc&&lc.isP),six:CS==='6'};
  gt=0;flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
+function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}      // 松开“观察路口”：按住时一直看左边
 function mk(){const md=R.mode==='slow'?'look':R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function toast(t){const b=$('bn');b.textContent=t;setTimeout(()=>b.textContent={green:'绿灯右转',yellow:'黄灯！',red:'红灯'}[R.light],1500)}
@@ -163,7 +164,7 @@ function tApp(){let u=0,t=0;while(u<LP-.05&&t<30){u+=Math.max(.3,vApp(u))*.02;t+
 function tArr(u0){let u=u0==null?U0N:u0,t=0;while(u<uS-5&&t<30){u+=vOf(u)*.02;t+=.02}return t}
 let LEADG=null;                    // 你（不按按钮）到停车线前约 5 米要多久
 function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
- if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
+ if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
  if(m==='look'){if(R.lookT>=0)return;R.scT=-1;yawD=0;const slow=R.mode!=='stop';R.lookT=0;if(slow)R.mode='slow';mk();return}
  if(m===R.mode)return;
@@ -241,7 +242,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   if(!R.polE&&R.polPassT!=null&&!R.nsc&&fz>-9.5&&a[0]<16){R.nsc=true;if(!(R.lastScan>=R.pol.t0))ev('noScanP')}   // 警车过去后跟着走可以，但车头进路口前要再看一眼左边       // 警车通过路口时你还在开 → 严重错误
   if(P.chase){if(a[0]>16&&!R.po){R.po=true;R.mode=m='stop';R.stopA=3;R.stopT=Math.min(UEND-2,u+v*v/6+.5);mk();flash('警车示意你靠边停车')}
    if(v<.05){R.poT=(R.poT||0)+dt;if(R.poT>(R.po?2.5:3.5)){finish();return}}else R.poT=0}}
- if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT,tg=R.scQ?(sT<.75?-1.3:0):(sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0);R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>(R.scQ?1.1:2.2)){R.scT=-1;R.yaw=0}}   // 观察路口：左-右-左
+ if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>.75)R.scRel=sT;const tg=R.scRel==null?-1.3:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.35){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 离路口近：点一下看一眼左边；按住就一直看左边，松开转回（和其他观察键一样） */
+  else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}}   // 观察路口：左-右-左
  R.peds.forEach(p=>{if(!p.bike||p.hit)return;const c=pedPos(p,R.t),a=myPath(u),ahead=a[1]-c[1],blk=c[1]<-9&&ahead>0&&ahead<3.7&&Math.abs(a[0]-c[0])<1.4;   // 你的车挡在自行车道里：自行车刹车停在后面
   if(blk||p.dd!=null){if(p.dd==null)p.dd=pedD(p,R.t);const vb=blk?0:Math.min(5,(p.vb||0)+3*dt);p.vb=vb;p.blk=blk;p.dd+=vb*dt;p.sg=[{t:0,v:vb}]}});
  R.peds.forEach(p=>{if(p.hit||!p.o.visible||p.hide)return;const c=pedPos(p,R.t),a=myPath(u),dx=c[0]-a[0],dz=c[1]+(p.oz||0)-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);

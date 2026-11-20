@@ -27,6 +27,8 @@ const PK={S:mkPath(XW),N:mkPath(XL)};
 let myPts,myLen,myPath,myPathRaw,cs,ce,UEND,uW,ZC;
 // 广告牌原则：任务做完、结束前的 2～3 秒里玩家看得到——换到右车道以后，前方约 120 米右边路边慢慢出现一块，结束时它还在前面
 const BBX=-400,BBK=billboard('turn-left');placeBB(BBK,BBX,17.5,-Math.PI/2);
+placeBB(billboard('turn-left/2'),-150,17.5,-Math.PI/2);      // 转完弯在左车道等后车超过去时，右边路边就能看到
+placeBB(billboard('turn-left/3'),-600,17.5,-Math.PI/2);      // 路的远处再一块
 [80,220].forEach(d=>{const g=speedSign(-(d+hwM),hwX+1.7);g.rotation.y=Math.PI})      /* 限速 60：放远一些（不和路口的灯杆、右边车门柱挡在一起），后面再立一块 */      // 左转进去以后约 30 米：限速 60      // 一直立在那里：转完弯就能远远看见，换完线后越来越近，结束时还在前面 40 多米
 function usePath(k){const P=PK[k];myPts=P.pts;myLen=P.len;myPathRaw=P.p;myPath=u=>latPath(P.p,u);cs=P.cs;ce=P.ce;uW=P.uW;ZC=P.ZC;UEND=ce+215}      // 转完弯以后再往前开约 190 米：在这一段里要换到右车道      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 // 转完弯后换车道：在路线上加一个往右（+z）的横向偏移，按走过的距离平顺地过去
@@ -209,6 +211,7 @@ function cmd(m){if(!playing||R.over||R.crash)return;if(R.kr){krCmd(m);return}if(
  if(m===R.mode)return;
  if(m==='stop'){R.stopA=Math.max(5,Math.min(7,R.v*R.v/8));R.stopT=R.u+R.v*R.v/(2*R.stopA)}      // 从现在的位置果断刹车停下（低速时不再往前溜太多）
  R.mode=m;mk()}
+function scanOK(){return R.lastScan!=null&&R.lastScan>=(R.lineT==null?R.t:R.lineT)-15}      // 离停车线约 3 米前 15 秒以内（含在路口里等候时）看过路口
 function cmdUp(m){if(!/^scan/.test(m)||!R||!R.scHold)return;R.scHold=false}
 // 开进路口等候：到停车线前减到很慢，出白线后极慢地溜出去做 Zig-Zag，到等候点停住（约 6 km/h）
 // 默认（不按停车）的车速：快到路口时慢下来，顺着弧线转
@@ -244,7 +247,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(m==='go'&&f[0]<-3.4&&v>.05&&R.cmtArm){      // 车头开始伸向对面车道：真正开始转弯的那一刻
  R.cmtArm=false;R.cmt=true;
 if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk');if(R.peds.some(pedConf))ev('yieldPL');
-  if(R.arrow!=='g'&&!(R.lastScan!=null&&R.lastScan>=(R.lineT==null?R.t:R.lineT)-.5))ev('noScanL')}
+  if(R.arrow!=='g'&&!scanOK())R.scDue=R.t+2}      /* 观察路口：快到路口以后看过就算；转弯刚开始 2 秒内补看一眼也算 */
+ if(R.scDue!=null&&(scanOK()||R.t>=R.scDue)){if(!scanOK())ev('noScanL');R.scDue=null}
  if(R.cmt&&v===0)R.cmtArm=true;
  // 在路口里停下等候时车身已经歪了（车轮已经往左打）：没有车正轮正
  if(v===0&&m==='stop'&&f[1]>SL&&f[0]>-3.4&&!R.cmt&&R.light==='g'&&Math.abs(a[2])>.1){R.wsT=(R.wsT||0)+dt;if(R.wsT>1)ev('wheels')}else R.wsT=0;
@@ -327,7 +331,7 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
  if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
   if(R.scQ&&R.scSide){if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;const tg=R.scRel==null?(R.scSide==='R'?1.05:-1.35):0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);
-   if(sT>.5)R['scD'+R.scSide]=R.t;if(R.scRel!=null&&sT-R.scRel>.5){R.scT=-1;R.scRel=null;R.scSide=null;R.yaw=0}
+   if(sT>.5){R['scD'+R.scSide]=R.t;R.lastScan=R.t}      /* 路口里：看左边或右边都算观察过 */if(R.scRel!=null&&sT-R.scRel>.5){R.scT=-1;R.scRel=null;R.scSide=null;R.yaw=0}
    if(R.scDL!=null&&R.scDR!=null&&Math.abs(R.scDL-R.scDR)<12)R.lastScan=Math.min(R.scDL,R.scDR)}      /* 左右都看过（12 秒内）才算观察过路口 */
   else if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>1.5)R.scRel=sT;const tg=sT<.7?1.05:R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 路口里：先看右边（有没有紧急车辆），再看左边（人行横道上的行人）；按住就一直看左边 */
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}

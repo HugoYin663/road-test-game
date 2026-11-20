@@ -12,6 +12,8 @@
     "lane-change/2": [],
     "turn-right": [],
     "turn-left": [],
+    "turn-left/2": [],
+    "turn-left/3": [],
     "exit-left": []
   }
 }
