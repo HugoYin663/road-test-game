@@ -179,7 +179,7 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  R.OC.forEach(s=>{if(!s.gone&&Math.abs(s.z)<45)cr([s.lane,s.z,Math.PI],'#eceff1')});
  if(R.BK){const q=BKP(R.BK.u);cr(q,'#d8d8d0',12,5)}if(R.RT&&!R.RT.gone)cr(ORT(R.RT.u),'#ffd28a');if(R.LC)cr(PK.S.p(R.LC.u),'#9aa4b5');
  cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
-function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:t[0],text:t[1],img:snap3D()||snap()});flash(t[0])}
+function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:TT(t[0]),text:t[1],img:snap3D()||snap()});flash(TT(t[0]))}
 // ---------- 冲突判断 ----------
 // 你从现在开始一直开，车尾离开某条对面车道要多久
 function tClear(L){let u=R.u,v=R.v,t=0;while(t<12){const a=myPath(u);if(a[0]-2.35*Math.sin(a[2])<L-1.9)return t;const vt=vGo(u);v=Math.min(vt,v+2.5*.05);u+=v*.05;t+=.05}return t}

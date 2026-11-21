@@ -148,7 +148,7 @@ let SNC=null;
 function snap(ah){try{ah=ah||0;{const sz=ren.getSize(new T.Vector2());ren.setScissorTest(false);ren.setViewport(0,0,sz.x,sz.y)}const cvs=ren.domElement,W=360,H=240;if(!cvs.width)return null;if(!SNC)SNC=new T.PerspectiveCamera(45,1,1,500);SNC.aspect=cvs.width/cvs.height;SNC.updateProjectionMatrix();
  const p0=me(),cx=p0[0]+Math.sin(p0[2])*ah/2,cz=p0[1]+Math.cos(p0[2])*ah/2,hh=Math.max(55,(ah/2+9)/.414),p=[cx,cz,p0[2]];SNC.position.set(-p[0],hh+myY(),p[1]);SNC.up.set(Math.sin(p[2])*-1,0,Math.cos(p[2]));SNC.lookAt(-p[0],myY(),p[1]);const vc=cockpit.visible,vm=mine.visible;cockpit.visible=false;mine.visible=true;placeMine();ren.render(scene,SNC);cockpit.visible=vc;mine.visible=vm;
  const c2=document.createElement('canvas');c2.width=W;c2.height=H;const sw=Math.min(cvs.width,cvs.height*W/H),sh=sw*H/W;c2.getContext('2d').drawImage(cvs,(cvs.width-sw)/2,(cvs.height-sh)/2,sw,sh,0,0,W,H);return c2.toDataURL('image/jpeg',.82)}catch(e){return null}}
-function ev(key,o){o=o||{};if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:t[0],text:t[1]+(o.add||''),img:snap(o.ah)});flash(t[0])}
+function ev(key,o){o=o||{};if(R.ev.some(e=>e.key===key))return;const t=TXT[key];R.ev.push({key,title:TT(t[0]),text:t[1]+(o.add||''),img:snap(o.ah)});flash(TT(t[0]))}
 // ---------- 按钮 ----------
 function cmd(m){if(!R||R.over||!playing)return;
  if(m==='acc'||m==='dec'){if(R.ph<2||R.ph===9)return;R[m]=true;R[m==='acc'?'dec':'acc']=false;mk();return}      // 加速／减速：按住才起作用，松开保持车速
