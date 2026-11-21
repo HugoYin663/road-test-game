@@ -222,14 +222,16 @@ details.route summary{cursor:pointer}
 </div>
 
 <script src="lib/mockfx.js?v=1112k"></script>
-<script src="lib/voice.js?v=1117s"></script>
-<script src="lib/sheet.js?v=1117s"></script>
+<script src="lib/voice.js?v=1121a"></script>
+<script src="lib/sheet.js?v=1121a"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1120d';
+const V='1121a';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
+ 'straight-g':{zh:'绿灯直行（G）',en:'Straight through on green (G)',href:'straight.html?var=green&',dz:'保持 60 开过路口：接近路口看后视镜、进路口前左右观察、过了路口再看后视镜',de:'Keep 60 through the intersection: mirror on approach, left-right check before entering, mirror again after'},
+ 'straight-r':{zh:'红灯直行（G）',en:'Straight through on red (G)',href:'straight.html?var=red&',dz:'你是第二辆车：减速看后视镜，停在能看到前车后轮的地方，绿灯后跟着起步加速到 60',de:'You are second in line: mirror when slowing, stop where you see the rear tires, then follow and speed up to 60'},
  'red-right':{zh:'红灯右转',en:'Right turn on red',dz:'完全停车，左边被 SUV 挡住时慢慢前移观察，找横向两条车道的空档',de:'Stop fully, creep forward when an SUV blocks your view, and find a gap in both cross lanes'},
  'green-left':{zh:'绿灯左转',en:'Left turn on green',dz:'进路口等候，看对面车流的空档、右转车、行人和自行车，黄灯时完成左转',de:'Wait inside the intersection, judge gaps in oncoming traffic, watch right-turners, pedestrians and cyclists, and clear on amber'},
  'green-arrow':{zh:'左转箭头',en:'Left-turn arrow',dz:'红灯或绿灯加左转箭头，跟着前车转；排第 5 辆时箭头变黄熄灭，判断停还是进',de:'Follow the queue on an advance arrow; when it turns amber as you reach the line, decide whether to stop or go'},
@@ -246,13 +248,14 @@ const ITEMS={
  'stall':{zh:'停车场倒车入位',en:'Reverse into a parking stall',dz:'开过空车位，司机对着参考车第 4 个角停住，R＋360° 观察，右打到底，平行时回正，停在两线正中',de:'Drive past the stall, stop with your seat at the reference car’s far corner, 360° check, full right lock, straighten when parallel, finish centred'},
  'headin':{zh:'停车场头进',en:'Forward into a parking stall',dz:'打灯右转进停车场、让行人，左转进车道让对面的车，车头过第一条线约半米停住，左打到底开进左边车位，平行时回正，停在车位中间',de:'Signal into the plaza, yield to pedestrians and oncoming cars, stop with your bumper half a metre past the first line, full left lock into the stall, straighten when parallel'},
  'exit':{zh:'出车位、出停车场',en:'Leaving a stall and the lot',dz:'放手刹、看镜打灯、挪到车道边左右看，车道里让行人和倒车的车，出口车头停到大路边，等两边空档左转上大路',de:'Release the brake, mirrors and signal, edge out and look both ways, yield to pedestrians and reversing cars, stop at the road edge and turn left in a safe gap'}};
-const GROUPS=[{zh:'路口判断',en:'Intersections',ids:['green-right','red-right','green-left','green-arrow','stop-left','stop-left-ns','stop-4way']},
+const GROUPS=[{zh:'路口判断',en:'Intersections',ids:['green-right','red-right','green-left','green-arrow','straight-g','straight-r','stop-left','stop-left-ns','stop-4way']},
  {zh:'行驶中判断',en:'On the road',ids:['lane-change','highway-on','highway-off']},
  {zh:'低速操作',en:'Low-speed manoeuvres',ids:['residential','three-point','hill-park','parallel','stall','headin','exit']}];
 // ---------- 模拟考试的路线（每一段对应哪个单项，下一步串起来时用） ----------
 // ---------- 模拟考试：每一项是哪个场景（var：绿灯左转指定情况） ----------
 const STEP={exit:{zh:'出车位、出停车场，左转上大路',en:'Leave the stall and the lot, turn left onto the road'},
  'red-right':{zh:'红灯右转',en:'Right turn on red'},'green-right':{zh:'绿灯右转',en:'Right turn on green'},
+ 'straight:green':{zh:'绿灯直行（保持 60）',en:'Straight through on green (keep 60)'},'straight:red':{zh:'红灯直行（排在第二辆）',en:'Straight through on red (second in line)'},
  'lane-change:left':{zh:'换到左车道（准备左转）',en:'Change to the left lane (for the next left turn)'},'residential:hill':{zh:'小区：坡道停车',en:'Residential: hill parking'},'stop-left:nostop':{zh:'小区：没有停牌的路口左转（让对面直行车）',en:'Residential: left turn at an uncontrolled intersection (yield to oncoming)'},'residential:tppk':{zh:'小区：三点调头 → 平行停车',en:'Residential: three-point turn, then parallel parking'},'headin:turnin':{zh:'右转回考场（没有停牌，让人行道上的行人）',en:'Turn right back into the test centre (no sign; yield to pedestrians)'},
  'green-left:green':{zh:'绿灯左转（等对面车流空档），转完靠右',en:'Left turn on green (wait for a gap), then keep right'},
  'green-left:amber':{zh:'绿灯左转（等候时变黄灯），转完靠右',en:'Left turn on green that turns amber, then keep right'},
@@ -264,7 +267,7 @@ const STEP={exit:{zh:'出车位、出停车场，左转上大路',en:'Leave the 
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 function buildSteps(k){const GL=shuf(['green-left:green','green-left:amber']);      // 路线像一圈：去的路上右转，三点调头往回开，回来的路上左转
  const L=k==='g2'?['exit','green-right','lane-change:left','green-left:green','red-right','lane-change:left','green-left:amber','stop-4way','residential:hill','stop-left:nostop','residential:tppk','stop-left','headin:turnin','stall']      /* G2 路线：出考场左转 → 绿灯右转 → 换到左道 → 绿灯左转（等空档）→ 红灯右转 → 换到左道 → 绿灯左转（黄灯）→ 四面停牌进小区 → 小区三项 → 停牌左转 → 右转回考场 → 倒车入位 */
-  :['exit','green-right','lane-change:left','green-left:green','red-right','lane-change:left','green-left:amber','highway-on','highway-off','headin:turninp'];      /* G 路线：和 G2 一样，只是把小区那一段换成上高速、出高速；最后右转回考场、车头进车位（头进） */
+  :['exit','green-right','straight:green','lane-change:left','green-left:green','red-right','lane-change:left','green-left:amber','straight:red','highway-on','highway-off','headin:turninp'];      /* G 路线：和 G2 一样，只是把小区那一段换成上高速、出高速；最后右转回考场、车头进车位（头进） */
  return L.map(id=>{const [sc,vr]=id.split(':');return Object.assign({s:sc,var:vr||null},STEP[id])})}
 // 首页上显示的路线（红绿灯部分顺序每次随机）
 const ROUTES={
@@ -273,9 +276,10 @@ const ROUTES={
   {zh:'绿灯左转（等候时变黄灯），转完换回右车道',en:'Left turn on green that turns amber, then back to the right lane'},{zh:'进小区：四面停牌右转',en:'Residential: all-way stop, right turn'},
   {zh:'坡道停车，起步',en:'Hill parking, then pull out'},{zh:'没有停牌的路口左转（让对面直行车）',en:'Left turn at an uncontrolled intersection (yield to oncoming)'},{zh:'开过路左边停着的两辆车，三点调头往回开 → 平行停车',en:'Past the two parked cars: three-point turn → parallel parking'},{zh:'出小区：停牌路口左转，开上考场前的路',en:'Leaving: left turn at a stop sign onto the road in front of the test centre'},
   {zh:'右转回考场（没有停牌）',en:'Turn right back into the test centre (no sign)'},{zh:'倒车入位（尾进）',en:'Reverse into a stall'}],
- g:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'绿灯右转',en:'Right turn on green'},{zh:'安全时换到左车道',en:'Change to the left lane when safe'},
+ g:[{zh:'出车位、出停车场，左转上大路',en:'Leave the lot, turn left onto the road'},{zh:'绿灯右转',en:'Right turn on green'},{zh:'绿灯直行（保持 60）',en:'Straight through on green (keep 60)'},{zh:'安全时换到左车道',en:'Change to the left lane when safe'},
   {zh:'绿灯左转（等对面空档），转完换回右车道',en:'Left turn on green (wait for a gap), then back to the right lane'},{zh:'红灯右转',en:'Right turn on red'},{zh:'安全时换到左车道',en:'Change to the left lane when safe'},
   {zh:'绿灯左转（等候时变黄灯），转完换回右车道',en:'Left turn on green that turns amber, then back to the right lane'},
+  {zh:'红灯直行（排在第二辆）',en:'Straight through on red (second in line)'},
   {zh:'上高速',en:'Merge onto the highway',hw:1},{zh:'出高速：换进最右出口车道，加速到 110，快到出口再减速',en:'Exit: move into the exit lane, speed up to 110, slow near the exit',hw:1},
   {zh:'右转回考场（没有停牌）',en:'Turn right back into the test centre (no sign)'},{zh:'车头进车位（头进）',en:'Park forward into a stall'}]};
 // ---------- 语言 ----------

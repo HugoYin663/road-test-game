@@ -8,7 +8,7 @@ const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i
 const myPathB=path(myPts),myPath=u=>u<0?[6.25,-110+u,0]:myPathB(u);      // u<0：起点再往后的直路（现在从更远的地方开过来）
 let cs=0,ce=0;for(let i=1;i<=41;i++){ce+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===1)cs=ce}
 const AB=5,U0=60,U0N=-18,UEND=ce+44;      // U0N：现在从更远的地方开过来（离停车线约 110 米），有时间打灯、熟悉按键；场景里的车流、行人时间都往后推 LEAD 秒      // 转完弯以后再往前开 30 米（经过路边的广告牌）
-{const g=billboard('turn-right');placeBB(g,105,-17,Math.PI/2)}      // 广告牌在结束位置（x≈60）前方约 45 米：转完弯后最后 2～3 秒看得到      // 转进去的那条路右手边的广告牌
+{const g=billboard('turn-right');placeBB(g,75,-17,Math.PI/2)}      // 广告牌离路口近一些（x≈75）：一转完弯就在正前方，开到结束（x≈60）前一直看得清      // 转进去的那条路右手边的广告牌
 const uAt=zz=>{for(let u=0;u<myLen;u+=.05)if(myPath(u)[1]>=zz)return u;return myLen};
 const uS=uAt(-19.3)-1.7,      // 停车线后的停车位置（车头离停车线约 0.6 米）
       uC=uAt(-17.7);          // 慢慢前移的最远位置：车头到人行横道边

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>直行通过路口 · 3D 路考练习</title>
+<script src="lib/mockfx.js?v=1112k"></script>
+<style>
+:root{--pn:rgba(255,255,255,.97);--tx:#1c2430;--mu:#5a6676;--cd:#eef1f5;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}}
+:root[data-theme="dark"]{--pn:rgba(28,34,44,.97);--tx:#eef2f7;--mu:#a5b0c0;--cd:#2a3340}
+html,body{height:100%;margin:0;overflow:hidden;background:#111418;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!important;z-index:0}      /* 铺满整个屏幕（包括刘海两侧） */
+#hud,#bn,#fl,#vb,#hm,#fs,#btns,.b,.ov,#rot{z-index:2}      /* 按钮和提示要盖在画面上面 */
+#hud{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:10px;font-size:14px;display:flex;gap:10px;align-items:center}
+#hud b{font-size:26px}#lt{width:16px;height:16px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b}
+#bn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 16px;border-radius:10px;font-size:15px;white-space:nowrap}
+#fl{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);color:#fff;background:rgba(214,45,45,.92);padding:8px 18px;border-radius:10px;font-size:18px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#fs{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#hm{position:fixed;right:calc(92px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#vb{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));padding:7px 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;cursor:pointer}
+#btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
+.b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
+.b small{display:block;font-size:11px;font-weight:400;opacity:.85}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
+.pn h2{margin:0 0 8px;font-size:20px}.pn p{margin:6px 0;font-size:14px;line-height:1.55}.pn .mu{color:var(--mu);font-size:12px}
+.pn button{margin-top:10px;padding:10px 28px;font-size:17px;border:0;border-radius:10px;background:#2f6fe0;color:#fff;font-weight:700;cursor:pointer}
+.st{font-size:28px;color:#f5b301;letter-spacing:4px}
+.cards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.card{background:var(--cd);border-radius:10px;padding:8px;width:250px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.card img{width:100%;border-radius:6px}.card b{font-size:15px;color:#d62d2d}.card span{font-size:12.5px;line-height:1.5}
+
+.modes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.pn button.md{margin:0;padding:10px 14px;width:200px;display:flex;flex-direction:column;gap:4px;align-items:center;background:#2f6fe0}
+.pn button.md:nth-child(2){background:#2aa24a}.pn button.md:nth-child(3){background:#c0392b}
+.md b{font-size:17px}.md span{font-size:12px;font-weight:400;line-height:1.4;opacity:.92}
+details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-weight:700}
+.sc{font-size:44px;font-weight:800;margin:4px 0}.pass{color:#2aa24a}.fail{color:#d62d2d}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;margin-left:4px;color:#fff;background:#d98a1f}.tag.s{background:#d62d2d}
+.back{display:inline-block;margin-bottom:4px;color:#2f6fe0;font-size:14px;font-weight:700;text-decoration:none}.back:hover{text-decoration:underline}
+#rot{position:fixed;inset:0;background:#111;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;z-index:30}
+
+.pd{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:3px solid rgba(255,255,255,.35);color:#fff;font-weight:700;font-size:17px;cursor:pointer;z-index:2;
+ background:repeating-linear-gradient(0deg,rgba(20,22,26,.72) 0 9px,rgba(60,64,72,.72) 9px 12px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10px;-webkit-user-select:none;user-select:none;touch-action:none}
+.pd small{font-size:15px;font-weight:700;opacity:1;display:inline}
+.pd.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35);filter:brightness(1.4)}
+#bga,#bbr{right:calc(14px + env(safe-area-inset-right,0px));width:104px;height:66px;border-radius:14px;font-size:24px;justify-content:center;padding:0;flex-direction:row;gap:6px}
+#bga{bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bbr{bottom:calc(14px + env(safe-area-inset-bottom,0px))}      /* 右边：加速在上、减速在下（和上高速一样的键） */
+#bmi{background:#d98a1f;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}      /* 左边：后视镜在下、观察路口在上 */
+#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+</style></head><body>
+<div id="hud"><div id="lt"></div><div><b id="sp">60</b> km/h</div></div>
+<div id="bn">直行通过路口</div><div id="fl"></div>
+<button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
+<button class="b pd" id="bga" data-m="acc">▲<small>加速</small></button>
+<button class="b pd" id="bbr" data-m="dec">▼<small>减速</small></button>
+<button class="b" id="bmi" data-m="mir">后视镜<small>Mirror</small></button>
+<button class="b" id="bc" data-m="scan">观察路口<small>左右看</small></button>
+<div class="ov" id="ov"><div class="pn">
+<a class="back" href="index.html#practice">← 全部项目</a>
+<h2>直行通过路口 · 3D</h2>
+<p>你在右车道，前面红绿灯路口<b>直行</b>。限速 60，方向由系统控制，你只管<b>车速</b>（右边的加速／减速，按住起作用，松开保持车速）和<b>观察</b>（左边的后视镜、观察路口）。</p>
+<div class="modes">
+<button class="md" data-v="green"><b>绿灯直行</b><span>保持 60 开过路口：接近路口看后视镜、进路口前左右观察、过了路口再看后视镜</span></button>
+<button class="md" data-v="red"><b>红灯直行</b><span>你是第二辆车：减速、停在前车后面合适的位置，绿灯后跟着前车起步，加速到 60</span></button>
+</div>
+<details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left">
+<p><b>操作</b>：按住<b>▲加速</b>车会加速，按住<b>▼减速</b>就是踩刹车，两个都不按就保持现在的车速；车很慢（10 km/h 以下）时松开就会停住。<b>后视镜</b>：看一眼中镜。<b>观察路口</b>：左、右、再左看一遍。</p>
+<p><b>绿灯直行</b>：一直保持 60 左右（不超过限速，也不要无故低于约 50）。离路口 100 多米、开始接近路口时看一次<b>后视镜</b>；车头进路口前（离路口几十米时）按<b>观察路口</b>左右看，确认横向没有闯红灯的车、没有还在过街的行人；开过路口以后再看一次<b>后视镜</b>。和前车保持 2 秒左右的距离。</p>
+<p><b>红灯直行</b>：前面是红灯，你前面有一辆车，它会在停车线前停下，你是第二辆。开始减速时看一次<b>后视镜</b>；按住减速，停在<b>能看到前车后轮和地面接触</b>的地方（前车车尾下面的路面刚好露出来，大约留 4～6 米），不要太近也不要太远；停稳后再看一次<b>后视镜</b>，等灯时也可以左右看看路口。变绿灯、前车开走后跟着起步（不要等太久），一边加速到 60，中间再看一次<b>后视镜</b>。</p>
+<p>做错的地方当场提示，最后汇总。撞到前车、闯红灯是严重错误。</p>
+</div></details>
+<p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
+<div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html#practice" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="lib/core.js?v=1120d"></script>
+<script src="lib/en.js?v=1121a"></script>
+<script src="lib/intersection.js?v=1119b"></script>
+<script src="lib/actors.js?v=1112y"></script>
+<script src="lib/ads.js?v=1110o"></script>
+<script src="lib/billboard.js?v=1110o"></script>
+<script src="lib/cockpit.js?v=1118a"></script>
+<script src="lib/hq.js?v=1117d"></script>
+<script src="lib/ui.js?v=1117s"></script>
+<script src="straight.js?v=1121a"></script>
+<script src="lib/voice.js?v=1121a"></script>
+<script src="lib/mock.js?v=1121a"></script>
+</body></html>
