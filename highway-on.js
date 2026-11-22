@@ -137,7 +137,7 @@ function spawnF1(){let u=R.u,v=R.v,t=0,tA=null;const xs=[];for(let i=0;i<900;i++
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={acc:!!R.acc,dec:!!R.dec,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!R.look||R.q.includes('sho'),go:!!R.lc};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('bgo',R.lc&&!R.lc.cancel&&!R.lc.cross&&!R.lc.auto);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const on={acc:!!R.acc,dec:!!R.dec,sigL:R.sig==='L',sigR:R.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!R.look||R.q.includes('sho'),go:!!R.lc||R.q.includes('go')};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':R.q.includes('go')?'换线<small>已按 · 稍等</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('bgo',R.lc&&!R.lc.cancel&&!R.lc.cross&&!R.lc.auto);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 // 你的位置：沿路线 P 的 u，再往左偏 d 米
 function me(){if(R.mz!=null)return[R.mx,R.mz,0];const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
 const myY=()=>R.mz!=null?Yart(R.mz):yP(R.u);
@@ -156,11 +156,11 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(false){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
  if(m==='go'&&R.lc){cancelLC();return}      // 换线中再按一下：取消
  if(m==='obs'){if(R.look||R.q.length)return;doAct('mir');R.q.push('sho');return}      // 左侧观察一个键：中镜、左镜，接着回头看左盲点
- if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}
+ if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3&&!(m==='go'&&R.q.includes('go')))R.q.push(m);mk();return}      /* 换线键只记一次：多按也不会变成“取消换线” */doAct(m)}}
 // 看完盲点：在加速车道的虚线段，系统马上并线（SMOG 的 G）；还在实线段只是看一眼
 function afterShoulder(){if(!onAcc()||R.merged||R.lc||R.over)return;const x=me()[0];if(x<XJ-5)return;if(x<XSOL){flash('这里还是实线，到虚线再并');return}startChange()}
 function doAct(m){if(m==='go'){if(!R.lc)startChange();else cancelLC();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
-function nextAct(){const m=R.q.shift();if(m)doAct(m)}
+function nextAct(){const m=R.q.shift();if(m)doAct(m);mk()}
 function cmdUp(m){if(!R)return;if(m==='acc'||m==='dec'){R[m]=false;mk()}}
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc');if(e.key==='ArrowDown')cmd('dec')});addEventListener('keyup',e=>{if(e.key==='ArrowUp')cmdUp('acc');if(e.key==='ArrowDown')cmdUp('dec')});
 // 空档：L＝目标车道上其他车 [{s,cv}]，s 是沿车道的位置；S＝你的位置

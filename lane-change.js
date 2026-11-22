@@ -45,7 +45,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}      // big：考官指令先在屏幕中间大字闪几下，再缩回上方
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',obs:!!R.look,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('bgo',R.lc&&!R.lc.cancel&&!R.lc.cross);
+function mk(){const on={sigL:R.sig==='L',sigR:R.sig==='R',obs:!!R.look,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',go:!!R.lc||R.q.includes('go')};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':R.q.includes('go')?'换线<small>已按 · 稍等</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('bgo',R.lc&&!R.lc.cancel&&!R.lc.cross);
  {const b=$('bmi'),sd=(R.lc?R.lc.to:other());if(b&&b.dataset.m==='obs'){const h=sd==='L'?'左侧观察<small>中镜·左镜·左盲点</small>':'右侧观察<small>中镜·右镜·右盲点</small>';if(b.innerHTML!==h)b.innerHTML=h}}document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 const other=()=>R.lane==='R'?'L':'R';      // 只有两条车道：能换的只有另一条
 // 错误卡片的配图：出错那一刻从正上方拍一张
@@ -59,9 +59,9 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(m==='sigL'||m==='sigR'){const s=m==='sigL'?'L':'R';setSig(R.sig===s?null:s);return}
  if(m==='obs'){if(R.look||R.q.length)return;doAct('mir');R.q.push('sho');return}      // 侧面观察：中镜＋外后视镜，接着回头看盲点
  if(m==='go'&&R.lc){cancelLC();return}      // 换线中再按一下：取消
- if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}      // 手快的玩家：前一个动作（看镜子、看盲点）还没做完就按下一个，记下来，做完一个接着做下一个
+ if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3&&!(m==='go'&&R.q.includes('go')))R.q.push(m);mk();return}      /* 换线键只记一次：多按也不会变成“取消换线” */doAct(m)}}      // 手快的玩家：前一个动作（看镜子、看盲点）还没做完就按下一个，记下来，做完一个接着做下一个
 function doAct(m){if(m==='go'){if(!R.lc)startChange();else cancelLC();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.lc?R.lc.to:other()};mk()}
-function nextAct(){const m=R.q.shift();if(m)doAct(m)}
+function nextAct(){const m=R.q.shift();if(m)doAct(m);mk()}
 function cmdUp(){}
 // 空档够不够：旁边／盲区里有车不行；后车比你快、换过去会逼它刹车不行；前车比你慢、离得太近不行（前车比你快、正在开远就没关系）
 function gapWhy(to){let w=null;R.cars.forEach(c=>{if(c.lane!==to||w)return;const dz=c.z-R.z,dv=c.cv-R.v;

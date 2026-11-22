@@ -135,7 +135,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
 function setHeads(L,c){L.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}
 function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col}
 function setLight(c){R.light=c;setHeads(HEADS,c);banner({g:'绿灯左转',y:'黄灯！',r:'红灯'}[c],{g:'',y:'#ffc21a',r:'#ff5a5a'}[c])}
-function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!K&&(!!R.look||R.q.includes('sho')),lc:K&&!!K.lc};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('blc',K&&K.lc&&!K.lc.cancel&&!K.lc.cross);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!K&&(!!R.look||R.q.includes('sho')),lc:K&&(!!K.lc||R.q.includes('lc'))};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':R.q.includes('lc')?'换线<small>已按 · 稍等</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('blc',K&&K.lc&&!K.lc.cancel&&!K.lc.cross);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
 const TXT={
@@ -399,7 +399,7 @@ function krSetSig(sd){const K=R.kr;K.sig=K.sig===sd?null:sd;K.sigT=R.t;const e=$
 function krCmd(m){if(m==='sigL'||m==='sigR'||m==='sig'){krSetSig(m==='sigR'?'R':'L');return}
  if(m==='obs'){if(R.look||R.q.length)return;krAct('mir');R.q.push('sho');return}      // 右侧观察：中镜＋右镜，接着回头看右盲点
  if(m==='lc'&&R.kr.lc){krCancel();return}
- if(m==='mir'||m==='sho'||m==='lc'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}krAct(m)}}
+ if(m==='mir'||m==='sho'||m==='lc'){if(R.look||R.q.length){if(R.q.length<3&&!(m==='lc'&&R.q.includes('lc')))R.q.push(m);mk();return}      /* 换线键只记一次（多按不会变成取消），按下后显示“已按 · 稍等” */krAct(m)}}
 function krAct(m){if(m==='lc'){if(R.kr.lc)krCancel();else krStart();return}R.look={k:m==='mir'?'M':'O',t:0,side:R.kr.lane==='L'?'R':'L'};mk()}
 function krGap(laneZ){const a=myPath(R.u);let w=null;wCars().forEach(c=>{if(w||Math.abs(c.z-laneZ)>1.6)return;const al=a[0]-c.x,dv=c.v-R.v;      // al>0：那辆车在你前面
   if(al<5.6&&al>-12)w='B';else if(al<0){const g=-al-4.6;if(g<Math.max(6,.6*c.v)+Math.max(0,dv)**2/4)w='R'}else{const g=al-4.6+dv*2;if(g<Math.max(3,.2*R.v))w='F'}});return w}
@@ -417,10 +417,10 @@ function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  // 看后视镜／回头看盲点（和换线项目一样）
  if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK;
   if(L.k==='M'){if(L.t<.55){R.yaw+=((sd<0?.12:.42)-R.yaw)*k9;R.pit+=(.2-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.36:.83)-R.yaw)*k9;R.pit+=((sd<0?-.26:-.27)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */if(L.t>1)R.mT2=t}
-   else if(R.q[0]==='sho'){R.look=null;mk();const n=R.q.shift();if(n)krAct(n)}      /* 右侧观察：看完右镜直接转头看右盲点，中间不回到前方 */
-   else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}
+   else if(R.q[0]==='sho'){R.look=null;mk();const n=R.q.shift();if(n)krAct(n);mk()}      /* 右侧观察：看完右镜直接转头看右盲点，中间不回到前方 */
+   else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n);mk()}}}
   else{if(L.t<.95){R.yaw+=((sd<0?-2.0:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT2[L.side]=t}
-   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT2[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n)}}}}}
+   else{R.yaw+=(0-R.yaw)*Math.min(1,dt*12);R.pit+=(0-R.pit)*k9;if(L.t>1.3){R.oT2[L.side]=t;R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n);mk()}}}}}
 // 后车：停在停车线后面等下一次绿灯（简单模式：转完弯后后面没有车）。
 // 困难模式：你转完弯开出约 14 米时，后面路口出来一辆车，在左车道快速追上来，打右转灯换到右车道，从右边超过你——你要等它过去再换
 function folStep(dt,u){if(DIFF==='hard'&&!R.psOn&&u>=ce+14&&!R.crash){const ok=wCars().every(c=>Math.abs(c.x+22)>14);if(ok){R.psOn=true;const c=car(C[[1,3,5,7][Math.random()*4|0]]);live.push(c);R.fol={car:c,free:true,go:true,x:-22,z:TZ,h:-Math.PI/2,lane:'L',v:15.5}}}

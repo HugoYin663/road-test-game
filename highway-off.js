@@ -139,7 +139,7 @@ const accN=v=>Math.max(.6,2.37-.045*v);      // 和上高速一样：50→100 �
 function banner(t,col,big){const b=$('bn');b.textContent=t;b.style.color=col||'';if(big){const e=$('cf');e.textContent=t;e.classList.remove('go');void e.offsetWidth;e.classList.add('go')}}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function setSig(s){R.sig=s;R.sigT=R.t;const e=$('sg');e.style.display=s?'block':'none';e.textContent=s==='L'?'⬅':'➡';if(s)tick(true);mk()}
-function mk(){const on={acc:!!R.acc,dec:!!R.dec,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!R.look||R.q.includes('sho'),sigR:!!R.sig,go:!!R.lc};document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
+function mk(){const on={acc:!!R.acc,dec:!!R.dec,mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!R.look||R.q.includes('sho'),sigR:!!R.sig,go:!!R.lc||R.q.includes('go')};{const b=$('bgo'),h=R.q.includes('go')&&!R.lc?'换线<small>已按 · 稍等</small>':'换线<small>Go</small>';if(b&&b.innerHTML!==h)b.innerHTML=h}document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 // 你的位置：沿路线 P 的 u，再往左偏 d 米（d＝7.5 中间车道，3.75 右车道，0 出口车道）
 function me(){if(R.mz!=null)return[R.mx,R.mz,Math.PI/2];const q=P(R.u),lx=-Math.cos(q[2]),lz=Math.sin(q[2]);return[q[0]+lx*R.d,q[1]+lz*R.d,q[2]+R.hd]}
 const myY=()=>R.mz!=null?HY:yP(R.u);
@@ -157,9 +157,9 @@ function cmd(m){if(!R||R.over||!playing)return;
  if(m==='acc'||m==='dec'){R[m]=true;R[m==='acc'?'dec':'acc']=false;mk();return}
  if(m==='sigR'){setSig(R.sig?null:'R');return}      // 右转灯：自己打，再按一下关掉
  if(m==='obs'){if(R.look||R.q.length)return;doAct('mir');R.q.push('sho');return}      // 右侧观察：中镜＋右镜，再回头看右盲点
- if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3)R.q.push(m);return}doAct(m)}}
+ if(m==='mir'||m==='sho'||m==='go'){if(R.look||R.q.length){if(R.q.length<3&&!(m==='go'&&R.q.includes('go')))R.q.push(m);mk();return}      /* 换线键只记一次，按下后显示“已按 · 稍等” */doAct(m)}}
 function doAct(m){if(m==='go'){if(!R.lc)startChange();return}R.look={k:m==='mir'?'M':'O',t:0,side:'R'};mk()}
-function nextAct(){const m=R.q.shift();if(m)doAct(m)}
+function nextAct(){const m=R.q.shift();if(m)doAct(m);mk()}
 function cmdUp(m){if(!R)return;if(m==='acc'||m==='dec'){R[m]=false;mk()}}
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc');if(e.key==='ArrowDown')cmd('dec')});addEventListener('keyup',e=>{if(e.key==='ArrowUp')cmdUp('acc');if(e.key==='ArrowDown')cmdUp('dec')});
 // 空档：L＝目标车道上其他车 [{s,cv}]，s 是沿车道的位置；S＝你的位置

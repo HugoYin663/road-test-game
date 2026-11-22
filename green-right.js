@@ -282,7 +282,7 @@ function finish(){R.over=true;sirenOff();R.sig=false;$('sg').style.display='none
 let last=0,fovH=110;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t;
  const fdt=Math.max(0,t-(loop.pt||0));loop.pt=t;
- flows.forEach(f=>{if(f.v===0){crossCar(f,fdt);return}if(f.s==null||t<.001)f.s=f.off+f.v*t;let vt=f.v;if(f.v>0&&(R.light!=='green'||polHold())){const q0=f.p(f.s),ds=q0[0]<0?q0[1]-20:-20-q0[1];if(ds>0&&ds<40)vt=Math.min(f.v,Math.sqrt(2*3*Math.max(0,ds-.5)))}
+ flows.forEach(f=>{if(f.v===0){crossCar(f,fdt);return}if(f.s==null||t<.001)f.s=f.off+f.v*t;let vt=f.v;if(f.v>0&&(R.light!=='green'||polHold())){const q0=f.p(f.s),ds=q0[0]<0?q0[1]-20:-20-q0[1];if(ds>0&&ds<40)vt=Math.min(f.v,Math.sqrt(2*3*Math.max(0,ds-.5)));else if(ds>=40&&polHold())vt=Math.max(0,(f.cv==null?f.v:f.cv)-3*fdt)}      /* 警笛响时，还没到路口的车都慢慢减速停下，等警车过去 */
   if(f.v>0){const L=f.p.len;flows.forEach(o=>{if(o===f||o.key!==f.key||o.s==null)return;let g=((o.s-f.s)%L+L)%L-4.6;if(g<30)vt=Math.min(vt,Math.max(0,Math.sqrt(Math.max(0,(o.cv||0))**2+2*4*Math.max(0,g-2.5))))})}      /* 同一条路上的前车：跟车、排队时留车距（不会叠在一起） */
   f.cv=f.cv==null?f.v:(f.cv>vt?Math.max(vt,f.cv-6*dt):Math.min(vt,f.cv+3*dt));f.s+=f.cv*fdt;const q=f.p(f.s);place(f.c,q[0],q[1],q[2])});
  R.peds.forEach(p=>{const D=pedD(p,t),uu=p.off+D;p.o.visible=!p.hide&&uu<p.len-.05;const q=p.path(Math.min(uu,Math.min(p.len,p.path.len)-.06)),mc=myPath(R.u),ox=R.onE?Math.max(0,mc[0]+3.2-q[0])*Math.max(0,1-Math.abs(q[1]-mc[1])/3.5):0,G=pedSeg(p,t);place(p.o,q[0]+(p.hit?0:ox),q[1]+(p.oz||0),q[2]+(G.f?Math.PI:0)+(p.ohd||0),.1);

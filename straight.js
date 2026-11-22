@@ -25,10 +25,15 @@ function moveCar(m,dt){if(m.gone)return;if(m.crash){m.v=0;return}
  if(m.s<SC+2.5){let must=st==='r'||(st==='y'&&m.stopY)||(st==='g'&&R.t<(m.rel||0));if(must)vt=m.s>=SC-.05?0:Math.min(vt,Math.sqrt(2*2.2*Math.max(0,SC-m.s)))}      // 红灯、能停下的黄灯：停在停车线前；变绿灯后过一会儿才起步
  const ah=leader(m);if(ah){const gap=ah.s-m.s-2*HL;vt=Math.min(vt,Math.max(0,ah.v+(gap-(3+1.4*m.v))*.5));if(gap<2.4)vt=0}      // 跟前车：停下时留约 3 米，开起来约 1.4 秒
  const a=vt>m.v?Math.min(2,(vt-m.v)*2):Math.max(-6,(vt-m.v)*6);m.v=Math.max(0,m.v+a*dt);m.s+=m.v*dt;m.bOn=a<-.5||(m.v<.2&&st!=='g');
- if(m.flow&&m.s>260){const L=R.lt[LN[m.ln].g];if(L==='g'){let mn=-200;R.cars.forEach(o=>{if(o!==m&&o.ln===m.ln&&!o.gone)mn=Math.min(mn,o.s)});m.s=Math.min(-220,mn-35-Math.random()*40);m.v=m.vmax;m.c=m.c}else{m.gone=true;m.c.visible=false}}}
+ if(m.flow&&m.s>420){const L=R.lt[LN[m.ln].g];if(L==='g'){let mn=-200;R.cars.forEach(o=>{if(o!==m&&o.ln===m.ln&&!o.gone)mn=Math.min(mn,o.s)});m.s=Math.min(-330,mn-35-Math.random()*40);m.v=m.vmax;m.c=m.c}else{m.gone=true;m.c.visible=false}}}
 function flowLane(ln,n,vmax){let s=-240+Math.random()*30;for(let i=0;i<n;i++){addCar(ln,s,vmax,vmax+(Math.random()-.5)*.8,{flow:true});s+=45+Math.random()*45}}
+// 路边限速牌 MAXIMUM 60：开局前方约 70 米一块，过了路口约 45 米再一块
+function signZ(z){const g=new T.Group();g.add(mesh(new T.CylinderGeometry(.05,.05,2.9,8),M(GRY),0,1.45,0));
+ const f=mesh(new T.PlaneGeometry(.75,.94),new T.MeshBasicMaterial({map:maxTex}),0,2.35,-.06);f.rotation.y=Math.PI;g.add(f);
+ g.add(mesh(new T.PlaneGeometry(.75,.94),M(GRY),0,2.35,-.05));g.position.set(-(hwX+1.7),0,z);scene.add(g);return g}
 // ---------- 每一趟 ----------
-const U0=-210,UEND={green:130,red:175};
+const U0=-330,UEND={green:130,red:175};      // 离停车线约 310 米开始（约 18 秒），有时间先适应自己控制车速
+[U0+70,45].forEach(signZ);
 function setLights(main,cross){R.lt={main,cross};setHeads(HEADS,main);setHeads(CHEADS,cross);setPedSig('M',main==='g'?'walk':'hand');setPedSig('X',cross==='g'?'walk':'hand');
  const lt=$('lt');if(lt){const c={g:'#2ee66b',y:'#ffc21a',r:'#ff3b3b'}[main];lt.style.background=c;lt.style.boxShadow='0 0 8px '+c}}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;
@@ -49,7 +54,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  R.fol=addCar('me',U0-28,60/3.6,60/3.6);
  gt=0;mk();$('sp').textContent='60'}
 function setHeads(L,c){L.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}
-function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col}
+function banner(t,col){const b=$('bn');b.textContent=TT(t);b.style.color=col}
 function mk(){document.querySelectorAll('.b').forEach(b=>{const m=b.dataset.m;b.classList.toggle('on',m==='acc'?!!R.acc:m==='dec'?!!R.dec:m==='mir'?R.mirT>=0:m==='scan'?R.scT>=0:false)})}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
@@ -81,8 +86,8 @@ addEventListener('keydown',e=>{if(e.repeat)return;if(e.key==='ArrowUp')cmd('acc'
 const gapLead=()=>R.lead&&!R.lead.gone&&R.lead.s>R.u?R.lead.s-R.u-2*HL:1e9;
 // ---------- 每一帧 ----------
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t,red=VAR==='red';
- // 你的车：按住加速／减速，都不按就保持车速；很慢时松开就停住（像踩着刹车）
- if(!R.crash){const aT=R.acc?accN(R.v):R.dec?-3.5:R.v<1?-2.5:0;R.a+=(aT-R.a)*Math.min(1,dt*(R.dec?5:4));R.v=Math.max(0,Math.min(25,R.v+R.a*dt));if(R.v===0&&R.a<0)R.a=0}
+ // 你的车：按住加速／减速；都不按就慢慢减速（松油门滑行，约 0.45 m/s²）；很慢时松开就停住（像踩着刹车）
+ if(!R.crash){const aT=R.acc?accN(R.v):R.dec?-3.5:R.v<1?-2.5:-.45;R.a+=(aT-R.a)*Math.min(1,dt*(R.dec?5:4));R.v=Math.max(0,Math.min(25,R.v+R.a*dt));if(R.v===0&&R.a<0)R.a=0}
  R.u+=R.v*dt;const u=R.u,fz=u+HL,rz=u-HL;
  R.cars.forEach(m=>moveCar(m,dt));
  // 观察：后视镜（中镜）
@@ -132,18 +137,27 @@ function finish(){if(R.over)return;
  else h='<h2>驾驶总结</h2><p>这一趟有 '+R.ev.length+' 处需要注意：</p>'+cardsHtml(R.ev);
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
+// 车速提示：开头几秒告诉你车速现在由你控制；练习时车速偏离 60 再提醒（模拟考只有开头那句）
+function tip(t){const e=$('tp');if(!e)return;if(!t){e.style.opacity=0;tip.c='';return}if(tip.c===t)return;tip.c=t;e.textContent=TT(t);e.style.opacity=1}
+function tipTick(){if(!R||R.over||!playing||R.crash){tip('');return}const t=R.t,k=R.v*3.6,red=VAR==='red',mk2=!!window.MOCK;
+ if(t<6){tip('车速由你控制：按住 ▲加速 保持 60，不按会慢慢变慢');return}
+ if(mk2){tip('');return}
+ if(red&&R.tG==null){if(R.lead.v<15&&R.v>1&&!R.dec)tip('前面红灯，前车在减速：按住 ▼减速，停在前车后面');else tip('');return}
+ if(red&&R.v<1&&R.lead.v>.5){tip('绿灯了，前车已经走了：按住 ▲加速 跟上');return}
+ const blocked=gapLead()<1.8*R.v+8;
+ if(k>64&&R.acc)tip('快超速了：松开 ▲加速');else if(k>65)tip('超过 60 了：按一下 ▼减速');else if(k<54&&!R.acc&&!blocked)tip('车速在下降：按住 ▲加速，回到 60');else if(tip.c&&(k>=57&&k<=63||R.acc||R.dec))tip('')}
 // ================= 渲染循环 =================
 let last=0,fovH=110;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);
  const bl=Math.sin(ts/1000*9.4)>0;
- R.cars.forEach(m=>{if(m.gone)return;const p=posOf(m);place(m.c,p[0],p[1],p[2]);m.c.visible=Math.abs(p[0])<300&&Math.abs(p[1])<300;m.bk.forEach(x=>x.visible=!!m.bOn)});
+ R.cars.forEach(m=>{if(m.gone)return;const p=posOf(m);place(m.c,p[0],p[1],p[2]);m.c.visible=Math.abs(p[0])<420&&Math.abs(p[1])<420;m.bk.forEach(x=>x.visible=!!m.bOn)});
  pedSigTick(ts);
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
  if(view===1){const h=q[2]+HY.y+yawD,L=R.mirT>=0||R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];wheel.rotation.z+=(0-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(-q[0],64,q[1]+6);cam.lookAt(-q[0],0,q[1]+15)}
- $('sp').textContent=Math.round(R.v*3.6);if(cluster)cluster(Math.round(R.v*3.6));
+ {const k=Math.round(R.v*3.6),e=$('sp');e.textContent=k;e.style.color=R.over||k<5?'':k>64?'#ff6b5a':k<53&&!(VAR==='red'&&R.tG==null)?'#ffc21a':'#6ee787'}tipTick();if(cluster)cluster(Math.round(R.v*3.6));
  if(view===1&&((loop.fc=(loop.fc||0)+1)&1)===0){const m=MR[(loop.fc>>1)%MR.length],sa=ren.shadowMap.autoUpdate;cockpit.updateMatrixWorld(true);
   m.c.position.copy(cockpit.localToWorld(m.pos.clone()));m.c.lookAt(m.c.position.clone().add(m.dir.clone().transformDirection(cockpit.matrixWorld)));
   cockpit.visible=false;ren.shadowMap.autoUpdate=false;ren.setRenderTarget(m.rt);ren.render(scene,m.c);ren.setRenderTarget(null);ren.shadowMap.autoUpdate=sa;cockpit.visible=true}
