@@ -56,7 +56,7 @@ const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.pa
 // ---------- 对面直行车流（两条车道，向 -z 开）：tc＝车身中心经过你路线的时间 ----------
 // sc：这一局的情况。K＝L1 只有车流；RT 右转车；BK 视线被挡；PW 行人；BI 自行车；Y 等候时变黄；Y7 到路口前变黄；LC 你是第二辆
 let LEADL=0;      // 现在从更远的地方开过来（多开 40 米）：对面车流、变黄灯、行人等时间都往后推 LEADL 秒
-function makeOpp(sc){const L=[],v0=()=>Math.random()<.12?18.06:16.67,lane=()=>Math.random()<.5?-5.25:-8.75;let t=-1;const push=tt=>L.push({lane:lane(),tc:tt,v:v0()});
+function makeOpp(sc){if(sc.E)return{list:[],G:{s:0,e:1e9,a0:0,a1:0}};const L=[],v0=()=>Math.random()<.12?18.06:16.67,lane=()=>Math.random()<.5?-5.25:-8.75;let t=-1;const push=tt=>L.push({lane:lane(),tc:tt,v:v0()});
  const G={};
  if(sc.LC){G.a0=10+Math.random();G.a1=G.a0+11}      /* 前车大约 7.7 秒开到路口里等候；你开到停车线前（约 10～11 秒）时它找到空档转走：你要先停在停车线后，等它走了再开进路口 */      /* 空档对准你开上来停下的时间，留够前车安全转走的时间 */      /* 你是第二辆：前车在路口里等，等你开上来停下后，用这个空档转走 */
  const skipLC=tt=>sc.LC&&tt>G.a0-.6&&tt<G.a1;
@@ -88,12 +88,12 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
  if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8,LC:Math.random()<.4,BKS:Math.random()<.5};      /* BKS：我们这边直行车一直很密，对面左转车一直走不了，一直挡着你的视线 */      /* 困难模式：约 80% 的局会变黄灯 */}
- else{const ks=['K','RT','BK','PW','BI','Y','Y7','LC','LC','LC'].filter(k=>k!==LASTK);const k=P(ks);LASTK=k;sc[k]=1}
+ else sc={E:1};      /* 简单：对面没有直行车，也没有行人、自行车、右转车，绿灯直接转 */
  if(AM){const A={type:Math.random()<.5?'A':'B',pos:hard?5:(Math.random()<.5?1:2)};sc=hard?{BK:1,RT:1,PW:1,BI:Math.random()<.5}:{};sc.AR=A}
  if(typeof FORCE!=='undefined'&&FORCE)sc=Object.assign({},FORCE);      // 测试用
  {const VAR=(typeof location!=='undefined'&&new URLSearchParams(location.search).get('var'))||null;      // 模拟考试用：var=green 一直是绿灯（找对面车流的空档），var=amber 等候时变黄灯
-  if(!AM&&VAR==='amber'){if(hard)sc.Y=1;else sc={Y:1};delete sc.Y7}
-  if(!AM&&VAR==='green'){delete sc.Y;delete sc.Y7;if(!hard&&!Object.keys(sc).length)sc={K:1}}}
+  if(!AM&&VAR==='amber'){if(hard)sc.Y=1;else sc={AR:{type:Math.random()<.5?'A':'B',pos:1}};delete sc.Y7}      /* 简单：黄灯那一项换成左转箭头，直接转 */
+  if(!AM&&VAR==='green'){delete sc.Y;delete sc.Y7}}
  LEADL=!AM&&!sc.Y7?40/11:0;
  let Tay=null,T0=1e9;      /* 箭头变黄的时刻（第 4 辆车头刚要过停车线）；T0：箭头结束后放行（A：两边圆绿灯；B：对面绿灯） */
  if(sc.AR&&sc.AR.pos===5){const L=mkAQ(4,1);for(let t=0;t<40;t+=1/60){stepAQ(L,t,1/60);if(frontZ(L[3].u)>SL-.4){Tay=t;break}}T0=Tay+(sc.AR.type==='A'?3:1.5)}      /* 箭头黄灯 1.5 秒；B：箭头一灭对面就变绿起步；A：再全红 1.5 秒后两边圆灯变绿 */

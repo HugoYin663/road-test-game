@@ -31,6 +31,10 @@ const bgFlows=[0,70,140].map((o,i)=>({c:car(C[[2,7,4][i]]),p:path([[150,6.25],[-
 // ---------- 横向直行车（从左往右，两条车道：内道 z=-2.75，外道/右道 z=-6.25）----------
 // sched：每辆车经过路口中线（x=0）的时间；先是连续的车流，然后出现空档
 function makeTraffic(cyc,hard){const L=[],v0=()=>15.3+Math.random()*1.9;let t=-2;      /* 限速 60：55–62 km/h */
+ if(DIFF==='easy'){const Tg=3+Math.random()*3;      // 简单：横路车很少——开头过去 1–2 辆，之后空档 20 多秒，再来一两辆
+  for(let k=0,n=1+(Math.random()*2|0);k<n;k++){t+=2+Math.random()*2.5;L.push({lane:Math.random()<.55?-6.25:-2.75,tc:t,v:v0()})}
+  t=Math.max(t,Tg)+22+Math.random()*4;for(let k=0;k<2;k++){t+=3+Math.random()*3;L.push({lane:Math.random()<.5?-6.25:-2.75,tc:t,v:v0()})}
+  return{list:L.map(s=>Object.assign(s,{c:car(C[1+Math.random()*8|0]),x:-s.v*s.tc,cv:s.v})),Tg,gap:22,leftOnly:false}}
  if(cyc){const Tc=12+Math.random()*4,run=hard||Math.random()<.5;      // 变灯：Tc 时横向变黄灯；车流一直很密，没有空档
   while(t<Tc+16){t+=1.4+Math.random()*1.3;L.push({lane:Math.random()<.55?-6.25:-2.75,tc:t,v:v0()})}
   const K=L.filter(s=>{const x=s.v*(Tc-s.tc);return !(x>-19.6-s.v*s.v/7-4&&x<12)});      // 黄灯时离停车线太近、停不下来的车先去掉
@@ -48,16 +52,16 @@ const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<
 const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
 const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};      // 包括绕车时的偏移
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;parkAll();
- const hard=DIFF==='hard',cyc=hard||Math.random()<.55;      // 简单：55% 等待中横向变灯 → 全红 → 两个方向的左转箭头 → 本方绿灯；困难：每次都变灯，情况全部叠加
+ const hard=DIFF==='hard',easy=!hard,cyc=hard;      // 简单：横路车很少，没有行人、自行车，也不变灯，停稳看清就能转；困难：每次都变灯，情况全部叠加
  const TR=makeTraffic(cyc,hard);TR.list.forEach(s=>live.push(s.c));
  const peds=[],P=a=>a[Math.random()*a.length|0];
  // 行人：0–2 个，从左边或右边走来，大约在车流变少、你想走的时候正好走到你车头前
- const np=hard?2:cyc?P([0,1,1]):P([0,1,1,2]);for(let i=0;i<np;i++){const fromL=Math.random()<.6,v=1.25+Math.random()*.3,o=ped(PCOL[Math.random()*5|0]);live.push(o);
+ const np=hard?2:0;for(let i=0;i<np;i++){const fromL=Math.random()<.6,v=1.25+Math.random()*.3,o=ped(PCOL[Math.random()*5|0]);live.push(o);
   const pts=fromL?[[-30,-13.8+i*.5],[13.25,-13.8+i*.5],[13.25,-60]]:[[13.25,-40],[13.25,-13.6-i*.5],[-30,-13.6-i*.5]];
   const pp={k:'X',o,path:path(pts),len:120,sg:[{t:0,v}],off:0},tMeet=LEADR+(hard?6+i*1.5+Math.random()*1.5:cyc?5+Math.random()*(TR.Tc-9):TR.Tg+Math.random()*2.5);      // 走到你车头前（x≈6.5）的时间
   let dTo=0;for(let d=0;d<120;d+=.2){const q=pp.path(d);if(Math.abs(q[1]+13.7)<.8&&Math.abs(q[0]-6.5)<.25){dTo=d;break}}pp.off=Math.max(0,dTo-v*tMeet);peds.push(pp)}
  // 自行车：横向自行车道（z=-8.75）里从左边骑过来
- if(Math.random()<(hard?.5:.4)){const o=cyclist(PCOL[Math.random()*5|0]);live.push(o);const v=5+Math.random(),tMeet=LEADR+(cyc?4+Math.random()*(TR.Tc-6):TR.Tg+.5+Math.random()*3);
+ if(hard&&Math.random()<.5){const o=cyclist(PCOL[Math.random()*5|0]);live.push(o);const v=5+Math.random(),tMeet=LEADR+(cyc?4+Math.random()*(TR.Tc-6):TR.Tg+.5+Math.random()*3);
   peds.push({k:'K',o,bike:true,path:path([[-150,-8.75],[150,-8.75]]),len:300,sg:[{t:0,v}],off:Math.max(0,150+8-v*tMeet)})}
  // 变灯：右侧路口角上站着一个等着过你要转入那条路的行人（本方绿灯后才走）
  const aP=S=>{const o=ped(PCOL[Math.random()*5|0]);live.push(o);const x=hard?(S?12.9:13.6):13.25;      // 困难：两个人一南一北，错开一点走

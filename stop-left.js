@@ -155,15 +155,15 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  const hard=DIFF==='hard';
  R={t:0,mode:'app',z:NOSTOP?-150:-110,v:11.1,sig:null,sigT:-9,sigZ:null,ev:[],over:false,cars:[],stopped:false,lastStop:-9,firstStop:true,lookL:-9,lookR:-9,yaw:0,look:0,lookT:0,hard,park:false,stopReq:false,creep:false,turnP:null,u:0,safeT:0,hk:0};
  // 人行横道上的行人：你快到路口时，沿着横路的人行道走过来，从你车前的人行横道过去（简单约一半、困难大多数时候有）
- R.pedOn=Math.random()<(hard?.75:.45);
+ R.pedOn=hard&&Math.random()<.75;      // 简单：没有过街行人
  // 横路两个方向的车：间距随机（有长有短），40～50 km/h
  // 横路车流：一段一段的车，中间有大空档；两个方向的大空档差不多同时到路口，这样左右都空的机会多（左转要两边都空）
- R.onc=[];if(NOSTOP){const v=11.1;let z=60+Math.random()*30;while(z<520){const c=car(C[2+Math.random()*7|0]);live.push(c);R.onc.push({c,x:-XL,z,v:v+Math.random()*.5,cv:v});z+=hard?(Math.random()<.45?95+Math.random()*60:24+Math.random()*14):(Math.random()<.55?110+Math.random()*80:26+Math.random()*16)}      /* 对面的直行车：一小团、一个大空档 */
-  if(Math.random()<.75){const c=car(C[2+Math.random()*7|0]);live.push(c);R.W={c,x:CW0-.6-.45-.4-2.3,v:0,st:'wait',yT:0,clrT:null};place(c,R.W.x,ZE,Math.PI/2,0)}}      /* 左边横路上一辆车停在 STOP 前，要直行横过你这条路：它有停牌，要让你（你左转也是你先走） */
- if(!AW4&&!NOSTOP){const xs=[];let x=-230;while(x<230){xs.push(x);x+=hard?(Math.random()<.5?150+Math.random()*80:28+Math.random()*30):(Math.random()<.5?160+Math.random()*100:34+Math.random()*36)}
+ R.onc=[];if(NOSTOP){const v=11.1;let z=60+Math.random()*30;while(z<520){const c=car(C[2+Math.random()*7|0]);live.push(c);R.onc.push({c,x:-XL,z,v:v+Math.random()*.5,cv:v});z+=hard?(Math.random()<.45?95+Math.random()*60:24+Math.random()*14):130+Math.random()*110}      /* 简单：对面车很少，一辆一辆隔得很远 */      /* 对面的直行车：一小团、一个大空档 */
+  if(Math.random()<(hard?.75:.3)){const c=car(C[2+Math.random()*7|0]);live.push(c);R.W={c,x:CW0-.6-.45-.4-2.3,v:0,st:'wait',yT:0,clrT:null};place(c,R.W.x,ZE,Math.PI/2,0)}}      /* 左边横路上一辆车停在 STOP 前，要直行横过你这条路：它有停牌，要让你（你左转也是你先走） */
+ if(!AW4&&!NOSTOP){const xs=[];let x=-230;while(x<230){xs.push(x);x+=hard?(Math.random()<.5?150+Math.random()*80:28+Math.random()*30):150+Math.random()*130}      /* 简单：横路车很少，隔十几秒才来一辆 */
   const v=12.5;xs.forEach(x0=>{add(1,x0,v+Math.random()*.6);add(-1,-x0+(Math.random()*10-5),v+Math.random()*.6)})}
  R.spawnGap={'1':0,'-1':0};
- if(AW4){$('sg').textContent='➡';R.pedOn=false;/* 四面停牌不放行人：让行人和“该走不走”的判定会打架 */R.A=[mkA('O',-4.5),mkA('L',1.6)];if(hard)R.A.push(mkA('Rt',3.6))}      /* 你右转：对面左转车最先到；你第二；左边一辆直行车比你晚到（它和你转进同一条车道，有冲突，但你先停稳，你先走）；困难再加右边一辆更晚的 */      /* 对面左转车比你早约 4 秒停下；困难：左边直行车更早到，右边直行车等你停稳后才开到路口（明显比你晚） */
+ if(AW4){$('sg').textContent='➡';R.pedOn=false;/* 四面停牌不放行人：让行人和“该走不走”的判定会打架 */R.A=hard?[mkA('O',-4.5),mkA('L',1.6),mkA('Rt',3.6)]:[mkA('L',1.6)]}      /* 简单：只有左边一辆比你晚到的车，你停稳后先走 */      /* 你右转：对面左转车最先到；你第二；左边一辆直行车比你晚到（它和你转进同一条车道，有冲突，但你先停稳，你先走）；困难再加右边一辆更晚的 */      /* 对面左转车比你早约 4 秒停下；困难：左边直行车更早到，右边直行车等你停稳后才开到路口（明显比你晚） */
  mine.visible=view===2;R.sig=null;$('sg').style.display='none';banner('Maple Dr 往北','');mk();$('sp').textContent='40'}
 // ---------- 四面停牌：其他车 ----------
 const SZ0=AW4?SL-.3-FR:-(SW1+.3+FR);      // 横路的车停下时车中心的位置（车头在人行道前）

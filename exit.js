@@ -54,7 +54,7 @@ function sawScan(dt){return(R.oT.XL||-99)>R.t-dt&&(R.oT.XR||-99)>R.t-dt}
 function walk(P,dt){P.ph+=dt*P.v*4.2;const sw=Math.sin(P.ph)*.5,u=P.o.userData;u.l.rotation.x=sw;u.r.rotation.x=-sw;u.al.rotation.x=-sw*.8;u.ar.rotation.x=sw*.8}
 function revLights(c){const g=[];[-.55,.55].forEach(x=>{const m=mesh(new T.BoxGeometry(.22,.1,.05),BM(0xffffff),x,.74,-2.37);m.visible=false;c.add(m);g.push(m)});return g}
 // ---------------- 大路上的车：一波一波地来（上游有红绿灯），每波之间有空档 ----------------
-function trafPlan(hard){const C=hard?22:26,n=hard?3:2,hw=hard?2.4:2.9;      /* 大路车流少一些 */const A={N:[],S:[]};
+function trafPlan(hard){const C=hard?22:40,n=hard?3:1,hw=hard?2.4:2.9;      /* 大路车流少一些 */const A={N:[],S:[]};
  ['N','S'].forEach((L,li)=>{const off=li?1.2:0;for(let k=-1;k<40;k++){const T0=k*C+off+Math.random()*.8;const m=n-(Math.random()<.35?1:0);for(let i=0;i<m;i++)A[L].push(T0+i*(hw+Math.random()*.6))}});return A}
 function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1,x=L==='N'?NX:SX;
   while(TF.q[L].length&&TF.q[L][0]-R.t<12){const ta=TF.q[L].shift();const c=car(PCOLS[Math.random()*PCOLS.length|0]);live.push(c);TF.cars.push({c,L,dir,x,z:ZC-dir*VR*(ta-R.t),v:VR})}});
@@ -72,7 +72,7 @@ const SCENE={g:0,Y:()=>0,TXT:EX_TXT,SER:['noYieldCar','noYieldPed','noYieldBack'
  curbs:[{side:1,x:XC},{side:-1,x:-XC,z0:ZA,z1:200}],
  goLabel:'行驶<small>系统继续<br>慢慢开</small>',stpLabel:'停车<small>点一下<br>就停住</small>',
  okText:'出车位前看了左边、打了灯，慢慢挪到车道边先左右看；车道里让了行人和车；车头停到大路边，左右看清楚，等到安全的空档才左转上大路，做得很好。',
- setup(R){const ev0=HARD?{ac:1,aisle:['ped','back'],pe:1,ec:1}:{ac:Math.random()<.5,aisle:Math.random()<.4?['ped','back']:['ped'],pe:Math.random()<.4,ec:Math.random()<.5};
+ setup(R){const ev0=HARD?{ac:1,aisle:['ped','back'],pe:1,ec:1}:{ac:0,aisle:[],pe:0,ec:0};      /* 简单：车道里没有行人、倒车的车、开过来的车，出口也没有行人；大路车很少 */
   Object.assign(R,{x:PCX,z:0,h:-Math.PI/2,gear:'D',ph:0,EV:ev0,haz:[],auto:{pts:PATH.P,i:0},stopReq:true});      /* 一开始就由系统控制方向：玩家只管停车、前移、行驶 */
   const PK=buildParks(ev0.aisle.includes('back'));{const L=PK.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
   if(ev0.aisle.includes('back')){const c=car(0x7b8794);live.push(c);const B={c,x:PCX,z:ZS(KB),h:Math.PI/2,v:0,st:0,rl:revLights(c)};place(c,B.x,B.z,B.h,0);R.B=B;SCN.obst.push([B.x,B.z,B.h])}else R.B=null;

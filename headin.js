@@ -79,7 +79,7 @@ function npcClear(x,z,h,self,mg){const M=mg==null?.35:mg;const s=Math.sin(h),c=M
  boxes.forEach(b=>{const q=boxCorners([b[0],b[1],b[2],LW.HL,LW.HW]);q.concat([[b[0],b[1]]],q.map((p,i)=>{const r=q[[1,3,0,2][i]];return[(p[0]+r[0])/2,(p[1]+r[1])/2]})).forEach(p=>chk(p[0],p[1],.05))});
  if(R.PE&&!R.PE.gone)chk(R.PE.x,R.PE.z,.6);return best}
 // ---------------- 大路上的车（一波一波地来） ----------------
-function trafPlan(hard){const C=hard?17:18,n=hard?4:3,hw=hard?2.4:2.9;const A={N:[],S:[]};
+function trafPlan(hard){const C=hard?17:32,n=hard?4:2,hw=hard?2.4:2.9;const A={N:[],S:[]};
  ['N','S'].forEach((L,li)=>{const off=li?1.2:0;for(let k=-1;k<40;k++){const T0=k*C+off+Math.random()*.8;const m=n-(Math.random()<.35?1:0);for(let i=0;i<m;i++)A[L].push(T0+i*(hw+Math.random()*.6))}});return A}
 function trafStep(dt){const TF=R.tf;['N','S'].forEach(L=>{const dir=L==='N'?1:-1,x=L==='N'?NX:SX;
   while(TF.q[L].length&&TF.q[L][0]-R.t<12){const ta=TF.q[L].shift(),z=ZC-dir*VR*(ta-R.t);
@@ -107,7 +107,7 @@ const SCENE={g:0,Y:()=>0,TXT:HI_TXT,SER:['noYieldPedIn','noYieldOnc','notIn','ba
  goLabel:'行驶<small>系统继续<br>开</small>',stpLabel:'停车<small>点一下<br>就停住</small>',
  okText:'进停车场前打了右转灯、让了行人；左转进车道前打了灯、让了对面的车；找车位前看镜、打灯，看了左边盲点，一次开进车位正中间，车身摆正、和两边的车对齐，挂 P、拉手刹，做得很好。',
  setup(R){SCN.exam=null;const park=DIFF==='park';
-  const ev0=HARD?{pe:1,ec:1,ac:1}:park?{pe:0,ec:0,ac:0}:{pe:Math.random()<.5,ec:Math.random()<.6,ac:Math.random()<.35};
+  const ev0=HARD?{pe:1,ec:1,ac:1}:{pe:0,ec:0,ac:0};      /* 简单：进口没有行人，对面没有车开过来，车道里也没有车 */
   const PK=buildParks();{const L=PK.map(p=>{const c=car(p[3]);place(c,p[0],p[1],p[2],0);return c});live.push(typeof freezeCars==='function'?freezeCars(L):(L.forEach(c=>live.push(c)),L[0]))}      /* 停着的车合并成几块，转头看时不卡 */SCN.obst=PK.map(p=>[p[0],p[1],p[2]]);
   if(TURNIN){ev0.pe=Math.random()<.7;if(!TINP){ev0.ec=false;ev0.ac=false}}
   R.LT=null;      /* 右转回考场：常有行人在人行道上走 */

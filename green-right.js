@@ -52,8 +52,9 @@ function pedSet(nbMax){const P=a=>a[Math.random()*a.length|0],L=[],q=Math.random
  if(nb>0)L.push(P(['1a','1a','1c']));if(nb>1)L.push('1m');if(nb>2)L.push('1n');
  if(Math.random()<.45)L.push(P(['2a','2a','2c']));
  if(Math.random()<.35||!L.length)L.push('3a');return L}
-// 简单：每个路口一种（行人和自行车／黄灯／警车）；困难：行人、警车、左转车、黄灯里 2–4 种叠在一起
+// 简单（随机驾驶）：什么情况都没有，直接转；模拟考 G2：每个路口一种（行人和自行车／黄灯／警车）；困难：行人、警车、左转车、黄灯里 2–4 种叠在一起
 function pick1(){const hard=MODE==='g'||(MODE==='free'&&DIFF==='hard'),r=Math.random(),P=a=>a[Math.random()*a.length|0];
+ if(MODE==='free'&&DIFF==='easy')return['0'];      // 简单：没有过街行人、自行车、警车，也不变黄灯——绿灯直接右转
  if(!hard){if(r<.08)return['6'];if(r<.38)return[P(['5a','5b','5c','5e'])];return pedSet()}
  const n=2+(Math.random()*3|0),K=['P','E','L','Y'].sort(()=>Math.random()-.5).slice(0,n);
  if(K.includes('E')&&K.includes('Y'))K.splice(K.indexOf(Math.random()<.5?'E':'Y'),1);   // 黄灯局不加警车（变红后就成了红灯右转）
