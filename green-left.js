@@ -50,6 +50,23 @@ const ORT=path([[-8.75,150],...Array.from({length:31},(_,i)=>cub([[-8.75,33],[-8
 const mine=car(C[0]);
 let DIFF='easy',R=null,round=0,playing=false,gt=0,view=1,yawD=0,az=2.4,el=.85,drag=false,lx=0,ly=0,STD='g2',LASTK=null;
 const live=[];
+// ---------- 困难练习分情况：标题按钮点开下拉菜单切换（模拟考、左转箭头页面不用） ----------
+const MKP=/[?&]mock=/.test(typeof location!=='undefined'?location.search:'');
+const SITS=[['行人和自行车',{PW:1,BI:1}],['对面右转车',{RT:1}],['对面左转车挡视线',{BK:1,BKS:1}],['你是第二辆',{LC:1}],['黄灯 · 抢黄灯',{Y:1}]];
+const SITK='rt_sit_green-left';let SIT=null,CUR=null;      // SIT：玩家指定的（null＝自动选没练过的，'mix'＝综合）；CUR：这一局实际的
+const sitDone=()=>{try{return JSON.parse(localStorage.getItem(SITK)||'[]')}catch(e){return[]}};
+const sitMark=i=>{try{const d=sitDone();if(!d.includes(i)){d.push(i);localStorage.setItem(SITK,JSON.stringify(d))}}catch(e){}};
+function sitPick(){if(SIT!=null)return SIT;const d=sitDone(),L=SITS.map((x,i)=>i).filter(i=>!d.includes(i));return L.length?L[Math.random()*L.length|0]:'mix'}
+const sitOn=()=>!AM&&!MKP&&DIFF==='hard';
+function ttlSet(){const t=$('ttl');if(!t)return;const base=TT(AM?'左转箭头':'绿灯左转');
+ if(sitOn()){t.textContent=base+'-'+(CUR==='mix'?TT('综合'):CUR+1)+' ▾';t.classList.add('dd')}else{t.textContent=base;t.classList.remove('dd')}}
+function sitMenu(open){const m=$('sitm');if(!m)return;
+ if(!open){m.style.display='none';if(sitMenu.was)playing=true;sitMenu.was=false;return}
+ sitMenu.was=playing&&R&&!R.over;playing=false;const d=sitDone();
+ const it=(v,label,on)=>`<button data-v="${v}" class="${on?'cur':''}">${label}</button>`;
+ m.innerHTML=`<div class="hd">${TT('已练')} ${d.length}/${SITS.length}</div>`+it('auto',TT('自动（没练过的）'),SIT==null)+SITS.map((x,i)=>it(i,(i+1)+'  '+TT(x[0])+(d.includes(i)?'  ✓':''),SIT===i)).join('')+it('mix',TT('综合（多种叠加）'),SIT==='mix');
+ m.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const v=b.dataset.v;SIT=v==='auto'?null:v==='mix'?'mix':+v;sitMenu.was=false;m.style.display='none';$('ov').style.display='none';newRun(true);playing=true});
+ m.style.display='block'}
 const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<g.length;i++){const a=g[i].t,b=i+1<g.length?g[i+1].t:1e9;if(t<=a)break;d+=g[i].v*(Math.min(t,b)-a)}return d};
 const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
 const pedPos=(p,t)=>{const q=p.path(Math.min(p.off+pedD(p,t),Math.min(p.len,p.path.len)-.06));return[q[0]+(p.ox||0),q[1]+(p.oz||0),q[2]]};
@@ -87,7 +104,9 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display=''});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});      // 换右车道的按键先藏起来
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
- if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8,LC:Math.random()<.4,BKS:Math.random()<.5};      /* BKS：我们这边直行车一直很密，对面左转车一直走不了，一直挡着你的视线 */      /* 困难模式：约 80% 的局会变黄灯 */}
+ CUR=sitOn()?sitPick():null;
+ if(hard&&CUR!=null&&CUR!=='mix')sc=Object.assign({},SITS[CUR][1]);      /* 困难练习：这一局只出这一种情况（对面车流、后车照常） */
+ else if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8,LC:Math.random()<.4,BKS:Math.random()<.5};      /* BKS：我们这边直行车一直很密，对面左转车一直走不了，一直挡着你的视线 */      /* 困难模式：约 80% 的局会变黄灯 */}
  else sc={E:1};      /* 简单：对面没有直行车，也没有行人、自行车、右转车，绿灯直接转 */
  if(AM){const A={type:Math.random()<.5?'A':'B',pos:hard?5:(Math.random()<.5?1:2)};sc=hard?{BK:1,RT:1,PW:1,BI:Math.random()<.5}:{};sc.AR=A}
  if(typeof FORCE!=='undefined'&&FORCE)sc=Object.assign({},FORCE);      // 测试用
@@ -131,10 +150,12 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
   if(A.type==='A'){setHeads(HEADS,'r');setArrow('g');R.light='r';banner('红灯 + 左转箭头','#2ee66b')}else{setHeads(dirHeads(OPP),'r');setArrow('g',ME);banner('绿灯 + 左转箭头','#2ee66b')}
   R.AQ=mkAQ(A.pos-1,A.pos===5?1:.6);R.AQ.forEach(L=>{L.c=car(C[[3,5,7,2][Math.random()*4|0]]);live.push(L.c)});      /* 你前面排队的左转车 */
   R.OA=[];if(A.type==='A'){const us=R.BK?R.BK.us:(()=>{for(let u=0;u<200;u+=.05)if(BKP(u)[1]<=OSZ+.3)return u})();R.OAus=us;for(let k=0;k<3;k++){const c=car(C[1+Math.random()*8|0]);live.push(c);R.OA.push({c,u:us-.3-k*7.2,v:0,rel:(A.pos===5?1:.6)+k*.9})}}}      /* A：对面左转车也同时转 */
- gt=0;mk();$('sp').textContent='0'}
+  gt=0;mk();$('sp').textContent='0';ttlSet();ltDot(R.light);if(!MKP){clearTimeout(banner.h);$('bn').style.display='none'}}
 function setHeads(L,c){L.forEach(lm=>{for(const k of ["r","y","g"])lm[k].m.material=k===c?lm[k].on:lm[k].off})}
-function banner(t,col){const b=$('bn');b.textContent=t;b.style.color=col}
-function setLight(c){R.light=c;setHeads(HEADS,c);banner({g:'绿灯左转',y:'黄灯！',r:'红灯'}[c],{g:'',y:'#ffc21a',r:'#ff5a5a'}[c])}
+function banner(t,col){const b=$('bn');if(MKP){b.textContent=t;b.style.color=col;return}      /* 模拟考照旧 */
+ if(!/^考官/.test(t))return;b.textContent=t;b.style.color=col||'#ffe27a';b.style.display='';clearTimeout(banner.h);banner.h=setTimeout(()=>{b.style.display='none'},7000)}      /* 练习：标题位置不再显示灯色、箭头提示，只在标题下面显示考官指令 7 秒 */
+function ltDot(c){const d=$('lt');if(!d)return;const k={g:'#2ee66b',y:'#ffc21a',r:'#ff3b3b'}[c]||'#ff3b3b';d.style.background=k;d.style.boxShadow='0 0 8px '+k}      // 左上角的灯色圆点跟着圆灯变
+function setLight(c){R.light=c;ltDot(c);setHeads(HEADS,c);banner({g:'绿灯左转',y:'黄灯！',r:'红灯'}[c],{g:'',y:'#ffc21a',r:'#ff5a5a'}[c])}
 function mk(){const K=R.kr,on={sig:!!R.sig,turn:R.mode==='go',stopN:R.mode==='stop',stopS:R.mode==='enter',sigL:K&&K.sig==='L',sigR:K&&K.sig==='R',mir:R.look&&R.look.k==='M',sho:R.look&&R.look.k==='O',obs:!!K&&(!!R.look||R.q.includes('sho')),lc:K&&(!!K.lc||R.q.includes('lc'))};const lb=(id,c)=>{const b=document.getElementById(id);if(!b)return;const h=c?'取消换线<small>Cancel</small>':R.q.includes('lc')?'换线<small>已按 · 稍等</small>':'换线<small>Go</small>';if(b.innerHTML!==h)b.innerHTML=h};lb('blc',K&&K.lc&&!K.lc.cancel&&!K.lc.cross);document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',!!on[b.dataset.m]))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 // ---------- 提示 ----------
@@ -364,7 +385,7 @@ function lights(){const sc=R.sc,t=R.t,f=front(R.u);
    R.AQ.forEach(L=>{if(frontZ(L.u)<SL-.3&&SL-frontZ(L.u)>=L.v*L.v/7){L.hold=true;L.uH=uOfZ(SL-.6-2.35)}});R.OA.forEach(L=>{if(L.u<R.OAus-.5)L.hold=true})}
   if(R.arrow==='y'&&t>=R.Tay+1.5){R.arrow='off';setArrow('off');banner(A.type==='A'?'红灯':'绿灯左转',A.type==='A'?'#ff5a5a':'')}
   if(!R.rel0&&t>=R.T0){R.rel0=true;R.OC.forEach(s=>s.stop=false);setPedSig('M','walk');
-   if(A.type==='A'){setHeads(HEADS,'g');R.light='g';banner('绿灯左转','');R.SD.forEach(s=>s.stop=false)}else setHeads(dirHeads(OPP),'g')}
+   if(A.type==='A'){setHeads(HEADS,'g');R.light='g';ltDot('g');banner('绿灯左转','');R.SD.forEach(s=>s.stop=false)}else setHeads(dirHeads(OPP),'g')}
   return}
  if(sc.Y7&&R.Ty==null){if(!R.p1&&f[1]>=-98-3.5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&f[1]>=-74-3.5){R.p1=2;setPedSig('M','hand')}if(f[1]>=-48.5){R.Ty=t;R.yD=SL-f[1]}}      // 到停车线前约 28 米时变黄
  if(sc.Y&&R.Ty==null){if(!R.p1&&t>=sc.Ty-5){R.p1=1;setPedSig('M','flash')}if(R.p1===1&&t>=sc.Ty-3){R.p1=2;setPedSig('M','hand')}if(t>=sc.Ty){R.Ty=t;R.yD=SL-f[1]}}
@@ -381,10 +402,11 @@ function lights(){const sc=R.sc,t=R.t,f=front(R.u);
  if(R.xyT!=null&&R.xrT==null&&t>=R.xyT+2){R.xrT=t;setHeads(CHEADS,'r')}
  if(R.xrT!=null&&R.arrowL==null&&t>=R.xrT+1&&R.u<ce&&!R.cmt){R.arrowL=t;R.arrow='g';setArrow('g',ME);banner('左转箭头绿灯：可以直接左转','#2ee66b')}}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.title}${SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'}</b><span>${e.text}</span></div>`).join('')+'</div>'}
-function finish(){R.over=true;R.sig=false;$('sg').style.display='none';mk();const o=$('ov');let h;
+function finish(){R.over=true;R.sig=false;$('sg').style.display='none';mk();const o=$('ov');let h;if(typeof CUR==='number')sitMark(CUR);ttlSet();
  const turned=R.u>=ce;
  if(!R.ev.length)h=turned&&R.arrowL!=null?'<h2>驾驶总结</h2><div class="st">★★★</div><p>灯变黄时停在了停车线后面，等横向绿灯过去，左转箭头亮了再左转，处理正确。</p>':turned?'<h2>驾驶总结</h2><div class="st">★★★</div><p>进入路口等候，看清对面车流、右转车和行人，空档足够再转，绿灯左转处理得很好。</p>':R.sc.Y7&&R.light==='r'?'<h2>驾驶总结</h2><div class="st">★★★</div><p>灯变黄时你离停车线还有足够距离，停在了停车线后面，处理正确。</p>':'<h2>驾驶总结</h2><p>你一直没有完成左转。</p>';
  else h='<h2>驾驶总结</h2><p>这一趟有 '+R.ev.length+' 处需要注意：</p>'+cardsHtml(R.ev);
+ if(CUR!=null)h+='<p class="mu">'+TT('这次的情况')+'：'+(CUR==='mix'?TT('综合（多种叠加）'):(CUR+1)+' '+TT(SITS[CUR][0]))+(SIT==null?' · '+TT('已练')+' '+sitDone().length+'/'+SITS.length:'')+'</p>';
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 左转后换到右车道（靠右行驶） =================
@@ -472,9 +494,11 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
   m.c.position.copy(cockpit.localToWorld(m.pos.clone()));m.c.lookAt(m.c.position.clone().add(m.dir.clone().transformDirection(cockpit.matrixWorld)));
   cockpit.visible=false;ren.shadowMap.autoUpdate=false;ren.setRenderTarget(m.rt);ren.render(scene,m.c);ren.setRenderTarget(null);ren.shadowMap.autoUpdate=sa;cockpit.visible=true}
  ren.render(scene,cam);requestAnimationFrame(loop)}
+if(!MKP){$('bn').style.top='calc(54px + env(safe-area-inset-top,0px))';$('bn').style.display='none';const t=document.createElement('button');t.id='ttl';document.body.appendChild(t);const m=document.createElement('div');m.id='sitm';document.body.appendChild(m);
+ t.onclick=e=>{e.stopPropagation();if(!sitOn())return;sitMenu($('sitm').style.display!=='block')};document.addEventListener('pointerdown',e=>{const m=$('sitm');if(m.style.display==='block'&&!m.contains(e.target)&&e.target.id!=='ttl')sitMenu(false)})}
 rs();newRun(false);setView(1);requestAnimationFrame(loop);
 const HOME=$('ov').innerHTML;
-function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{DIFF=b.dataset.diff||'easy';LASTK=null;$('ov').style.display='none';newRun(true);playing=true})}
+function bindHome(){document.querySelectorAll('.md').forEach(b=>b.onclick=()=>{DIFF=b.dataset.diff||'easy';LASTK=null;SIT=null;$('ov').style.display='none';newRun(true);playing=true})}
 bindHome();
 $('hm').onclick=()=>{if(R)R.over=true;playing=false;const o=$('ov');o.innerHTML=HOME;o.style.display='flex';bindHome()};
 
