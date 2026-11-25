@@ -57,15 +57,15 @@ const SITK='rt_sit_green-left';let SIT=null,CUR=null;      // SIT：玩家指定
 const sitDone=()=>{try{return JSON.parse(localStorage.getItem(SITK)||'[]')}catch(e){return[]}};
 const sitMark=i=>{try{const d=sitDone();if(!d.includes(i)){d.push(i);localStorage.setItem(SITK,JSON.stringify(d))}}catch(e){}};
 function sitPick(){if(SIT!=null)return SIT;const d=sitDone(),L=SITS.map((x,i)=>i).filter(i=>!d.includes(i));return L.length?L[Math.random()*L.length|0]:'mix'}
-const sitOn=()=>!AM&&!MKP&&DIFF==='hard';
+const sitOn=()=>!AM&&!MKP;
 function ttlSet(){const t=$('ttl');if(!t)return;const base=TT(AM?'左转箭头':'绿灯左转');
- if(sitOn()){t.textContent=base+'-'+(CUR==='mix'?TT('综合'):CUR+1)+' ▾';t.classList.add('dd')}else{t.textContent=base;t.classList.remove('dd')}}
+ if(sitOn()){t.textContent=base+'-'+(DIFF!=='hard'?TT('简单'):CUR==='mix'?TT('综合'):CUR+1)+' ▾';t.classList.add('dd')}else{t.textContent=base;t.classList.remove('dd')}}
 function sitMenu(open){const m=$('sitm');if(!m)return;
  if(!open){m.style.display='none';if(sitMenu.was)playing=true;sitMenu.was=false;return}
  sitMenu.was=playing&&R&&!R.over;playing=false;const d=sitDone();
  const it=(v,label,on)=>`<button data-v="${v}" class="${on?'cur':''}">${label}</button>`;
- m.innerHTML=`<div class="hd">${TT('已练')} ${d.length}/${SITS.length}</div>`+it('auto',TT('自动（没练过的）'),SIT==null)+SITS.map((x,i)=>it(i,(i+1)+'  '+TT(x[0])+(d.includes(i)?'  ✓':''),SIT===i)).join('')+it('mix',TT('综合（多种叠加）'),SIT==='mix');
- m.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const v=b.dataset.v;SIT=v==='auto'?null:v==='mix'?'mix':+v;sitMenu.was=false;m.style.display='none';$('ov').style.display='none';newRun(true);playing=true});
+ const H=DIFF==='hard';m.innerHTML=it('easy',TT('简单（没有对面车）'),!H)+`<div class="hd">${TT('困难')} · ${TT('已练')} ${d.length}/${SITS.length}</div>`+it('auto',TT('自动（没练过的）'),H&&SIT==null)+SITS.map((x,i)=>it(i,(i+1)+'  '+TT(x[0])+(d.includes(i)?'  ✓':''),H&&SIT===i)).join('')+it('mix',TT('综合（多种叠加）'),H&&SIT==='mix');
+ m.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const v=b.dataset.v;if(v==='easy'){DIFF='easy';SIT=null}else{DIFF='hard';SIT=v==='auto'?null:v==='mix'?'mix':+v}LASTK=null;sitMenu.was=false;m.style.display='none';$('ov').style.display='none';newRun(true);playing=true});
  m.style.display='block'}
 const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<g.length;i++){const a=g[i].t,b=i+1<g.length?g[i+1].t:1e9;if(t<=a)break;d+=g[i].v*(Math.min(t,b)-a)}return d};
 const pedSeg=(p,t)=>{let c=p.sg[0];for(const g of p.sg)if(t>=g.t)c=g;return c};
@@ -104,7 +104,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display=''});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});      // 换右车道的按键先藏起来
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
- CUR=sitOn()?sitPick():null;
+ CUR=sitOn()&&hard?sitPick():null;
  if(hard&&CUR!=null&&CUR!=='mix')sc=Object.assign({},SITS[CUR][1]);      /* 困难练习：这一局只出这一种情况（对面车流、后车照常） */
  else if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8,LC:Math.random()<.4,BKS:Math.random()<.5};      /* BKS：我们这边直行车一直很密，对面左转车一直走不了，一直挡着你的视线 */      /* 困难模式：约 80% 的局会变黄灯 */}
  else sc={E:1};      /* 简单：对面没有直行车，也没有行人、自行车、右转车，绿灯直接转 */
