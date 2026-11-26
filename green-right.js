@@ -107,7 +107,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  MP=pathN;
  LASTF={sp:spT,E:!!R.emg,cru:!!(lc&&lc.isP),six:CS==='6'};
  gt=0;flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
-function cmdUp(m){if(m!=='scan'||!R||!R.scHold)return;R.scHold=false}      // 松开“观察路口”：按住时一直看左边
+function cmdUp(m){if(!R)return;if(m==='look'){R.lkHold=false;return}if(m!=='scan'||!R.scHold)return;R.scHold=false}      // 松开“右后观察”：按住时一直回头看右后      // 松开“观察路口”：按住时一直看左边
 function mk(){const md=R.mode==='slow'?'look':R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function toast(t){const b=$('bn');b.textContent=t;setTimeout(()=>b.textContent={green:'绿灯右转',yellow:'黄灯！',red:'红灯'}[R.light],1500)}
@@ -172,7 +172,7 @@ let LEADG=null;                    // 你（不按按钮）到停车线前约 5 
 function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
  if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
- if(m==='look'){if(R.lookT>=0)return;R.scT=-1;yawD=0;const slow=R.mode!=='stop';R.lookT=0;if(slow)R.mode='slow';mk();return}
+ if(m==='look'){R.lkHold=true;if(R.lookT>=0)return;R.scT=-1;yawD=0;const slow=R.mode!=='stop';R.lookT=0;if(slow)R.mode='slow';mk();return}
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-1.7-R.u;if(dA>R.v*R.v/(2*AB)+.2){R.stopT=uS-1.7;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
  if(m==='stop')R.stopAt=R.t;
@@ -260,13 +260,13 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(!R.sigChk&&u>=cs+6){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-15)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK;const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
-  if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(.22-R.pit)*k9}              // 1 看中镜
+  if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
   else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区
    if(!R.tgt||!R.tgt.o.visible)R.tgt=pickTgt(qq);
    let want=1.9;R.lookD=14;if(R.tgt){const a=pedPos(R.tgt,R.t),dx=a[0]-qq[0],dz=a[1]-qq[1];want=Math.max(1.5,Math.min(2.1,normA(Math.atan2(dx,dz)-qq[2])));R.lookD=Math.max(3,Math.hypot(dx,dz))}
    if(R.tgt&&Math.abs(want-R.yaw)<.35)R.seen=(R.seen||0)+dt;
-   const hold=R.tgt?(R.seen>=.8||l3>2.2):l3>=.95;
+   const hold=(R.tgt?(R.seen>=.8||l3>2.2):l3>=.95)&&!R.lkHold;
    if(!hold)R.yaw+=(want-R.yaw)*Math.min(1,dt*12);
    else{if(!R.back){R.back=lt}R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt-R.back>.4){R.lookT=-1;R.yaw=0;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}}}}
  // 后车跟车：保持车距，你停它也停

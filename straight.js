@@ -92,7 +92,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t,red=VAR=
  R.cars.forEach(m=>moveCar(m,dt));
  // 观察：后视镜（中镜）
  if(R.mirT>=0){R.mirT+=dt*1.4*LOOKK;const k=Math.min(1,dt*12),mt=R.mirT;
-  if(mt<.7){R.yaw+=(.45-R.yaw)*k;R.pit+=(.22-R.pit)*k;if(mt>.4&&!R.mirDone){R.mirDone=true;R.lastMir=t;R.mirs.push({t,u,v:R.v})}}
+  if(mt<.7){R.yaw+=(.45-R.yaw)*k;R.pit+=(MPIT-R.pit)*k;if(mt>.4&&!R.mirDone){R.mirDone=true;R.lastMir=t;R.mirs.push({t,u,v:R.v})}}
   else{R.yaw+=(0-R.yaw)*k;R.pit+=(0-R.pit)*k;if(mt>1.05){R.mirT=-1;R.mirDone=false;R.yaw=0;R.pit=0;mk()}}}
  // 观察路口：左-右-左
  if(R.scT>=0){R.scT+=dt*LOOKK*(R.v>6?1.4:1);const sT=R.scT,tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);

@@ -207,7 +207,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1]);if(see(-40,-2.75)&&see(-40,-6.25))R.scanClear=true}}
  // 右后观察：中镜→右镜→右后盲区
  if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK;const lt=R.lookT,k9=Math.min(1,dt*12);
-  if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(.22-R.pit)*k9}else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}
+  if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}
   else{R.lastLook=R.t;R.pit+=(0-R.pit)*k9;if(lt<2){R.yaw+=(1.9-R.yaw)*Math.min(1,dt*12)}else{R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt>2.5){R.lookT=-1;R.yaw=0;R.pit=0}}}}
  // 和其他车相撞：两车都停下，被撞的车被撞歪，路考结束
  if(!R.crash){const me=[a[0],a[1],a[2],2.3,.95],O=[];

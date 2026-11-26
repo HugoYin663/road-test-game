@@ -52,6 +52,7 @@ h2 .en{font-size:.62em}
 /* 大按钮（首页两项、G2/G、难度、语言） */
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .tile{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;cursor:pointer;min-width:0;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.tile.sel{border-color:var(--signal)}
 .tile:hover,.tile:focus-visible{border-color:var(--signal);outline:none;transform:translateY(-1px)}
 .tile .k{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.15}
 .tile .k .en{font-size:.55em;margin-top:2px}
@@ -216,6 +217,10 @@ details.route summary{cursor:pointer}
   <div class="view" id="v-practice" hidden>
     <div><h2><span class="zh">单项练习</span><span class="en">Practice by Skill</span></h2>
       <p class="sub"><span class="zh">每个项目一个练习场景，做错当场提示，结束后有总结卡片。</span><span class="en">Each skill has its own scene, instant feedback when you make a mistake and a summary at the end.</span></p></div>
+    <div class="tiles" id="licPick">
+      <button class="tile" data-lic="g2"><span class="badge">G2</span><span class="k"><span class="zh">我考 G2</span><span class="en">I'm taking G2</span></span><span class="d"><span class="zh">红绿灯和停牌路口、换线、小区项目（坡道停车、三点调头、平行停车）、停车场</span><span class="en">Lights and stop signs, lane changes, residential tasks (hill parking, three-point turn, parallel parking), parking lots</span></span></button>
+      <button class="tile" data-lic="g"><span class="badge">G</span><span class="k"><span class="zh">我考 G</span><span class="en">I'm taking G</span></span><span class="d"><span class="zh">红绿灯和停牌路口、换线、直行通过路口、高速、停车场；路口按 G 的标准判，观察要求更多</span><span class="en">Lights and stop signs, lane changes, straight through, highway, parking lots; intersections judged to the G standard, with more checks</span></span></button>
+    </div>
     <div id="groups"></div>
     <p class="note"><span class="zh">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</span><span class="en">For practice only. Follow the MTO Driver’s Handbook and your examiner’s instructions.</span></p>
   </div>
@@ -226,7 +231,7 @@ details.route summary{cursor:pointer}
 <script src="lib/sheet.js?v=1121a"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1125e';
+const V='1126a';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -290,8 +295,15 @@ function setLang(l){LANG=l;MST.lang(l);apply()}
 function apply(){document.documentElement.lang=LANG==='en'?'en':'zh-CN';document.title=LANG==='en'?'Ontario Road Test Practice':'安省路考练习场';
  const b=document.getElementById('langBtn');b.textContent=LANG==='en'?'中文':'English'}
 // ---------- 单项列表 ----------
-document.getElementById('groups').innerHTML=GROUPS.map(g=>'<section class="group"><h3>'+bi(g.zh,g.en)+'</h3><div class="grid">'+g.ids.map(id=>{const t=ITEMS[id];
- return '<a class="item" href="'+(t.href||id+'.html?')+'v='+V+'"><b>'+bi(t.zh,t.en)+'</b><span class="d">'+bi(t.dz,t.de)+'</span><span class="go">'+bi('开始练习 →','Start →')+'</span></a>'}).join('')+'</div></section>').join('');
+// 先选考 G2 还是 G（记在这台手机上，和模拟考试共用）：G2 不练高速和直行，G 不练小区项目；红绿灯、停牌、换线、停车场两种都练，场景按选的标准判分
+const LICX={g2:['straight-g','straight-r','highway-on','highway-off'],g:['residential','three-point','hill-park','parallel']};
+let PL='g2';try{PL=localStorage.getItem('rt_lic')==='g'?'g':'g2'}catch(e){}
+function setPL(k){PL=k;try{localStorage.setItem('rt_lic',k)}catch(e){}renderPractice()}
+function renderPractice(){document.querySelectorAll('#licPick .tile').forEach(b=>b.classList.toggle('sel',b.dataset.lic===PL));
+ document.getElementById('groups').innerHTML=GROUPS.map(g=>{const ids=g.ids.filter(id=>!LICX[PL].includes(id));if(!ids.length)return'';return '<section class="group"><h3>'+bi(g.zh,g.en)+'</h3><div class="grid">'+ids.map(id=>{const t=ITEMS[id];
+ return '<a class="item" href="'+(t.href||id+'.html?')+'lic='+PL+'&v='+V+'"><b>'+bi(t.zh,t.en)+'</b><span class="d">'+bi(t.dz,t.de)+'</span><span class="go">'+bi('开始练习 →','Start →')+'</span></a>'}).join('')+'</div></section>'}).join('')}
+document.querySelectorAll('#licPick .tile').forEach(b=>b.onclick=()=>setPL(b.dataset.lic));
+renderPractice();
 // ---------- 页面切换（用网址 # 记住在哪一页，手机的返回键也能用） ----------
 let DIFF='easy',LVL='g2';
 // 开始考试：路线存起来，打开第一项
@@ -342,7 +354,7 @@ function show(){if(!LANG){view('lang');return}const h=location.hash.replace('#',
  if(h==='mock/result')result();else if(h==='mock')view('mock');else if(h==='mock/g2'||h==='mock/g')level(h.split('/')[1]);else if(h==='practice')view('practice');else if(h==='lang')view('lang');else view('home')}
 function view(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='v-'+id);
  document.getElementById('back').hidden=id==='home'||id==='lang';document.getElementById('langBtn').hidden=id==='lang';window.scrollTo(0,0)}
-function level(k){LVL=k;view('level');document.getElementById('lvTitle').innerHTML=k==='g'?bi('G 路考','G Road Test'):bi('G2 路考','G2 Road Test');
+function level(k){LVL=k;try{localStorage.setItem('rt_lic',k)}catch(e){}PL=k;renderPractice();view('level');document.getElementById('lvTitle').innerHTML=k==='g'?bi('G 路考','G Road Test'):bi('G2 路考','G2 Road Test');
  document.getElementById('routeList').innerHTML=ROUTES[k].map(r=>'<li'+(r.hw?' class="hw"':'')+'>'+bi(r.zh,r.en)+'</li>').join('');
  document.querySelectorAll('#diffs .tile').forEach(t=>t.classList.toggle('sel',t.dataset.diff===DIFF))}
 document.querySelectorAll('#diffs .tile').forEach(t=>t.onclick=()=>{DIFF=t.dataset.diff;document.querySelectorAll('#diffs .tile').forEach(x=>x.classList.toggle('sel',x===t));document.getElementById('startBtn').onclick()});      // 点难度就直接开始考试
