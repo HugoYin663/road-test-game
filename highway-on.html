@@ -58,7 +58,8 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 #bob{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}      /* 左下角：左侧观察（中镜、左镜、左盲点一个键） */
 #bga,#bbr{left:auto!important;right:calc(14px + env(safe-area-inset-right,0px))!important;width:104px!important}#bga{bottom:calc(166px + env(safe-area-inset-bottom,0px))!important}#bbr{bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}      /* 驾驶视角（右）右边：加速、减速、换线 */
 #bsl,#bsr,#vb{display:none!important}      /* 转向灯由系统打；只有驾驶视角 */
-</style></head><body>
+</style><style>html.sw #ov .pn{visibility:hidden}</style><script>if(!/[?&]mock=/.test(location.search))document.documentElement.classList.add('sw')</script>
+</head><body>
 <div id="hud"><div id="lt" style="display:none"></div><div><b id="sp">60</b> km/h</div><div id="sg" style="display:none;color:#2ee66b;font-size:24px;font-weight:700">⬅</div></div>
 <div id="bn">上高速</div><div id="cf"></div><div id="fl"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
@@ -97,5 +98,5 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="highway-on.js?v=1126a"></script>
 <script src="lib/voice.js?v=1125e"></script>
 <script src="lib/mock.js?v=1121a"></script>
-<script src="lib/sit.js?v=1126a"></script>
+<script src="lib/sit.js?v=1126c"></script>
 </body></html>

@@ -51,7 +51,8 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 #bga{bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bbr{bottom:calc(14px + env(safe-area-inset-bottom,0px))}      /* 右边：加速在上、减速在下（和上高速一样的键） */
 #bmi{background:#d98a1f;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}      /* 左边：后视镜在下、观察路口在上 */
 #bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}
-</style></head><body>
+</style><style>html.sw #ov .pn{visibility:hidden}</style><script>if(!/[?&]mock=/.test(location.search))document.documentElement.classList.add('sw')</script>
+</head><body>
 <div id="hud"><div id="lt"></div><div><b id="sp">60</b> km/h</div></div>
 <div id="bn">直行通过路口</div><div id="fl"></div><div id="tp"></div>
 <button id="vb">俯视</button><button id="hm">首页</button><button id="fs">全屏</button>
@@ -88,5 +89,5 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="straight.js?v=1126a"></script>
 <script src="lib/voice.js?v=1125e"></script>
 <script src="lib/mock.js?v=1121a"></script>
-<script src="lib/sit.js?v=1126a"></script>
+<script src="lib/sit.js?v=1126c"></script>
 </body></html>

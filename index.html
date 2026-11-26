@@ -52,7 +52,11 @@ h2 .en{font-size:.62em}
 /* 大按钮（首页两项、G2/G、难度、语言） */
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .tile{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;cursor:pointer;min-width:0;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
-.tile.sel{border-color:var(--signal)}
+.licbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 4px}.licbar .lb{font-size:14px;color:var(--mute);font-weight:600}
+.seg{display:inline-flex;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;font:inherit;font-size:14px;font-weight:700;color:var(--mute);padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button.sel{background:var(--sign);color:var(--sign-ink)}.seg .en{display:inline;font-size:1em;opacity:1}html:not([lang="en"]) .seg .en{display:none}
+.lichint{font-size:13px;color:var(--mute);margin:2px 0 10px}
 .tile:hover,.tile:focus-visible{border-color:var(--signal);outline:none;transform:translateY(-1px)}
 .tile .k{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.15}
 .tile .k .en{font-size:.55em;margin-top:2px}
@@ -217,10 +221,9 @@ details.route summary{cursor:pointer}
   <div class="view" id="v-practice" hidden>
     <div><h2><span class="zh">单项练习</span><span class="en">Practice by Skill</span></h2>
       <p class="sub"><span class="zh">每个项目一个练习场景，做错当场提示，结束后有总结卡片。</span><span class="en">Each skill has its own scene, instant feedback when you make a mistake and a summary at the end.</span></p></div>
-    <div class="tiles" id="licPick">
-      <button class="tile" data-lic="g2"><span class="badge">G2</span><span class="k"><span class="zh">我考 G2</span><span class="en">I'm taking G2</span></span><span class="d"><span class="zh">红绿灯和停牌路口、换线、小区项目（坡道停车、三点调头、平行停车）、停车场</span><span class="en">Lights and stop signs, lane changes, residential tasks (hill parking, three-point turn, parallel parking), parking lots</span></span></button>
-      <button class="tile" data-lic="g"><span class="badge">G</span><span class="k"><span class="zh">我考 G</span><span class="en">I'm taking G</span></span><span class="d"><span class="zh">红绿灯和停牌路口、换线、直行通过路口、高速、停车场；路口按 G 的标准判，观察要求更多</span><span class="en">Lights and stop signs, lane changes, straight through, highway, parking lots; intersections judged to the G standard, with more checks</span></span></button>
-    </div>
+    <div class="licbar"><span class="lb"><span class="zh">按哪种路考标准练</span><span class="en">Practise to the</span></span>
+      <div class="seg" id="licPick" role="radiogroup"><button data-lic="g2" role="radio"><span class="zh">G2 标准</span><span class="en">G2 standard</span></button><button data-lic="g" role="radio"><span class="zh">G 牌标准</span><span class="en">G standard</span></button></div></div>
+    <p class="lichint" id="licHint"></p>
     <div id="groups"></div>
     <p class="note"><span class="zh">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</span><span class="en">For practice only. Follow the MTO Driver’s Handbook and your examiner’s instructions.</span></p>
   </div>
@@ -231,7 +234,7 @@ details.route summary{cursor:pointer}
 <script src="lib/sheet.js?v=1121a"></script>
 <script>
 // 版本号：改了哪个项目就改这里，让手机重新下载
-const V='1126b';
+const V='1126c';
 // ---------- 所有单项（以后模拟考试也按这里的 id 串起来） ----------
 const ITEMS={
  'green-right':{zh:'绿灯右转',en:'Right turn on green',dz:'行人和自行车、对面左转车、黄灯、警车，每次随机组合',de:'Pedestrians, cyclists, oncoming left-turners, amber lights and police cars in random combinations'},
@@ -299,10 +302,11 @@ function apply(){document.documentElement.lang=LANG==='en'?'en':'zh-CN';document
 const LICX={g2:['straight-g','straight-r','highway-on','highway-off'],g:['residential','three-point','hill-park','parallel']};
 let PL='g2';try{PL=localStorage.getItem('rt_lic')==='g'?'g':'g2'}catch(e){}
 function setPL(k){PL=k;try{localStorage.setItem('rt_lic',k)}catch(e){}renderPractice()}
-function renderPractice(){document.querySelectorAll('#licPick .tile').forEach(b=>b.classList.toggle('sel',b.dataset.lic===PL));
+function renderPractice(){document.querySelectorAll('#licPick button').forEach(b=>{b.classList.toggle('sel',b.dataset.lic===PL);b.setAttribute('aria-checked',b.dataset.lic===PL)});
+ document.getElementById('licHint').innerHTML=PL==='g'?bi('G 牌标准：有高速和直行通过路口，没有小区项目；路口观察要求更多。','G standard: highway and straight-through, no residential tasks; more checks at intersections.'):bi('G2 标准：有小区项目（坡道停车、三点调头、平行停车），没有高速。','G2 standard: residential tasks (hill parking, three-point turn, parallel parking), no highway.');
  document.getElementById('groups').innerHTML=GROUPS.map(g=>{const ids=g.ids.filter(id=>!LICX[PL].includes(id));if(!ids.length)return'';return '<section class="group"><h3>'+bi(g.zh,g.en)+'</h3><div class="grid">'+ids.map(id=>{const t=ITEMS[id];
  return '<a class="item" href="'+(t.href||id+'.html?')+'lic='+PL+'&v='+V+'"><b>'+bi(t.zh,t.en)+'</b><span class="d">'+bi(t.dz,t.de)+'</span><span class="go">'+bi('开始练习 →','Start →')+'</span></a>'}).join('')+'</div></section>'}).join('')}
-document.querySelectorAll('#licPick .tile').forEach(b=>b.onclick=()=>setPL(b.dataset.lic));
+document.querySelectorAll('#licPick button').forEach(b=>b.onclick=()=>setPL(b.dataset.lic));
 renderPractice();
 // ---------- 页面切换（用网址 # 记住在哪一页，手机的返回键也能用） ----------
 let DIFF='easy',LVL='g2';
