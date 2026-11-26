@@ -59,7 +59,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="md" data-mode="g2"><b>模拟考 G2</b><span>连续 5 个路口，每个一种情况；全程不提示，最后总结</span></button>
 <button class="md" data-mode="g"><b>模拟考 G</b><span>连续 5 个路口，每个路口行人、警车、左转车、黄灯叠加 2–4 种</span></button>
 </div>
-<p id="dfw">随机驾驶难度：<label><input type="radio" name="df" value="easy" checked> 简单（没有过街行人，绿灯直接右转）</label>　<label><input type="radio" name="df" value="hard"> 困难（行人、警车、左转车、黄灯叠加 2–4 种）</label></p>
+<p id="dfw">随机驾驶难度：<label><input type="radio" name="df" value="easy" checked> 简单（没有过街行人，绿灯直接右转）</label>　<label><input type="radio" name="df" value="hard"> 困难（5 种情况轮流练：行人、自行车、对面左转车、黄灯、警车；都练过后多种叠加）</label></p>
 <details><summary>规则说明（第一次玩请先看）</summary><div style="text-align:left"><p>绿灯，你在大路口的最右车道准备<b>右转</b>。车会自动减速并转弯，<b>不点任何按钮就是直接转</b>。</p>
 <p>转入的路上有人行横道，行人有路权：<br>· <b>对面</b>走来的行人：等他们完全走完再转；<br>· 从<b>你这一侧（身后）</b>出发、直行过街的行人：走过道路一半后可以转；<br>· 行人可能<b>突然跑起来</b>，也可能<b>走到一半又回头</b>，要一直看着他们；<br>· 从你身后来的行人可能<b>不止一个</b>：让过第一个以后，起步前要再按一次“右后观察”。</p>
 <p>对面可能有打着左转灯的<b>左转车</b>开过停车线、停在路口里等：你有路权，直接转，犹豫停车反而让路权不清、后车鸣笛。待转的有时是<b>警车</b>，只要它没闪灯、没鸣笛，就按普通车对待，不用让它。</p>
@@ -72,8 +72,8 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html#practice" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="lib/core.js?v=1120d"></script>
-<script src="lib/en.js?v=1125d"></script>
-<script src="lib/intersection.js?v=1119b"></script>
+<script src="lib/en.js?v=1125e"></script>
+<script src="lib/intersection.js?v=1125e"></script>
 <script src="lib/actors.js?v=1112y"></script>
 <script src="lib/ads.js?v=1110o"></script>
 <script src="lib/billboard.js?v=1110o"></script>
@@ -82,7 +82,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <script src="lib/rules.js?v=1028c"></script>
 <script src="lib/ui.js?v=1117s"></script>
 <script src="green-right.js?v=1125d"></script>
-<script src="lib/voice.js?v=1121a"></script>
+<script src="lib/voice.js?v=1125e"></script>
 <script src="lib/mock.js?v=1121a"></script>
-<script src="lib/sit.js?v=1125d"></script>
+<script src="lib/sit.js?v=1125e"></script>
 </body></html>

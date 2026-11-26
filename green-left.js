@@ -496,7 +496,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
   m.c.position.copy(cockpit.localToWorld(m.pos.clone()));m.c.lookAt(m.c.position.clone().add(m.dir.clone().transformDirection(cockpit.matrixWorld)));
   cockpit.visible=false;ren.shadowMap.autoUpdate=false;ren.setRenderTarget(m.rt);ren.render(scene,m.c);ren.setRenderTarget(null);ren.shadowMap.autoUpdate=sa;cockpit.visible=true}
  ren.render(scene,cam);requestAnimationFrame(loop)}
-if(!MKP){$('bn').style.top='calc(54px + env(safe-area-inset-top,0px))';$('bn').style.display='none';const t=document.createElement('button');t.id='ttl';document.body.appendChild(t);const m=document.createElement('div');m.id='sitm';document.body.appendChild(m);
+if(!MKP){$('bn').style.top='calc(54px + env(safe-area-inset-top,0px))';$('bn').style.display='none';const t=document.createElement('button');t.id='ttl';document.body.appendChild(t);{const O=document.getElementById('ov');if(O){const f=()=>{t.style.visibility=getComputedStyle(O).display!=='none'?'hidden':''};new MutationObserver(f).observe(O,{attributes:true,attributeFilter:['style','class']});f()}}      /* 首页、总结卡片出来时标题按钮先藏起来（不挡卡片上的字） */const m=document.createElement('div');m.id='sitm';document.body.appendChild(m);
  t.onclick=e=>{e.stopPropagation();if(!sitOn())return;sitMenu($('sitm').style.display!=='block')};document.addEventListener('pointerdown',e=>{const m=$('sitm');if(m.style.display==='block'&&!m.contains(e.target)&&e.target.id!=='ttl')sitMenu(false)})}
 rs();newRun(false);setView(1);requestAnimationFrame(loop);
 const HOME=$('ov').innerHTML;
