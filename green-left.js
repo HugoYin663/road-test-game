@@ -57,14 +57,14 @@ const SITK='rt_sit_green-left';let SIT=null,CUR=null;      // SIT：玩家指定
 const sitDone=()=>{try{return JSON.parse(localStorage.getItem(SITK)||'[]')}catch(e){return[]}};
 const sitMark=i=>{try{const d=sitDone();if(!d.includes(i)){d.push(i);localStorage.setItem(SITK,JSON.stringify(d))}}catch(e){}};
 function sitPick(){if(SIT!=null)return SIT;const d=sitDone(),L=SITS.map((x,i)=>i).filter(i=>!d.includes(i));return L.length?L[Math.random()*L.length|0]:'mix'}
-const sitOn=()=>!AM&&!MKP;
+const sitOn=()=>!MKP;
 function ttlSet(){const t=$('ttl');if(!t)return;const base=TT(AM?'左转箭头':'绿灯左转');
- if(sitOn()){t.textContent=base+'-'+(DIFF!=='hard'?TT('简单'):CUR==='mix'?TT('综合'):CUR+1)+' ▾';t.classList.add('dd')}else{t.textContent=base;t.classList.remove('dd')}}
+ if(sitOn()){t.textContent=base+'-'+(DIFF!=='hard'?TT('简单'):AM?TT('困难'):CUR==='mix'?TT('综合'):CUR+1)+' ▾';t.classList.add('dd')}else{t.textContent=base;t.classList.remove('dd')}}
 function sitMenu(open){const m=$('sitm');if(!m)return;
  if(!open){m.style.display='none';if(sitMenu.was)playing=true;sitMenu.was=false;return}
  sitMenu.was=playing&&R&&!R.over;playing=false;const d=sitDone();
  const it=(v,label,on)=>`<button data-v="${v}" class="${on?'cur':''}">${label}</button>`;
- const H=DIFF==='hard';m.innerHTML=it('easy',TT('简单（没有对面车）'),!H)+`<div class="hd">${TT('困难')} · ${TT('已练')} ${d.length}/${SITS.length}</div>`+it('auto',TT('自动（没练过的）'),H&&SIT==null)+SITS.map((x,i)=>it(i,(i+1)+'  '+TT(x[0])+(d.includes(i)?'  ✓':''),H&&SIT===i)).join('')+it('mix',TT('综合（多种叠加）'),H&&SIT==='mix');
+ const H=DIFF==='hard';if(AM)m.innerHTML=it('easy',TT('简单'),!H)+it('mix',TT('困难'),H);else m.innerHTML=it('easy',TT('简单（没有对面车）'),!H)+`<div class="hd">${TT('困难')} · ${TT('已练')} ${d.length}/${SITS.length}</div>`+it('auto',TT('自动（没练过的）'),H&&SIT==null)+SITS.map((x,i)=>it(i,(i+1)+'  '+TT(x[0])+(d.includes(i)?'  ✓':''),H&&SIT===i)).join('')+it('mix',TT('综合（多种叠加）'),H&&SIT==='mix');
  m.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const v=b.dataset.v;if(v==='easy'){DIFF='easy';SIT=null}else{DIFF='hard';SIT=v==='auto'?null:v==='mix'?'mix':+v}LASTK=null;sitMenu.was=false;m.style.display='none';$('ov').style.display='none';newRun(true);playing=true});
  m.style.display='block'}
 const pedD=(p,t)=>{if(p.dd!=null)return p.dd;let d=0;const g=p.sg;for(let i=0;i<g.length;i++){const a=g[i].t,b=i+1<g.length?g[i+1].t:1e9;if(t<=a)break;d+=g[i].v*(Math.min(t,b)-a)}return d};
@@ -104,7 +104,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  ['bg','bc','bs2','bs','bt'].forEach(id=>{const e=$(id);if(e)e.style.display=''});['bsl','bsr','bob','blc'].forEach(id=>{const e=$(id);if(e)e.style.display='none'});      // 换右车道的按键先藏起来
  const hard=DIFF==='hard',P=a=>a[Math.random()*a.length|0];
  let sc={};
- CUR=sitOn()&&hard?sitPick():null;
+ CUR=sitOn()&&hard&&!AM?sitPick():null;
  if(hard&&CUR!=null&&CUR!=='mix')sc=Object.assign({},SITS[CUR][1]);      /* 困难练习：这一局只出这一种情况（对面车流、后车照常） */
  else if(hard){sc={BK:1,RT:1,PW:1,BI:Math.random()<.6,Y:Math.random()<.8,LC:Math.random()<.4,BKS:Math.random()<.5};      /* BKS：我们这边直行车一直很密，对面左转车一直走不了，一直挡着你的视线 */      /* 困难模式：约 80% 的局会变黄灯 */}
  else sc={E:1};      /* 简单：对面没有直行车，也没有行人、自行车、右转车，绿灯直接转 */
@@ -163,6 +163,7 @@ const TXT={
  sig:["转弯前没有打左转灯","左转前一定要打左转灯，一般在停车线前约 30 米就打开。"],
  sigL:["左转灯打得太晚","离停车线不到 15 米才打左转灯，后车和对面的车来不及反应。"],
  wheels:["待转时没有车正轮正","在路口里等候左转时，车身要摆正、车轮朝正前方。你停下来时车头已经往左歪了（车轮已经打了方向），如果被后车追尾，会被推进对面的车流。不要提前开始转弯，停在路口里车正轮正地等。"],
+ delayE:["延误交通","路口里没有对面直行车、右转车，也没有行人过马路，没有任何需要让行的，应该直接转过去。你停下来超过 3 秒，后车按喇叭了。"],
  noEnter:["延误交通：没有进入路口等候","你是第一辆左转车，绿灯时应该开过停车线，进入路口里等候（车头大约在路口中间前面，车轮朝正前方）。停在停车线后面等，会延误后面的车，也更难找到空档。"],
  enter2:["前车还在路口里等，你也跟着开进了路口","一次只能有一辆左转车在路口里等候。前面已经有车在路口里等左转时，你要停在停车线后面，等它转走了再开进路口。"],
  noScanL:["转弯前没有观察路口","左转前要按“观察路口”看一眼左边——你要转入那条路的人行横道上有没有行人，再确认对面车流的空档。"],
@@ -263,7 +264,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  // 第一辆左转车：绿灯时停在停车线后面不进路口
  const firstCar=(!R.LC||R.LC.st==='go'&&R.LC.u>PK.S.ce-4)&&!(R.AQ&&R.AQ.some(L=>!L.gone&&L.u>u&&L.u-u<16));
  if((AM||R.arrowL!=null)&&R.arrow==='g'&&v===0&&firstCar){R.awT=(R.awT||0)+dt;if(R.awT>2.5){ev('arrowWait');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.awT=0;      /* 箭头绿灯时停着不走 */
- if(v===0&&f[1]<SL&&R.light==='g'&&R.arrow!=='g'&&firstCar){R.neT=(R.neT||0)+dt;if(R.neT>3.5){ev('noEnter');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.neT=0;      // 后车按喇叭催
+ if(sc.E&&v===0&&R.light==='g'&&u<ce&&!R.crash&&!(R.cmt&&a[0]<-4)){R.dlT=(R.dlT||0)+dt;if(R.dlT>3){ev('delayE');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.dlT=0;      /* 简单：路口没有对面车、行人，停下来超过 3 秒＝延误交通，后车按喇叭 */
+ if(!sc.E&&v===0&&f[1]<SL&&R.light==='g'&&R.arrow!=='g'&&firstCar){R.neT=(R.neT||0)+dt;if(R.neT>3.5){ev('noEnter');if(!R.hkT||R.t-R.hkT>4){R.hkT=R.t;honk()}}}else R.neT=0;      // 后车按喇叭催
  // 开始转弯的那一刻：检查对面车、右转车、自行车、行人、有没有观察
  if(m==='go'&&f[0]<-3.4&&v>.05&&R.cmtArm){      // 车头开始伸向对面车道：真正开始转弯的那一刻
  R.cmtArm=false;R.cmt=true;

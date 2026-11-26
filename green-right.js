@@ -53,8 +53,13 @@ function pedSet(nbMax){const P=a=>a[Math.random()*a.length|0],L=[],q=Math.random
  if(Math.random()<.45)L.push(P(['2a','2a','2c']));
  if(Math.random()<.35||!L.length)L.push('3a');return L}
 // 简单（随机驾驶）：什么情况都没有，直接转；模拟考 G2：每个路口一种（行人和自行车／黄灯／警车）；困难：行人、警车、左转车、黄灯里 2–4 种叠在一起
+// 困难（随机驾驶）的 5 种情况：标题下拉菜单可以选（lib/sit.js）
+window.SITDEF={key:'rt_sit_green-right',item:'free|hard',list:['行人','自行车','对面左转车','黄灯','警车'],when:()=>MODE==='free'&&DIFF==='hard'};
+const SITF=[()=>{let L;do L=pedSet().filter(c=>c!=='3a');while(!L.length);return L},()=>['3a'],()=>['4a'],()=>[['5a','5b','5c','5e'][Math.random()*4|0]],()=>[...pedSet(),'E']];
+const sitN=()=>window.SITUI&&typeof SITUI.cur==='number'&&SITDEF.when();
 function pick1(){const hard=MODE==='g'||(MODE==='free'&&DIFF==='hard'),r=Math.random(),P=a=>a[Math.random()*a.length|0];
- if(MODE==='free'&&DIFF==='easy')return['0'];      // 简单：没有过街行人、自行车、警车，也不变黄灯——绿灯直接右转
+ if(MODE==='free'&&DIFF==='easy')return['0'];
+ if(sitN())return SITF[SITUI.cur]();      // 选定了某一种情况      // 简单：没有过街行人、自行车、警车，也不变黄灯——绿灯直接右转
  if(!hard){if(r<.08)return['6'];if(r<.38)return[P(['5a','5b','5c','5e'])];return pedSet()}
  const n=2+(Math.random()*3|0),K=['P','E','L','Y'].sort(()=>Math.random()-.5).slice(0,n);
  if(K.includes('E')&&K.includes('Y'))K.splice(K.indexOf(Math.random()<.5?'E':'Y'),1);   // 黄灯局不加警车（变红后就成了红灯右转）
@@ -66,7 +71,7 @@ function pick1(){const hard=MODE==='g'||(MODE==='free'&&DIFF==='hard'),r=Math.ra
  return L}
 function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round++;const d=Math.min(1,Math.max(0,(round-1)/2));
  // 本局关卡：1a 后方直行 1b 后方右转 1c 后方突然跑 2a 对面直行 2b 对面左转 2c 对面突然跑
- const LIST=R0.forceCS?(R0.forceCS==='1d'?['1a','1m']:R0.forceCS.split('+')):pickList();if(!R0.forceCS&&'123'.includes(LIST[0][0])&&!LIST.some(c=>c==='4a'||c[0]==='5')&&Math.random()<.4)LIST.push('4a');   // 常有对面左转车在路口里等（不抢行）
+ if(window.SITUI){SITUI.begin();SITUI.refresh()}const LIST=R0.forceCS?(R0.forceCS==='1d'?['1a','1m']:R0.forceCS.split('+')):pickList();if(!R0.forceCS&&!sitN()&&'123'.includes(LIST[0][0])&&!LIST.some(c=>c==='4a'||c[0]==='5')&&Math.random()<.4)LIST.push('4a');   // 常有对面左转车在路口里等（不抢行）
  const CS=LIST.find(c=>'56'.includes(c[0]))||LIST[0],peds=[];
  if(LIST.includes('3a')){const k='S',o=cyclist(PCOL[Math.random()*5|0]);live.push(o);
   peds.push({k,o,sg:[{t:0,v:3.8},{t:2.5,v:k==='S'?5.5:4.2}],off:83-(U0-U0N),path:BPATH[k],len:BLEN[k],bike:true})}   // 开局在你前方约 3 米，你很快超过它，它之后在你右边追上来
@@ -276,6 +281,7 @@ function finish(){R.over=true;sirenOff();R.sig=false;$('sg').style.display='none
    h=`<h2>${MODE==='g'?'模拟考 G':'模拟考 G2'} · 总结</h2><p>5 个路口：严重错误 <b>${ser.length}</b> 处 · 扣分项 <b>${mi}</b> 处</p>`+(EX.ev.length?cardsHtml(EX.ev):'<p>5 个路口全部处理正确，非常好！</p>');EX=null}}
  else if(!R.ev.length)h='<h2>驾驶总结</h2><div class="st">★★★</div><p>这一趟没有违规或危险驾驶，右转处理得很好。</p>';
  else h='<h2>驾驶总结</h2><p>这一趟有 '+R.ev.length+' 处需要注意：</p>'+cardsHtml(R.ev);
+ if(!EX&&window.SITUI&&SITUI.cur!=null){if(typeof SITUI.cur==='number')SITUI.mark(SITUI.cur);h+=`<p style="color:#666;font-size:13px">${SITUI.curLine()}</p>`;SITUI.refresh()}
  o.innerHTML=`<div class="pn">${h}<br>${btn}</div>`;o.style.display='flex';
  const go=()=>{o.style.display='none';newRun(true);playing=true};
  if($('next'))$('next').onclick=go;if($('again'))$('again').onclick=()=>{if(MODE!=='free')EX={n:5,i:0,ev:[],used:[]};go()};if($('home'))$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
