@@ -259,7 +259,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  {const a=myPath(u),fx=a[0]+2.35*Math.sin(a[2]);if(R.lane&&!R.llc&&fx>=11.5&&a[1]>-12){R.llc=true;if(R.light==='green'&&!(R.lastLook>=R.laneT)&&!R.ev.some(e=>e.key==='noLook2'))ev('noLastLook')}}   // 车头进入右侧人行横道前，要做过最后一次右后观察
  if(!R.sigChk&&u>=cs+6){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-15)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
- if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK;const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
+ if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<.5?MSLOW:1);const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
   if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
   else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区

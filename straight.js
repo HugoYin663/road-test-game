@@ -91,7 +91,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t,red=VAR=
  R.u+=R.v*dt;const u=R.u,fz=u+HL,rz=u-HL;
  R.cars.forEach(m=>moveCar(m,dt));
  // 观察：后视镜（中镜）
- if(R.mirT>=0){R.mirT+=dt*1.4*LOOKK;const k=Math.min(1,dt*12),mt=R.mirT;
+ if(R.mirT>=0){R.mirT+=dt*1.4*LOOKK*(R.mirT<.7?MSLOW:1);const k=Math.min(1,dt*12),mt=R.mirT;
   if(mt<.7){R.yaw+=(.45-R.yaw)*k;R.pit+=(MPIT-R.pit)*k;if(mt>.4&&!R.mirDone){R.mirDone=true;R.lastMir=t;R.mirs.push({t,u,v:R.v})}}
   else{R.yaw+=(0-R.yaw)*k;R.pit+=(0-R.pit)*k;if(mt>1.05){R.mirT=-1;R.mirDone=false;R.yaw=0;R.pit=0;mk()}}}
  // 观察路口：左-右-左
