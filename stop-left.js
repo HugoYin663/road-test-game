@@ -359,7 +359,7 @@ function finish(){if(R.over)return;R.over=true;R.sig=null;$('sg').style.display=
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
-let last=0,fovH=100;
+let last=0,fovH=FOVD;
 MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
 {const vf=h=>2*Math.atan(Math.tan(h/2*Math.PI/180)/2)*180/Math.PI;MRL.c.fov=vf(16);MRL.dir.set(Math.sin(7*Math.PI/180),-.03,-1).normalize();MRR.c.fov=vf(24);MRR.dir.set(-Math.sin(11*Math.PI/180),-.03,-1).normalize();[MRL,MRR].forEach(m=>m.c.updateProjectionMatrix())}
 function placeMine(){const p=me();place(mine,p[0],p[1],p[2],0);mine.userData.bl.forEach(m=>{m.position.x=.88})}

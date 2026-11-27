@@ -97,8 +97,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;
  // 换完线：转向灯要关
  if(!R.lc&&R.sig&&R.lastDone>0&&t-R.lastDone>5&&R.sigT<R.lastDone)ev('sigOn');
  // 看后视镜／回头看盲区
- if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK*(L.k==='M'&&L.t<.55?MSLOW:1);
-  if(L.k==='M'){if(L.t<.55){R.yaw+=((sd<0?.12:.42)-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.36:.83)-R.yaw)*k9;R.pit+=((sd<0?-.26:-.27)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */      /* 视线落在外后视镜上，镜子完整地出现在画面偏左（或偏右）一点，不被按钮挡住 */if(L.t>1)R.mT[L.side]=t}
+ if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK*(L.k==='M'&&L.t<1.35?MSLOW:1);
+  if(L.k==='M'){if(L.t<.55){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?MLYAW:MRYAW)-R.yaw)*k9;R.pit+=((sd<0?MLPIT:MRPIT)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */      /* 视线落在外后视镜上，镜子完整地出现在画面偏左（或偏右）一点，不被按钮挡住 */if(L.t>1)R.mT[L.side]=t}
    else if(R.q[0]==='sho'){R.look=null;mk();nextAct()}      /* 侧面观察：看完外后视镜直接转头看盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
   else{if(L.t<.95){R.yaw+=((sd<0?-2.0:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT[L.side]=t}
@@ -121,7 +121,7 @@ function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let 
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
-let last=0,fovH=110;
+let last=0,fovH=FOVD;
 MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
 // 外后视镜的视野按真实的平面镜来：左镜水平约 16°（里侧刚好看到一点自己的车身），右镜约 24°。
 // 旁边车道的车离你侧后方很近时（车头在你后面约 1～9 米），镜子里看不到它——这就是盲区，只有回头看盲点才看得到；再往前开到你正侧面，从侧窗就能看到
@@ -134,7 +134,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  sunFollow(R.z+20);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=[R.x,R.z,R.h];
- if(view===1){const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=110;      /* 看镜子、看盲点都不再放大画面（和其他场景的右侧观察一样，只转头） */fovH+=(fT-fovH)*Math.min(1,dt*3.5);      /* 看后视镜时视线集中在镜子上：画面放大，镜子变大 */cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ if(view===1){const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=FOVD;      /* 看镜子、看盲点都不再放大画面（和其他场景的右侧观察一样，只转头） */fovH+=(fT-fovH)*Math.min(1,dt*3.5);      /* 看后视镜时视线集中在镜子上：画面放大，镜子变大 */cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+HY.p*L,q[1]+Math.cos(h)*L+oz);

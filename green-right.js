@@ -259,9 +259,9 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  {const a=myPath(u),fx=a[0]+2.35*Math.sin(a[2]);if(R.lane&&!R.llc&&fx>=11.5&&a[1]>-12){R.llc=true;if(R.light==='green'&&!(R.lastLook>=R.laneT)&&!R.ev.some(e=>e.key==='noLook2'))ev('noLastLook')}}   // 车头进入右侧人行横道前，要做过最后一次右后观察
  if(!R.sigChk&&u>=cs+6){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-15)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
- if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<.5?MSLOW:1);const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
-  if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
-  else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}           // 2 看右镜
+ if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<1?MSLOW:1);const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
+  if(lt<.5){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
+  else if(lt<1){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区
    if(!R.tgt||!R.tgt.o.visible)R.tgt=pickTgt(qq);
    let want=1.9;R.lookD=14;if(R.tgt){const a=pedPos(R.tgt,R.t),dx=a[0]-qq[0],dz=a[1]-qq[1];want=Math.max(1.5,Math.min(2.1,normA(Math.atan2(dx,dz)-qq[2])));R.lookD=Math.max(3,Math.hypot(dx,dz))}
@@ -286,7 +286,7 @@ function finish(){R.over=true;sirenOff();R.sig=false;$('sg').style.display='none
  const go=()=>{o.style.display='none';newRun(true);playing=true};
  if($('next'))$('next').onclick=go;if($('again'))$('again').onclick=()=>{if(MODE!=='free')EX={n:5,i:0,ev:[],used:[]};go()};if($('home'))$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
-let last=0,fovH=110;
+let last=0,fovH=FOVD;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t;
  const fdt=Math.max(0,t-(loop.pt||0));loop.pt=t;
  flows.forEach(f=>{if(f.v===0){crossCar(f,fdt);return}if(f.s==null||t<.001)f.s=f.off+f.v*t;let vt=f.v;if(f.v>0&&(R.light!=='green'||polHold())){const q0=f.p(f.s),ds=q0[0]<0?q0[1]-20:-20-q0[1];if(ds>0&&ds<40)vt=Math.min(f.v,Math.sqrt(2*3*Math.max(0,ds-.5)));else if(ds>=40&&polHold())vt=Math.max(0,(f.cv==null?f.v:f.cv)-3*fdt)}      /* 警笛响时，还没到路口的车都慢慢减速停下，等警车过去 */
@@ -306,7 +306,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
  if(R.lc){const on=R.lc.u<R.lc.La+1.5,b=Math.sin(ts/1000*15)>0;R.lc.car.userData.bl.forEach(m=>m.visible=on&&b)}
- if(view===1){const h=q[2]+HY.y+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH+=((lk?98:110)-fovH)*.15;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*.05)+HY.p*L,q[1]+Math.cos(h)*L+oz);
+ if(view===1){const h=q[2]+HY.y+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH+=((lk?FOVD-12:FOVD)-fovH)*.15;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*.05)+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(0,64,-9);cam.lookAt(0,0,-1)}      /* 俯视：固定从本方向（南边）往前看，不能转 */

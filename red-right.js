@@ -206,8 +206,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
   if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1]);if(see(-40,-2.75)&&see(-40,-6.25))R.scanClear=true}}
  // 右后观察：中镜→右镜→右后盲区
- if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<.5?MSLOW:1);const lt=R.lookT,k9=Math.min(1,dt*12);
-  if(lt<.5){R.yaw+=(.45-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(lt<1){R.yaw+=(1-R.yaw)*k9;R.pit+=(-.15-R.pit)*k9}
+ if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<1?MSLOW:1);const lt=R.lookT,k9=Math.min(1,dt*12);
+  if(lt<.5){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(lt<1){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9}
   else{R.lastLook=R.t;R.pit+=(0-R.pit)*k9;if(lt<2){R.yaw+=(1.9-R.yaw)*Math.min(1,dt*12)}else{R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt>2.5){R.lookT=-1;R.yaw=0;R.pit=0}}}}
  // 和其他车相撞：两车都停下，被撞的车被撞歪，路考结束
  if(!R.crash){const me=[a[0],a[1],a[2],2.3,.95],O=[];
@@ -259,7 +259,7 @@ function finish(){R.over=true;R.sig=false;$('sg').style.display='none';mk();cons
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
-let last=0,fovH=110;
+let last=0,fovH=FOVD;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t;
  R.TR.list.forEach(s=>{place(s.c,s.x,s.lane,Math.PI/2+(s.spin||0));s.c.visible=s.x>-160&&s.x<160});
  bgFlows.forEach(f=>{const q=f.p(f.off);place(f.c,q[0],q[1],q[2]+(f.spin||0))});

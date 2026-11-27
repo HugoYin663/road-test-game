@@ -439,8 +439,8 @@ function krStep(dt){const K=R.kr,t=R.t,u=R.u;
  if(!K.right&&!K.lc&&!K.told&&u>=ce+10){if(krGap(TZR))K.gapT=0;else K.gapT=(K.gapT||0)+dt}      /* 右车道真的空着（有空档可以换）才计时；右边有车、只能等的时候不算 */
  if(!K.right&&!K.lc&&!K.told&&(K.gapT||0)>=(K.sig==='R'?10:7)){K.told=1;ev('keepRight');banner('考官：当安全时，换到右车道（when safe, move into the right lane）','#ffe27a',1)}      /* 有空档可以换、你却一直没换（没打灯 7 秒；已经打了右转灯在准备 10 秒）：考官提醒你换到右车道，扣一分（不是严重错误） */
  // 看后视镜／回头看盲点（和换线项目一样）
- if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK*(L.k==='M'&&L.t<.55?MSLOW:1);
-  if(L.k==='M'){if(L.t<.55){R.yaw+=((sd<0?.12:.42)-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?-.36:.83)-R.yaw)*k9;R.pit+=((sd<0?-.26:-.27)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */if(L.t>1)R.mT2=t}
+ if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=L.side==='L'?-1:1;L.t+=dt*LOOKK*(L.k==='M'&&L.t<1.35?MSLOW:1);
+  if(L.k==='M'){if(L.t<.55){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(L.t<1.35){R.yaw+=((sd<0?MLYAW:MRYAW)-R.yaw)*k9;R.pit+=((sd<0?MLPIT:MRPIT)-R.pit)*k9;      /* 左侧观察：中镜、左镜、左盲点都转得少一点，总的转动量和右侧观察一样 */if(L.t>1)R.mT2=t}
    else if(R.q[0]==='sho'){R.look=null;mk();const n=R.q.shift();if(n)krAct(n);mk()}      /* 右侧观察：看完右镜直接转头看右盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();const n=R.q.shift();if(n)krAct(n);mk()}}}
   else{if(L.t<.95){R.yaw+=((sd<0?-2.0:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT2[L.side]=t}
@@ -469,7 +469,7 @@ function folStep(dt,u){if(DIFF==='hard'&&!R.psOn&&u>=ce+14&&!R.crash){const ok=w
  {const me=[a[0],a[1],a[2],2.3,.95];for(let k=0;k<40&&obbHit(me,[fo.x,fo.z,fo.h,2.3,.95]);k++){fo.x+=.1;fo.v=Math.min(fo.v,R.v)}}      /* 无论如何不会开进你的车里 */
  if(fo.x<-880){fo.gone=true;fo.car.visible=false}}      /* 开到很远（雾里看不见）才去掉，不会在眼前突然消失 */
 // ================= 渲染循环 =================
-let last=0,fovH=110;
+let last=0,fovH=FOVD;
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=ts;step(dt);const t=R.t,bl=Math.sin(ts/1000*15)>0;
  R.OC.forEach(s=>{place(s.c,s.lane,s.z,Math.PI+(s.spin||0));s.c.visible=!s.gone&&s.z<170});
  if(R.RT){const q=ORT(R.RT.u);place(R.RT.c,q[0],q[1],q[2]+(R.RT.spin||0));R.RT.c.visible=!R.RT.gone&&!!R.RT.on;R.RT.c.userData.bl.forEach(m=>m.visible=bl&&q[0]>-20)}

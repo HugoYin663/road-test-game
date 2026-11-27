@@ -213,8 +213,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;const t=R.t;const p=
  if(R.lc){const L=R.lc,k=Math.min(1,(t-L.t0)/L.T),s=k*k*k*(10-15*k+6*k*k),dd=(L.d1-L.d0)*30*k*k*(1-k)*(1-k)/L.T;R.d=L.d0+(L.d1-L.d0)*s;R.hd=-Math.atan2(dd,Math.max(1,R.v));
   if(k>=1){R.lc=null;R.hd=0;R.d=L.d1;R.lastDone=t;setSig(null);mk()}}
  // 看后视镜／看盲点（右边）
- if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=1;L.t+=dt*LOOKK*(L.k==='M'&&L.t<.55?MSLOW:1);
-  if(L.k==='M'){if(L.t<.55){R.yaw+=(.42-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(L.t<1.35){R.yaw+=(.83-R.yaw)*k9;R.pit+=(-.27-R.pit)*k9;if(L.t>1)R.mT.R=t}
+ if(R.look){const L=R.look,k9=Math.min(1,dt*12),sd=1;L.t+=dt*LOOKK*(L.k==='M'&&L.t<1.35?MSLOW:1);
+  if(L.k==='M'){if(L.t<.55){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}else if(L.t<1.35){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9;if(L.t>1)R.mT.R=t}
    else if(R.q[0]==='sho'){R.look=null;mk();nextAct()}      /* 侧面观察：看完外后视镜直接转头看盲点，中间不回到前方 */
    else{R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(L.t>1.7){R.look=null;R.yaw=0;R.pit=0;mk();nextAct()}}}
   else{if(L.t<.95){R.yaw+=((sd<0?-2.0:2.05)-R.yaw)*Math.min(1,dt*10);R.pit+=(-.03-R.pit)*k9;if(L.t>.6)R.oT.R=t}
@@ -239,7 +239,7 @@ function finish(){if(R.over)return;R.over=true;setSig(null);const o=$('ov');let 
  o.innerHTML=`<div class="pn">${h}<br><button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button></div>`;o.style.display='flex';
  $('again').onclick=()=>{o.style.display='none';newRun(true);playing=true};$('home').onclick=()=>{o.innerHTML=HOME;o.style.display='flex';bindHome()}}
 // ================= 渲染循环 =================
-let last=0,fovH=110;
+let last=0,fovH=FOVD;
 MRL.rt.setSize(512,256);MRR.rt.setSize(512,256);
 {const vf=h=>2*Math.atan(Math.tan(h/2*Math.PI/180)/2)*180/Math.PI;MRL.c.fov=vf(16);MRL.dir.set(Math.sin(7*Math.PI/180),-.03,-1).normalize();MRR.c.fov=vf(24);MRR.dir.set(-Math.sin(11*Math.PI/180),-.03,-1).normalize();[MRL,MRR].forEach(m=>m.c.updateProjectionMatrix())}
 function placeMine(){const p=me();place(mine,p[0],p[1],p[2],myY());mine.userData.bl.forEach(m=>{m.position.x=R.sig==='R'?-.88:.88})}
@@ -250,7 +250,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  sunFollow(p[1]+10,-p[0]);
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=p;
- {const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=110;      /* 观察时不放大画面，只转头 */fovH+=(fT-fovH)*Math.min(1,dt*3.5);{const sz=ren.getSize(new T.Vector2());cam.aspect=sz.x/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
+ {const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=FOVD;      /* 观察时不放大画面，只转头 */fovH+=(fT-fovH)*Math.min(1,dt*3.5);{const sz=ren.getSize(new T.Vector2());cam.aspect=sz.x/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   const Y=myY();cam.position.set(bx0+ox+(Math.random()-.5)*sk,Y+1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
   const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*.05+HY.p*L+gr*L*Math.cos(HY.y),q[1]+Math.cos(h)*L+oz);
