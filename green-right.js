@@ -109,7 +109,10 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  LASTF={sp:spT,E:!!R.emg,cru:!!(lc&&lc.isP),six:CS==='6'};
  gt=0;UEND=GSTD()?UENDG:UEND0;gUI();flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
 function cmdUp(m){if(!R)return;if(m==='look'){R.lkHold=false;return}if(m!=='scan'||!R.scHold)return;R.scHold=false}      // 松开“右后观察”：按住时一直回头看右后      // 松开“观察路口”：按住时一直看左边
-function mk(){const md=R.mode==='slow'?(R.lkK==='mir'||R.lkK==='mirC'?'mir':'look'):R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
+function mk(){if(GSTD()){      // G 牌：正在看的和排着队等着看的观察键都亮着（白框），玩家知道连按的第二下也按上了
+  const on=x=>(R.lookT>=0&&(R.lkK===x||(x==='mir'&&R.lkK==='mirC')))||R.lkQ===x||(x==='mir'&&R.lkQ==='mirC'),md=R.mode==='slow'?'turn':R.mode;
+  document.querySelectorAll('.b').forEach(b=>{const m=b.dataset.m;b.classList.toggle('on',m==='sig'?!!R.sig:m==='mir'?on('mir'):m==='look'?on('bs'):m===md)});return}
+ const md=R.mode==='slow'?(R.lkK==='mir'||R.lkK==='mirC'?'mir':'look'):R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function toast(t){const b=$('bn');b.textContent=t;setTimeout(()=>b.textContent={green:'绿灯右转',yellow:'黄灯！',red:'红灯'}[R.light],1500)}
 // 违规／危险提示：当场闪现，游戏继续；结束后汇总成卡片
@@ -152,7 +155,7 @@ Object.assign(TXT,{
  gScan:["转弯前没有观察路口（左-右-左）","G 牌路考：开进路口转弯之前，要按“观察路口”做左-右-左观察，确认横向没有闯红灯的车或紧急车辆。"],
  gMirC:["转完弯后没有看中镜","G 牌路考：完成转弯、车身回正以后，在加速到车流速度之前要看一眼中镜（按“中镜”），了解后面的车有没有跟上来、距离多远。"]});
 function gUI(){const g=GSTD(),bm=$('bm'),bl=$('bl');if(!bm||!bl)return;bm.style.display=g?'':'none';
- const af=g&&R&&R.u>=ce-6;bm.innerHTML=af?'中镜<small>Mirror</small>':'中、侧镜<small>Mirrors</small>';bl.innerHTML=g?'盲点<small>按住回头看</small>':'右后观察<small>按住回头看</small>';bm.dataset.af=af?1:0}      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
+ const af=g&&R&&R.u>=ce-6;bm.innerHTML=af?'中镜<small>Mirror</small>':'中、侧镜<small>Mirrors</small>';bl.innerHTML=g?'盲点<small>按住回头看</small>':'右后观察<small>按住回头看</small>';bl.style.background=g?'#7b5bd6':'';      /* G 牌：镜子橙色、盲点紫色（和换线、下高速的按键一样） */bm.dataset.af=af?1:0}      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
 function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:TT(t[0]),text:t[1],img:snap3D()||snap()});if(!EX){if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:TT(t[0])});else flash(TT(t[0]))}if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
 const SER=['hitP','hitBA','hitBB','xwalk','pedA','pedB','hookA','hookB','red','redR','police','blockX','blockX2'];      // 严重错误：路考直接不合格
 const lcAct=()=>R.lc&&(R.lc.type==='cut'||R.lc.l5)&&R.lc.state==='run'&&R.lc.path(R.lc.u)[0]<(R.lc.l5?12:20);   // 黄灯局：左转车开过人行横道一带就算转过去了
@@ -181,10 +184,10 @@ function tApp(){let u=0,t=0;while(u<LP-.05&&t<30){u+=Math.max(.3,vApp(u))*.02;t+
 function tArr(u0){let u=u0==null?U0N:u0,t=0;while(u<uS-5&&t<30){u+=vOf(u)*.02;t+=.02}return t}
 let LEADG=null;                    // 你（不按按钮）到停车线前约 5 米要多久
 function cmd(m){if(!playing||R.over||R.po||(R.u>=ce+1&&m!=='mir'))return;      // 转完弯以后只剩“中镜”可以按
- if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false;R.lkK=null}R.lkQ=null;R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
+ if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false;R.lkK=null}R.lkQ=null;if(GSTD())mk();R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
  if(m==='look'||m==='mir'){if(m==='look')R.lkHold=true;const K=!GSTD()?'all':m==='look'?'bs':(R.u>=ce-6?'mirC':'mir');      // G 牌：“中、侧镜”看中镜＋右镜（转完弯后只看中镜）；“盲点”直接回头看右后盲点
-  if(R.lookT>=0){if(K!=='all'&&K!==R.lkK)R.lkQ=K;return}      // 正在看另一处：记下来，看完这一处马上接着看（连续按两个观察键，第二个不会丢）
+  if(R.lookT>=0){if(K!=='all'&&K!==R.lkK){R.lkQ=K;mk()}return}      // 正在看另一处：记下来，看完这一处马上接着看（连续按两个观察键，第二个不会丢）
   startLook(K);return}
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-1.7-R.u;if(dA>R.v*R.v/(2*AB)+.2){R.stopT=uS-1.7;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
