@@ -3,17 +3,18 @@
 // ============================================================
 // 右转路线：一条平滑的曲线（三次贝塞尔）：从最右车道出发，经虚线段切入，直接进入横向路的最右车道
 const bz=t=>{const u=1-t,P=[[6.25,-30],[6.25,-14],[8,-6.25],[16,-6.25]];return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
-const myPts=[[6.25,-110],[6.25,-30],...Array.from({length:40},(_,i)=>bz((i+1)/40)),[70,-6.25]];
+const myPts=[[6.25,-110],[6.25,-30],...Array.from({length:40},(_,i)=>bz((i+1)/40)),[260,-6.25]];
 const myLen=myPts.reduce((a,p,i)=>i?a+Math.hypot(p[0]-myPts[i-1][0],p[1]-myPts[i-1][1]):0,0);
 const pathN=path(myPts);
 // 让自行车时的路线：停车线以前完全不碰自行车道虚线，过了停车线再转（转弯半径稍大）
 const bzK=t=>{const u=1-t,P=[[6.25,-16.5],[6.25,-8],[9,-6.25],[17,-6.25]];return[0,1].map(k=>u*u*u*P[0][k]+3*u*u*t*P[1][k]+3*u*t*t*P[2][k]+t*t*t*P[3][k])};
-const pathK=path([[6.25,-110],[6.25,-16.5],...Array.from({length:40},(_,i)=>bzK((i+1)/40)),[70,-6.25]]);let MP=pathN;
+const pathK=path([[6.25,-110],[6.25,-16.5],...Array.from({length:40},(_,i)=>bzK((i+1)/40)),[260,-6.25]]);let MP=pathN;
 const myPath=u=>u<0?[6.25,-110+u,0]:MP(u);      // u<0：起点再往后的直路（现在从更远的地方开过来）      // 平时走原路线（在虚线末端借用一点虚线转弯）；事先发现了右后方的自行车，就换成不碰虚线的路线
 let cs=0,ce=0;for(let i=1;i<=41;i++){ce+=Math.hypot(myPts[i][0]-myPts[i-1][0],myPts[i][1]-myPts[i-1][1]);if(i===1)cs=ce}
-const vOf=u=>7+4*(1-ss(cs-48,cs-30,u))-2.8*ss(cs-18,cs+6,u)+2.8*ss(ce-6,ce+14,u);      // 远处约 40 km/h，离停车线约 45 米开始慢下来
+const vOf=u=>7+4*(1-ss(cs-48,cs-30,u))-2.8*ss(cs-18,cs+6,u)+2.8*ss(ce-6,ce+14,u)+(GSTD()?9.7*ss(ce+6,ce+70,u):0);      // G 牌：转完弯后正常加速到 60 左右（转完要在加速到车流速度之前看中镜）      // 远处约 40 km/h，离停车线约 45 米开始慢下来
 // ================= 游戏逻辑（第一步）=================
-const AB=5,U0=60,U0N=-18,UEND=ce+44;      // U0N：现在从更远的地方开过来（离停车线约 110 米），场景里的行人等时间往后推 LEADG 秒      // 转完弯以后再往前开 30 米（经过路边的广告牌）
+const AB=5,U0=60,U0N=-18,UEND0=ce+44,UENDG=ce+88;let UEND=UEND0;      // G 牌：转完弯后多开一段（约 6–7 秒），加速到 60，留出看中镜的时间
+      // U0N：现在从更远的地方开过来（离停车线约 110 米），场景里的行人等时间往后推 LEADG 秒      // 转完弯以后再往前开 30 米（经过路边的广告牌）
 {const g=billboard('turn-right');placeBB(g,75,-17,Math.PI/2)}      // 广告牌离路口近一些（x≈75）：一转完弯就在正前方，开到结束（x≈60）前一直看得清      // 转进去的那条路右手边的广告牌      // U0：平时从停车线前约 30 米出发
 const mine=car(C[0]);
 let uS=0;for(let u=0;u<myLen;u+=.05){if(myPath(u)[1]>=-19.3){uS=u;break}}   // 停车位置（停车线前）
@@ -106,7 +107,7 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  {const f=flows[1];if(!f.c0){f.c0=f.c;CRU=car(0x101114);const L=polDeco(CRU);L.rd.visible=L.bu.visible=false}const pc=CS!=='6'&&Math.random()<.5;f.c=pc?CRU:f.c0;(pc?f.c0:CRU).position.y=-50}
  MP=pathN;
  LASTF={sp:spT,E:!!R.emg,cru:!!(lc&&lc.isP),six:CS==='6'};
- gt=0;gUI();flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
+ gt=0;UEND=GSTD()?UENDG:UEND0;gUI();flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
 function cmdUp(m){if(!R)return;if(m==='look'){R.lkHold=false;return}if(m!=='scan'||!R.scHold)return;R.scHold=false}      // 松开“右后观察”：按住时一直回头看右后      // 松开“观察路口”：按住时一直看左边
 function mk(){const md=R.mode==='slow'?(R.lkK==='mir'||R.lkK==='mirC'?'mir':'look'):R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
@@ -179,19 +180,20 @@ const vApp=u=>Math.min(7,Math.sqrt(2*2.2*Math.max(0,LP-u)));
 function tApp(){let u=0,t=0;while(u<LP-.05&&t<30){u+=Math.max(.3,vApp(u))*.02;t+=.02}return t}       // 左转车驶到停车点要多久
 function tArr(u0){let u=u0==null?U0N:u0,t=0;while(u<uS-5&&t<30){u+=vOf(u)*.02;t+=.02}return t}
 let LEADG=null;                    // 你（不按按钮）到停车线前约 5 米要多久
-function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
- if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
+function cmd(m){if(!playing||R.over||R.po||(R.u>=ce+1&&m!=='mir'))return;      // 转完弯以后只剩“中镜”可以按
+ if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false;R.lkK=null}R.lkQ=null;R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
  if(m==='look'||m==='mir'){if(m==='look')R.lkHold=true;const K=!GSTD()?'all':m==='look'?'bs':(R.u>=ce-6?'mirC':'mir');      // G 牌：“中、侧镜”看中镜＋右镜（转完弯后只看中镜）；“盲点”直接回头看右后盲点
-  if(K==='mir')R.lastMir=R.t;if(K==='mirC')R.lastMirC=R.t;
-  if(R.lookT>=0){if(K==='bs'&&R.lkK!=='bs'){R.lkK='bs';R.lookT=Math.max(R.lookT,1)}return}
-  R.scT=-1;yawD=0;R.lkK=K;R.lookT=K==='bs'?1:0;if(R.mode!=='stop')R.mode='slow';mk();return}
+  if(R.lookT>=0){if(K!=='all'&&K!==R.lkK)R.lkQ=K;return}      // 正在看另一处：记下来，看完这一处马上接着看（连续按两个观察键，第二个不会丢）
+  startLook(K);return}
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-1.7-R.u;if(dA>R.v*R.v/(2*AB)+.2){R.stopT=uS-1.7;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
  if(m==='stop')R.stopAt=R.t;
    // 警车鸣笛开过来时还起步
  if(m==='turn'&&R.mode==='stop'&&R.light==='green'&&R.peds.some(p=>(p.k==='B'||p.bike)&&!p.hit)&&!(R.lastLook>R.stopAt))ev('noLook2');   // 让行停车后再起步：还是绿灯就要再看一次右后方；已经红灯可以不强调      // 停车让行后起步前没有再看右后方
  R.mode=m;mk()}
+function startLook(K){R.scT=-1;yawD=0;R.lkK=K;R.lkQ=null;R.lookT=K==='bs'?1:0;if(K==='mir')R.lastMir=R.t;if(K==='mirC')R.lastMirC=R.t;if(R.mode!=='stop')R.mode='slow';mk()}
+function endLook(){R.lookT=-1;R.yaw=0;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false;const q=R.lkQ;R.lkK=null;R.lkQ=null;if(q)startLook(q);else{if(R.mode==='slow'&&!R.committed)R.mode='turn';mk()}}
 function pickTgt(q){let b=null,bd=1e9;R.peds.forEach(p=>{if(p.k==='A'||p.k==='D'||!p.o.visible)return;const a=pedPos(p,R.t),dx=a[0]-q[0],dz=a[1]-q[1],d=Math.hypot(dx,dz),y=normA(Math.atan2(dx,dz)-q[2]);if(d<70&&y>1.1&&y<3.1&&d<bd){bd=d;b=p}});return b}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.mode;
  if(R.flQ&&R.flQ.length&&R.t>=R.flQ[0].t)flash(R.flQ.shift().s);
@@ -276,7 +278,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<1?MSLOW:1);const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
   const K=R.lkK||'all',E=K==='mirC'?.5:K==='mir'?1:0;
   if(K==='mir'&&lt>=.5&&!R.chk){R.chk=true;R.chkT=R.t}      // 右镜里能看到自行车道
-  if(E&&lt>=E){R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(lt-E>.35){R.lookT=-1;R.yaw=0;R.pit=0;R.lkOn=false;R.lkK=null;if(R.mode==='slow'&&!R.committed){R.mode='turn'}mk()}}      // 只看镜子：看完转回正前方
+  if(E&&lt>=E){R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(lt-E>.35)endLook()}      // 只看镜子：看完转回正前方
   else if(lt<.5){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
   else if(lt<1){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区
@@ -285,12 +287,12 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
    if(R.tgt&&Math.abs(want-R.yaw)<.35)R.seen=(R.seen||0)+dt;
    const hold=(R.tgt?(R.seen>=.8||l3>2.2):l3>=.95)&&!R.lkHold;
    if(!hold)R.yaw+=(want-R.yaw)*Math.min(1,dt*12);
-   else{if(!R.back){R.back=lt}R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt-R.back>.4){R.lookT=-1;R.yaw=0;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}}}}
+   else{if(!R.back){R.back=lt}R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt-R.back>.4)endLook()}}}
  // 后车跟车：保持车距，你停它也停
  {const f=R.fol;if(f){const gap=u-f.u-4.6;let vt=Math.max(0,Math.min(R.v+3,2.2*(gap-2.5)));
   if(R.yT>=0&&f.bY==null)f.bY=myPath(f.u)[1]<-19.6;if(R.light!=='green'&&f.bY)vt=Math.min(vt,Math.sqrt(2*4*Math.max(0,uS-1.7-f.u)));   /* 黄灯时后车还在停车线后：停在线后，不跟着你转 */f.v=f.v>vt?Math.max(vt,f.v-6*dt):Math.min(vt,f.v+3*dt);f.u=Math.min(f.u+f.v*dt,u-4.6)}}
  if(GSTD()&&$('bm')&&$('bm').dataset.af!==(u>=ce-6?'1':'0'))gUI();
- if(u>=UEND&&GSTD()&&!R.po&&R.lastMirC==null)ev('gMirC');      // G 牌：转完弯以后要看一眼中镜
+ if(GSTD()&&u>ce&&!R.mcJ&&!R.po&&(R.v>=15||u>=UEND)){R.mcJ=true;if(R.lastMirC==null)ev('gMirC')}      // G 牌：转完弯后、加速到车流速度（约 55 km/h）之前要看一眼中镜
  if(u>=UEND||R.t>80+LEADG)finish()}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.n?'第 '+e.n+' 个路口 · ':''}${e.title}${EX||e.n?(SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'):''}</b><span>${e.text}</span></div>`).join('')+'</div>'}
 function finish(){R.over=true;sirenOff();R.sig=false;$('sg').style.display='none';mk();const o=$('ov');let h,btn='<button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button>';
