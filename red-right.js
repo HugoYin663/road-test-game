@@ -202,8 +202,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
   const ex=a[0]-.38,ez=a[1]-.2,see=(x,z)=>R.tG!=null||R.suvGone||!hitBox(ex,ez,x,z,1.7,3.8,-21.7,-16.4);
   if(R.scQ){      // 从驾驶座看出去，视线有没有被左边的 SUV 挡住
-   if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;      /* 离路口近：点一下看一眼左边就转回；按住就一直看左边，松开转回 */const tg=R.scRel==null?-1.35:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(R.scRel!=null&&sT-R.scRel>.4){R.scT=-1;R.scRel=null;R.yaw=0}}
-  else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;R.yaw+=(tg-R.yaw)*Math.min(1,dt*10);if(sT>2.2){R.scT=-1;R.yaw=0}}
+   if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;      /* 离路口近：点一下看一眼左边就转回；按住就一直看左边，松开转回 */const tg=R.scRel==null?-1.35:0;HTURN(R,tg,dt);if(R.scRel!=null&&sT-R.scRel>.4&&Math.abs(R.yaw)<.04){R.scT=-1;R.scRel=null;R.yaw=0}}
+  else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;HTURN(R,tg,dt);if(sT>2.2&&Math.abs(R.yaw)<.04){R.scT=-1;R.yaw=0}}
   if(sT>.3&&R.scT>=0){R.lastScan=R.t;R.scanFront=Math.max(R.scanFront==null?-99:R.scanFront,f[1]);if(see(-40,-2.75)&&see(-40,-6.25))R.scanClear=true}}
  // 右后观察：中镜→右镜→右后盲区
  if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<1?MSLOW:1);const lt=R.lookT,k9=Math.min(1,dt*12);
