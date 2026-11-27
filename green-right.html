@@ -20,7 +20,7 @@ canvas{display:block;position:fixed;inset:0;width:100%!important;height:100%!imp
 #btns{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}
 .b{width:104px;height:66px;border:3px solid transparent;border-radius:14px;color:#fff;font-size:20px;font-weight:700;line-height:1.1;cursor:pointer}
 .b small{display:block;font-size:11px;font-weight:400;opacity:.85}
-#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#bl{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bm{background:#d98a1f;position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(166px + env(safe-area-inset-bottom,0px))}#bs{background:#d93a3a}#bt{background:#2aa24a}#bc{background:#7b5bd6;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px))}#bc small{font-size:10px}#bg{background:#2f6fe0;position:fixed;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 .b.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 .pn{background:var(--pn);color:var(--tx);border-radius:16px;padding:18px 24px;max-width:min(760px,90vw);max-height:92vh;overflow:auto;text-align:center}
@@ -50,6 +50,7 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <button class="b" id="bt" data-m="turn">行驶<small>Go</small></button></div>
 <button class="b" id="bg" data-m="sig">右转灯<small>Signal</small></button>
 <button class="b" id="bl" data-m="look">右后观察<small>按住回头看</small></button>
+<button class="b" id="bm" data-m="mir" style="display:none">中、侧镜<small>Mirrors</small></button>
 <button class="b" id="bc" data-m="scan">观察路口<small>Left-Right-Left</small></button>
 <div class="ov" id="ov"><div class="pn">
 <a class="back" href="index.html#practice">← 全部项目</a>
@@ -67,22 +68,23 @@ details{margin:8px 0;font-size:14px}summary{cursor:pointer;color:#2f6fe0;font-we
 <p>需要让行时按<b>停车</b>，可以走了就按<b>行驶</b>。<b>没有冲突就不要停</b>，停太久后车会鸣笛，算延误交通。<br>转弯前先打<b>右转灯</b>；再按<b>右后观察</b>，依次看中镜、右镜，最后转头看右后方盲区；按住不放就一直回头看着，松开才转回来。<b>观察路口</b>：离停车线还远时是左-右-左；已经到停车线附近或过了线，只快速看一眼左边。<br>没有自行车时，车会在自行车道虚线的末端借用一点虚线转弯；你若事先做了右后观察、发现了自行车，车就完全不碰虚线，停车也停在虚线左边。转弯前（车头进入右侧人行横道之前）还要做<b>最后一次右后观察</b>。右边的自行车道里可能有<b>同向的自行车</b>：你超过它之后，它会在你右边追上来。它如果<b>直行</b>，你要停车让它先过；</p>
 <p>留意<b>行人灯</b>：白色人形闪烁、跳成红色手掌，再过两三秒绿灯就会变黄，行人会加快走完或不再过街。快到停车线时，绿灯可能突然<b>变黄灯</b>（2 秒后变红），要一直留意信号灯：还没到停车线、能停下，就马上停在停车线后，对面左转车转完后也不要再走，因为已经是红灯；车头稍微过了停车线、但没压到人行横道，也一样停着等下一个绿灯；已经过了停车线、车头停在了人行横道上，对面等着的左转车会趁黄灯转弯，你先停稳让它先转（两车不同时进入路口），让过之后虽然已经红灯，也要<b>马上完成转弯</b>，因为车头占着人行横道；已经进入横向道路，就继续完成转弯。如果你正停在路口里让行人，这时变黄灯，对面还有左转车在等：继续停着让它先转，然后马上跟着转，不要和它同时进入，也不要停在人行横道上。</p>
 <p>偶尔会听到<b>警笛</b>（包括你停车等行人的时候，警车从左边开来或从对面鸣笛左转）：越来越响时，按<b>观察路口</b>左右看，找到警车，安全的话靠边停车，未进入路口的车切勿进入路口。等它开过去以后可以跟着走，但车头进入路口前要再按“观察路口”看一眼左边。</p>
+<p><b>G 牌标准</b>：镜子和盲点分成两个键，分开扣分。接近路口时按“中、侧镜”和“盲点”；停车等待时也要继续观察；进路口前按“观察路口”左-右-左；转完弯后“中、侧镜”变成“中镜”，看一眼后面。</p>
 <p>违规和危险驾驶会当场闪现提示，游戏继续，结束后汇总成卡片。</p>
 </div></details>
 <p class="mu">仅供练习参考，规则请以 MTO Driver’s Handbook 和考官要求为准。</p></div></div>
 <div id="rot"><div style="text-align:center">请把手机横过来玩</div><a href="index.html#practice" style="position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;font-size:14px">退出</a></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="lib/core.js?v=1120d"></script>
-<script src="lib/en.js?v=1126a"></script>
+<script src="lib/en.js?v=1127a"></script>
 <script src="lib/intersection.js?v=1125e"></script>
 <script src="lib/actors.js?v=1112y"></script>
 <script src="lib/ads.js?v=1110o"></script>
 <script src="lib/billboard.js?v=1110o"></script>
-<script src="lib/cockpit.js?v=1126l"></script>
+<script src="lib/cockpit.js?v=1127a"></script>
 <script src="lib/hq.js?v=1117d"></script>
 <script src="lib/rules.js?v=1028c"></script>
 <script src="lib/ui.js?v=1117s"></script>
-<script src="green-right.js?v=1126j"></script>
+<script src="green-right.js?v=1127a"></script>
 <script src="lib/voice.js?v=1125e"></script>
 <script src="lib/mock.js?v=1121a"></script>
 <script src="lib/sit.js?v=1126c"></script>

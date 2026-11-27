@@ -106,9 +106,9 @@ function newRun(inc){live.forEach(o=>scene.remove(o));live.length=0;if(inc)round
  {const f=flows[1];if(!f.c0){f.c0=f.c;CRU=car(0x101114);const L=polDeco(CRU);L.rd.visible=L.bu.visible=false}const pc=CS!=='6'&&Math.random()<.5;f.c=pc?CRU:f.c0;(pc?f.c0:CRU).position.y=-50}
  MP=pathN;
  LASTF={sp:spT,E:!!R.emg,cru:!!(lc&&lc.isP),six:CS==='6'};
- gt=0;flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
+ gt=0;gUI();flows.forEach(f=>{f.s=null;f.cv=null});setLight('g');setCross('r');$('exl').textContent=EX?(MODE==='g'?'模拟考 G':'模拟考 G2')+' · 第 '+(EX.i+1)+'/'+EX.n+' 个路口':'';mk();$('sp').textContent='0'}
 function cmdUp(m){if(!R)return;if(m==='look'){R.lkHold=false;return}if(m!=='scan'||!R.scHold)return;R.scHold=false}      // 松开“右后观察”：按住时一直回头看右后      // 松开“观察路口”：按住时一直看左边
-function mk(){const md=R.mode==='slow'?'look':R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
+function mk(){const md=R.mode==='slow'?(R.lkK==='mir'||R.lkK==='mirC'?'mir':'look'):R.mode;document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',b.dataset.m==='sig'?!!R.sig:b.dataset.m===md))}
 function flash(t){const f=$('fl');f.textContent=t;f.style.opacity=1;clearTimeout(flash.h);flash.h=setTimeout(()=>f.style.opacity=0,1800)}
 function toast(t){const b=$('bn');b.textContent=t;setTimeout(()=>b.textContent={green:'绿灯右转',yellow:'黄灯！',red:'红灯'}[R.light],1500)}
 // 违规／危险提示：当场闪现，游戏继续；结束后汇总成卡片
@@ -141,7 +141,17 @@ function snap(){const c=document.createElement('canvas');c.width=280;c.height=20
  R.peds.forEach(p=>{const a=pedPos(p,R.t);x.fillStyle='#ff8a1f';x.beginPath();x.arc(X(a[0]),Y(a[1]),4,0,7);x.fill()});
  const cr=(q,col)=>{x.save();x.translate(X(q[0]),Y(q[1]));x.rotate(q[2]);x.fillStyle=col;x.fillRect(-4.3,-10,8.6,20);x.restore()};
  if(R.lc)cr(R.lc.path(R.lc.u),'#eceff1');cr(myPath(R.u),'#2e6fd6');return c.toDataURL()}
-const LATE=['noRR','noLastLook','noLook2','noLook','noLook1'];      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
+const LATE=['noRR','noLastLook','noLook2','noLook','noLook1','gMirA','gBlindA','gWait','gScan','gMirC'];
+// G 牌标准（单项练习选了“G 牌标准”，或 G 牌模拟考）：镜子和盲点分成两个键、分开扣分；接近、停车等候、转弯、转完各有观察要求（docs/G-requirements.md）。G2 不变
+const GSTD=()=>{if(window.MOCK)return MOCK.level==='g';if(window.LIC)return LIC==='g';try{const q=new URLSearchParams(location.search).get('lic');if(q)return q==='g';return localStorage.getItem('rt_lic')==='g'}catch(e){return false}};
+Object.assign(TXT,{
+ gMirA:["接近路口时没有看后视镜","G 牌路考：接近路口准备右转时，要先看中镜和右镜（按“中、侧镜”），了解后方和右后方的车、自行车。这是单独的扣分项。"],
+ gBlindA:["接近路口时没有看右盲点","G 牌路考：接近路口准备右转时，除了看镜子，还要转头看右后盲点（按“盲点”），镜子看不到的自行车、行人就在那里。和后视镜是两个分开的扣分项。"],
+ gWait:["停车等待时没有观察","G 牌路考：在路口停车等待（让行人、等左转车等）时，不能一直盯着一个地方，要继续观察路口、镜子和盲点（按“观察路口”“中、侧镜”或“盲点”），情况随时会变。"],
+ gScan:["转弯前没有观察路口（左-右-左）","G 牌路考：开进路口转弯之前，要按“观察路口”做左-右-左观察，确认横向没有闯红灯的车或紧急车辆。"],
+ gMirC:["转完弯后没有看中镜","G 牌路考：完成转弯、车身回正以后，要看一眼中镜（按“中镜”），了解后面的车有没有跟上来、距离多远。"]});
+function gUI(){const g=GSTD(),bm=$('bm'),bl=$('bl');if(!bm||!bl)return;bm.style.display=g?'':'none';
+ const af=g&&R&&R.u>=ce-6;bm.innerHTML=af?'中镜<small>Mirror</small>':'中、侧镜<small>Mirrors</small>';bl.innerHTML=g?'盲点<small>按住回头看</small>':'右后观察<small>按住回头看</small>';bm.dataset.af=af?1:0}      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
 function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:TT(t[0]),text:t[1],img:snap3D()||snap()});if(!EX){if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:TT(t[0])});else flash(TT(t[0]))}if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
 const SER=['hitP','hitBA','hitBB','xwalk','pedA','pedB','hookA','hookB','red','redR','police','blockX','blockX2'];      // 严重错误：路考直接不合格
 const lcAct=()=>R.lc&&(R.lc.type==='cut'||R.lc.l5)&&R.lc.state==='run'&&R.lc.path(R.lc.u)[0]<(R.lc.l5?12:20);   // 黄灯局：左转车开过人行横道一带就算转过去了
@@ -172,7 +182,10 @@ let LEADG=null;                    // 你（不按按钮）到停车线前约 5 
 function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
  if(m==='scan'){if(R.lookT>=0){R.lookT=-1;R.pit=0;R.tgt=null;R.seen=0;R.back=0;R.lkOn=false}R.scT=0;yawD=0;R.lastScan=R.t;R.scQ=R.u>=uS-3;R.scHold=true;R.scRel=null;return}      // 随时可以看路口（会打断右后观察）      // 离停车线还远：左-右-左；已到停车线附近或过线：只看一眼左边
  if(m==='sig'){R.sig=!R.sig;if(R.sig&&R.sigU==null)R.sigU=R.u;$('sg').style.display=R.sig?'block':'none';if(R.sig)tick(true);mk();return}
- if(m==='look'){R.lkHold=true;if(R.lookT>=0)return;R.scT=-1;yawD=0;const slow=R.mode!=='stop';R.lookT=0;if(slow)R.mode='slow';mk();return}
+ if(m==='look'||m==='mir'){if(m==='look')R.lkHold=true;const K=!GSTD()?'all':m==='look'?'bs':(R.u>=ce-6?'mirC':'mir');      // G 牌：“中、侧镜”看中镜＋右镜（转完弯后只看中镜）；“盲点”直接回头看右后盲点
+  if(K==='mir')R.lastMir=R.t;if(K==='mirC')R.lastMirC=R.t;
+  if(R.lookT>=0){if(K==='bs'&&R.lkK!=='bs'){R.lkK='bs';R.lookT=Math.max(R.lookT,1)}return}
+  R.scT=-1;yawD=0;R.lkK=K;R.lookT=K==='bs'?1:0;if(R.mode!=='stop')R.mode='slow';mk();return}
  if(m===R.mode)return;
  if(m==='stop'){const dA=uS-1.7-R.u;if(dA>R.v*R.v/(2*AB)+.2){R.stopT=uS-1.7;R.stopA=Math.max(AB,R.v*R.v/(2*Math.max(.1,dA)))}else{R.stopA=7;R.stopT=R.u+R.v*R.v/14}}
  if(m==='stop')R.stopAt=R.t;
@@ -182,7 +195,7 @@ function cmd(m){if(!playing||R.over||R.u>=ce+1||R.po)return;
 function pickTgt(q){let b=null,bd=1e9;R.peds.forEach(p=>{if(p.k==='A'||p.k==='D'||!p.o.visible)return;const a=pedPos(p,R.t),dx=a[0]-q[0],dz=a[1]-q[1],d=Math.hypot(dx,dz),y=normA(Math.atan2(dx,dz)-q[2]);if(d<70&&y>1.1&&y<3.1&&d<bd){bd=d;b=p}});return b}
 function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.mode;
  if(R.flQ&&R.flQ.length&&R.t>=R.flQ[0].t)flash(R.flQ.shift().s);
- if(!R.committed&&u>=uS-1.2){R.committed=true;if(m==='slow'){R.mode=m='turn';mk()}}
+ if(!R.committed&&u>=uS-1.2){R.committed=true;if(m==='slow'){R.mode=m='turn';mk()}if(GSTD()){if(R.lastMir==null)ev('gMirA');if(R.lastLook==null)ev('gBlindA')}}      // G 牌：接近路口时要看过镜子、看过盲点（两个分开的扣分项）
  if(m==='stop'){const dS=R.stopT-u;if(dS>.1)v=Math.min(v,Math.sqrt(2*R.stopA*dS));else v=0}
  else{const t=vOf(u);v=v>t?Math.max(t,v-5*dt):Math.min(t,v+2.5*dt)}
  if(m==='stop'&&v<.05){v=0;R.stopped=true;
@@ -191,6 +204,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   else{R.idle=0;R.dl=false}}
  else{R.idle=0;R.dl=false}
  R.sT=(m==='stop'&&v<.05)?(R.sT||0)+dt:0;
+ if(GSTD()&&u<ce){if(v<.05){if(R.wS==null){R.wS=R.t;R.wOb=false}if(R.lookT>=0||R.scT>=0)R.wOb=true}else if(v>.3&&R.wS!=null){if(R.t-R.wS>2&&!R.wOb&&!R.over)ev('gWait');R.wS=null}}      // G 牌：停车等候超过 2 秒，起步前这段时间里要有观察（路口、镜子或盲点）
  const L=R.ld;if(L){if(L.st==='go'){const t=vOf(L.u);L.v=L.v>t?Math.max(t,L.v-5*dt):Math.min(t,L.v+2.5*dt)}
   else{L.v=Math.max(0,L.v-7*dt);if(L.v===0){L.sT+=dt;if(L.sT>1.5&&R.lc&&R.lc.state==='run'&&!lcAct())L.st='go'}}
   L.u+=L.v*dt;v=Math.min(v,Math.sqrt(2*6*Math.max(0,L.u-6.8-u)))}       // 跟车：不会撞上前车
@@ -255,12 +269,15 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  R.peds.forEach(p=>{if(p.hit||!p.o.visible||p.hide)return;const c=pedPos(p,R.t),a=myPath(u),dx=c[0]-a[0],dz=c[1]+(p.oz||0)-a[1],fw=dx*Math.sin(a[2])+dz*Math.cos(a[2]),lat=dx*Math.cos(a[2])-dz*Math.sin(a[2]);
   if(Math.abs(fw)<2.45&&Math.abs(lat)<(p.bike?1.1:1.0)&&v>.4){p.hit=true;p.dd=pedD(p,R.t);p.sg=[{t:0,v:0}];if(p.bike){const h=R.ev.findIndex(e=>e.key==='hook'),tk=(h>=0?R.ev[h].tk==='hookB':R.chk)?'hitBB':'hitBA';if(h>=0)R.ev.splice(h,1);ev('hitB',tk)}else ev('hitP');R.mode=m='stop';R.stopA=7;R.stopT=u+v*v/14;R.hitT=R.t;mk()}});   // 撞到行人或自行车：倒地，你的车急停
  if(R.hitT!=null&&R.t-R.hitT>3){finish();return}
- if(R.lane==null&&(u<0?[6.25,-110+u,0]:pathN(u))[1]>=-36){const bike=R.peds.some(p=>p.bike&&!p.hit);R.lane=bike&&(R.lookT>=0||(R.lastLook!=null&&R.t-R.lastLook<5))?'K':'N';MP=R.lane==='K'?pathK:pathN;R.laneT=R.t}
- {const a=myPath(u),fx=a[0]+2.35*Math.sin(a[2]);if(R.lane&&!R.llc&&fx>=11.5&&a[1]>-12){R.llc=true;if(R.light==='green'&&!(R.lastLook>=R.laneT)&&!R.ev.some(e=>e.key==='noLook2'))ev('noLastLook')}}   // 车头进入右侧人行横道前，要做过最后一次右后观察
+ if(R.lane==null&&(u<0?[6.25,-110+u,0]:pathN(u))[1]>=-36){const bike=R.peds.some(p=>p.bike&&!p.hit);R.lane=bike&&(R.lookT>=0||(R.lastLook!=null&&R.t-R.lastLook<5)||(R.lastMir!=null&&R.t-R.lastMir<5))?'K':'N';MP=R.lane==='K'?pathK:pathN;R.laneT=R.t}
+ {const a=myPath(u),fx=a[0]+2.35*Math.sin(a[2]);if(R.lane&&!R.llc&&fx>=11.5&&a[1]>-12){R.llc=true;if(GSTD()&&R.lastScan==null&&!R.polE)ev('gScan');if(R.light==='green'&&!(R.lastLook>=R.laneT)&&!R.ev.some(e=>e.key==='noLook2'))ev('noLastLook')}}   // 车头进入右侧人行横道前，要做过最后一次右后观察
  if(!R.sigChk&&u>=cs+6){R.sigChk=true;if(!R.sig)ev('sig');else if(R.sigU>uS-15)ev('sig','sigL')}
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<1?MSLOW:1);const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
-  if(lt<.5){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
+  const K=R.lkK||'all',E=K==='mirC'?.5:K==='mir'?1:0;
+  if(K==='mir'&&lt>=.5&&!R.chk){R.chk=true;R.chkT=R.t}      // 右镜里能看到自行车道
+  if(E&&lt>=E){R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(lt-E>.35){R.lookT=-1;R.yaw=0;R.pit=0;R.lkOn=false;R.lkK=null;if(R.mode==='slow'&&!R.committed){R.mode='turn'}mk()}}      // 只看镜子：看完转回正前方
+  else if(lt<.5){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
   else if(lt<1){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区
    if(!R.tgt||!R.tgt.o.visible)R.tgt=pickTgt(qq);
@@ -272,6 +289,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  // 后车跟车：保持车距，你停它也停
  {const f=R.fol;if(f){const gap=u-f.u-4.6;let vt=Math.max(0,Math.min(R.v+3,2.2*(gap-2.5)));
   if(R.yT>=0&&f.bY==null)f.bY=myPath(f.u)[1]<-19.6;if(R.light!=='green'&&f.bY)vt=Math.min(vt,Math.sqrt(2*4*Math.max(0,uS-1.7-f.u)));   /* 黄灯时后车还在停车线后：停在线后，不跟着你转 */f.v=f.v>vt?Math.max(vt,f.v-6*dt):Math.min(vt,f.v+3*dt);f.u=Math.min(f.u+f.v*dt,u-4.6)}}
+ if(GSTD()&&$('bm')&&$('bm').dataset.af!==(u>=ce-6?'1':'0'))gUI();
+ if(u>=UEND&&GSTD()&&!R.po&&R.lastMirC==null)ev('gMirC');      // G 牌：转完弯以后要看一眼中镜
  if(u>=UEND||R.t>80+LEADG)finish()}
 function cardsHtml(list){return'<div class="cards">'+list.map(e=>`<div class="card"><img src="${e.img}"><b>${e.n?'第 '+e.n+' 个路口 · ':''}${e.title}${EX||e.n?(SER.includes(e.tk)?'<span class="tag s">严重</span>':'<span class="tag">扣分项</span>'):''}</b><span>${e.text}</span></div>`).join('')+'</div>'}
 function finish(){R.over=true;sirenOff();R.sig=false;$('sg').style.display='none';mk();const o=$('ov');let h,btn='<button id="again">再来一次</button> <button id="home" style="background:#6b7280">回到首页</button>';
@@ -306,7 +325,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
  if(R.lc){const on=R.lc.u<R.lc.La+1.5,b=Math.sin(ts/1000*15)>0;R.lc.car.userData.bl.forEach(m=>m.visible=on&&b)}
- if(view===1){const h=q[2]+HY.y+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH+=((lk?FOVD-12:FOVD)-fovH)*.15;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*BASEP)+HY.p*L,q[1]+Math.cos(h)*L+oz);
+ if(view===1){const h=q[2]+HY.y+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH=FOVD;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*BASEP)+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(0,64,-9);cam.lookAt(0,0,-1)}      /* 俯视：固定从本方向（南边）往前看，不能转 */
