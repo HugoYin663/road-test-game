@@ -281,7 +281,8 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
  if(R.lookT>=0){R.lookT+=dt*1.4*LOOKK*(R.lookT<1?MSLOW:1);const lt=R.lookT,qq=myPath(u),k9=Math.min(1,dt*12);
   const K=R.lkK||'all',E=K==='mirC'?.5:K==='mir'?1:0;
   if(K==='mir'&&lt>=.5&&!R.chk){R.chk=true;R.chkT=R.t}      // 右镜里能看到自行车道
-  if(E&&lt>=E){R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(lt-E>.35)endLook()}      // 只看镜子：看完转回正前方
+  if(E&&lt>=E&&K==='mir'&&R.lkQ==='bs'){R.lkK='bs';R.lkQ=null;mk()}      // 镜子看完、后面排着盲点：不转回来，接着从右镜再多转一点看盲点（和 G2 一个键的连贯动作一样）
+  else if(E&&lt>=E){R.yaw+=(0-R.yaw)*k9;R.pit+=(0-R.pit)*k9;if(lt-E>.35)endLook()}      // 只看镜子：看完转回正前方
   else if(lt<.5){R.yaw+=(MYAW-R.yaw)*k9;R.pit+=(MPIT-R.pit)*k9}              // 1 看中镜
   else if(lt<1){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区
@@ -290,6 +291,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
    if(R.tgt&&Math.abs(want-R.yaw)<.35)R.seen=(R.seen||0)+dt;
    const hold=(R.tgt?(R.seen>=.8||l3>2.2):l3>=.95)&&!R.lkHold;
    if(!hold)R.yaw+=(want-R.yaw)*Math.min(1,dt*12);
+   else if(R.lkQ==='mir'||R.lkQ==='mirC'){R.tgt=null;R.seen=0;R.back=0;R.lkOn=false;startLook(R.lkQ)}      // 盲点看完、后面排着镜子：不转回正前方，直接转到中镜、右镜
    else{if(!R.back){R.back=lt}R.yaw+=(0-R.yaw)*Math.min(1,dt*14);if(lt-R.back>.4)endLook()}}}
  // 后车跟车：保持车距，你停它也停
  {const f=R.fol;if(f){const gap=u-f.u-4.6;let vt=Math.max(0,Math.min(R.v+3,2.2*(gap-2.5)));
