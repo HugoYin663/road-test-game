@@ -352,12 +352,12 @@ if(oppConf())ev('yieldO');if(rtGoConf())ev('yieldRT');if(bikeConf())ev('yieldBk'
  if(R.sig&&u>ce+2){R.sig=false;$('sg').style.display='none';mk()}
  {const inI=!R.kr&&(R.mode==='enter'||R.PK==='S'||u>=uZZ),sh=(id,on)=>{const e=$(id);if(e&&(e.style.display==='none')===on)e.style.display=on?'':'none'};sh('bc',!R.kr&&!inI);sh('bcL',inI);sh('bcR',inI);if(!R.kr)sh('bs2',!inI)}      /* 进了路口：观察分成左侧、右侧两个键；Zig-Zag 键不用了 */
  // 观察路口：离路口远时左-右-左；到了停车线附近或在路口里，点一下看一眼左边，按住一直看
- if(R.scT>=0){R.scT+=dt*LOOKK;const sT=R.scT;
+ if(R.scT>=0){R.scT+=dt*LOOKK*SCANK;const sT=R.scT;
   if(R.scQ&&R.scSide){if(R.scRel==null&&!R.scHold&&sT>.8)R.scRel=sT;const tg=R.scRel==null?(R.scSide==='R'?1.05:-1.35):0;HTURN(R,tg,dt);
    if(sT>.5){R['scD'+R.scSide]=R.t;R.lastScan=R.t}      /* 路口里：看左边或右边都算观察过 */if(R.scRel!=null&&sT-R.scRel>.5&&Math.abs(R.yaw)<.04){R.scT=-1;R.scRel=null;R.scSide=null;R.yaw=0}
    if(R.scDL!=null&&R.scDR!=null&&Math.abs(R.scDL-R.scDR)<12)R.lastScan=Math.min(R.scDL,R.scDR)}      /* 左右都看过（12 秒内）才算观察过路口 */
   else if(R.scQ){if(R.scRel==null&&!R.scHold&&sT>1.5)R.scRel=sT;const tg=sT<.7?1.05:R.scRel==null?-1.35:0;HTURN(R,tg,dt);if(R.scRel!=null&&sT-R.scRel>.4&&Math.abs(R.yaw)<.04){R.scT=-1;R.scRel=null;R.yaw=0}}      /* 路口里：先看右边（有没有紧急车辆），再看左边（人行横道上的行人）；按住就一直看左边 */
-  else{const tg=sT<.55?-1.25:sT<1.25?1.05:sT<1.8?-1.25:0;HTURN(R,tg,dt);if(sT>2.2&&Math.abs(R.yaw)<.04){R.scT=-1;R.yaw=0}}
+  else{const tg=sT<.55?-1.1:sT<1.25?.9:sT<1.8?-1.1:0;HTURN(R,tg,dt);if(sT>2.2&&Math.abs(R.yaw)<.04){R.scT=-1;R.yaw=0}}
   if(!R.scSide&&(R.scQ?sT>.9:sT>.3)&&R.scT>=0)R.lastScan=R.t}
  // 在路口里等候时，司机会稍微偏头、身体往左探，看对面远处的直行车
  {const w=R.atW!=null&&v===0&&m!=='go'&&R.scT<0&&u<cs;R.lean=(R.lean||0)+((w?1:0)-(R.lean||0))*Math.min(1,dt*2.5)}
