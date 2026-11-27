@@ -154,7 +154,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  pedSigTick(ts);
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
  if(view===1){const h=q[2]+HY.y+yawD,L=R.mirT>=0||R.scT>=0?14:10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
-  cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05+HY.p*L,q[1]+Math.cos(h)*L+oz);
+  cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*BASEP+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];wheel.rotation.z+=(0-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(-q[0],64,q[1]+6);cam.lookAt(-q[0],0,q[1]+15)}
  {const k=Math.round(R.v*3.6),e=$('sp');e.textContent=k;e.style.color=R.over||k<5?'':k>64?'#ff6b5a':k<53&&!(VAR==='red'&&R.tG==null)?'#ffc21a':'#6ee787'}tipTick();if(cluster)cluster(Math.round(R.v*3.6));

@@ -373,7 +373,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  if(view===1){const h=q[2]+HY.y+yawD,L=10;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   cam.position.set(bx0+ox+(Math.random()-.5)*sk,1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
-  cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*.05,q[1]+Math.cos(h)*L+oz);
+  cam.lookAt(-q[0]-Math.sin(h)*L+ox,1.25+L*BASEP,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.order='YXZ';cockpit.rotation.y=-q[2];cockpit.rotation.x=0;
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==50){cam.fov=50;cam.updateProjectionMatrix()}cam.position.set(0,62,-16);cam.lookAt(0,0,-2)}      /* 俯视：固定在路口上方 */

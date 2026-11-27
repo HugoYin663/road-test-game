@@ -253,7 +253,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  {const h=q[2]+HY.y+yawD,L=R.look?6:10,fT=FOVD;      /* 观察时不放大画面，只转头 */fovH+=(fT-fovH)*Math.min(1,dt*3.5);{const sz=ren.getSize(new T.Vector2());cam.aspect=sz.x/sz.y}cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();
   const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;const sk=R.crash&&R.t-R.crash.t<.7?(1-(R.t-R.crash.t)/.7)*.12:0;
   const Y=myY();cam.position.set(bx0+ox+(Math.random()-.5)*sk,Y+1.25+(Math.random()-.5)*sk,bz0+oz+(Math.random()-.5)*sk);
-  const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*.05+HY.p*L+gr*L*Math.cos(HY.y),q[1]+Math.cos(h)*L+oz);
+  const gr=R.mz!=null?0:grade(R.u);cam.lookAt(-q[0]-Math.sin(h)*L+ox,Y+1.25+L*BASEP+HY.p*L+gr*L*Math.cos(HY.y),q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,Y+1.25,bz0);cockpit.rotation.order='YXZ';cockpit.rotation.y=-q[2];cockpit.rotation.x=-Math.atan(gr);
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  $('sp').textContent=Math.round(R.v*3.6);if(cluster)cluster(Math.round(R.v*3.6));

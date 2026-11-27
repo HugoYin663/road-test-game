@@ -306,7 +306,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0),HY=headS(R,dt);last=t
  if(R.sig&&playing&&!R.over){const on=Math.sin(ts/1000*9.4)>0;$('sg').style.opacity=on?1:.15;if(on!==loop.sgOn){loop.sgOn=on;tick(on)}}
  const q=myPath(R.u);place(mine,q[0],q[1],q[2]);
  if(R.lc){const on=R.lc.u<R.lc.La+1.5,b=Math.sin(ts/1000*15)>0;R.lc.car.userData.bl.forEach(m=>m.visible=on&&b)}
- if(view===1){const h=q[2]+HY.y+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH+=((lk?FOVD-12:FOVD)-fovH)*.15;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*.05)+HY.p*L,q[1]+Math.cos(h)*L+oz);
+ if(view===1){const h=q[2]+HY.y+yawD,lk=R.lookT>=0&&R.tgt,L=lk?R.lookD:(R.lookT>=0?14:10);fovH+=((lk?FOVD-12:FOVD)-fovH)*.15;cam.fov=Math.min(105,2*Math.atan(Math.tan(fovH*Math.PI/360)/cam.aspect)*180/Math.PI);cam.updateProjectionMatrix();const ox=.38*Math.cos(q[2]),oz=.38*Math.sin(q[2]),bx0=-q[0]+Math.sin(q[2])*.2,bz0=q[1]-Math.cos(q[2])*.2;cam.position.set(bx0+ox,1.25,bz0+oz);cam.lookAt(-q[0]-Math.sin(h)*L+ox,(lk?1.2:1.25+L*BASEP)+HY.p*L,q[1]+Math.cos(h)*L+oz);
   cockpit.visible=true;cockpit.position.set(bx0,1.25,bz0);cockpit.rotation.y=-q[2];
   const dh=normA(q[2]-lastH)/Math.max(dt,.001);lastH=q[2];wheel.rotation.z+=((Math.max(-2.6,Math.min(2.6,dh*2.4)))-wheel.rotation.z)*Math.min(1,dt*10)}
  else{cockpit.visible=false;if(cam.fov!==62){cam.fov=62;cam.updateProjectionMatrix()}cam.position.set(0,64,-9);cam.lookAt(0,0,-1)}      /* 俯视：固定从本方向（南边）往前看，不能转 */
