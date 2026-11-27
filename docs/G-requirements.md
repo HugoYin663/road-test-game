@@ -11,7 +11,7 @@
 1. 接近路口：中镜、侧镜 → TU.a1.A；盲点 → TU.a2.A（两个独立扣分项）
 2. 如果停车：等待时观察路口、镜子、盲点 → TU.s3.A
 3. 转弯时：路口左右左 → TU.t1.A；盲点 → TU.t2.A
-4. 完成转弯后：看中镜 → TU.c0.A
+4. 完成转弯后：加速到车流速度前看中镜 → TU.c2.A（Complete turn · Traffic check: Not by traffic speed）
 
 ## 二、换线（市区 / 高速）
 - “中、侧镜” LC.1.B 和 “盲点” LC.2.A 是分开的扣分项
@@ -25,6 +25,8 @@
 1. 接近：看后视镜
 2. 停下：看后视镜
 3. 起步：路口左右左；过路口后看后视镜
+
+停牌路口起步后加速到车流速度前看中镜 → SI.r3.A（Stop intersection · Starting · Traffic check: Not by traffic speed）
 
 ## 五、通过路口（绿灯直行）
 1. 接近：左右左观察、后视镜观察 TI.h1.A / BR.4.A

@@ -149,7 +149,7 @@ Object.assign(TXT,{
  gBlindA:["接近路口时没有看右盲点","G 牌路考：接近路口准备右转时，除了看镜子，还要转头看右后盲点（按“盲点”），镜子看不到的自行车、行人就在那里。和后视镜是两个分开的扣分项。"],
  gWait:["停车等待时没有观察","G 牌路考：在路口停车等待（让行人、等左转车等）时，不能一直盯着一个地方，要继续观察路口、镜子和盲点（按“观察路口”“中、侧镜”或“盲点”），情况随时会变。"],
  gScan:["转弯前没有观察路口（左-右-左）","G 牌路考：开进路口转弯之前，要按“观察路口”做左-右-左观察，确认横向没有闯红灯的车或紧急车辆。"],
- gMirC:["转完弯后没有看中镜","G 牌路考：完成转弯、车身回正以后，要看一眼中镜（按“中镜”），了解后面的车有没有跟上来、距离多远。"]});
+ gMirC:["转完弯后没有看中镜","G 牌路考：完成转弯、车身回正以后，在加速到车流速度之前要看一眼中镜（按“中镜”），了解后面的车有没有跟上来、距离多远。"]});
 function gUI(){const g=GSTD(),bm=$('bm'),bl=$('bl');if(!bm||!bl)return;bm.style.display=g?'':'none';
  const af=g&&R&&R.u>=ce-6;bm.innerHTML=af?'中镜<small>Mirror</small>':'中、侧镜<small>Mirrors</small>';bl.innerHTML=g?'盲点<small>按住回头看</small>':'右后观察<small>按住回头看</small>';bm.dataset.af=af?1:0}      // 右后观察类的提示晚 2.5 秒再闪，不打扰正在转弯的玩家
 function ev(key,tk){if(R.ev.some(e=>e.key===key))return;const t=TXT[tk||key];R.ev.push({key,tk:tk||key,title:TT(t[0]),text:t[1],img:snap3D()||snap()});if(!EX){if(LATE.includes(tk||key))(R.flQ=R.flQ||[]).push({t:R.t+2.5,s:TT(t[0])});else flash(TT(t[0]))}if(tk==='delay'||tk==='delayL'||tk==='delayP')honk()}
