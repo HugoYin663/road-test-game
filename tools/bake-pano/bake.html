@@ -1,0 +1,31 @@
+<!doctype html><html><body style="margin:0"><script src="three.min.js"></script><script>
+const T=THREE;
+async function loadGLB(url){const ab=await (await fetch(url)).arrayBuffer();const dv=new DataView(ab);const jl=dv.getUint32(12,true);
+ const j=JSON.parse(new TextDecoder().decode(new Uint8Array(ab,20,jl)));const bo=20+jl+8;const bin=ab.slice(bo,bo+dv.getUint32(20+jl,true));
+ const bv=i=>{const v=j.bufferViews[i];return{buf:bin,off:v.byteOffset||0,len:v.byteLength,stride:v.byteStride}};
+ const NC={5126:[Float32Array,4],5123:[Uint16Array,2],5125:[Uint32Array,4],5121:[Uint8Array,1],5122:[Int16Array,2],5120:[Int8Array,1]},NS={SCALAR:1,VEC2:2,VEC3:3,VEC4:4};
+ function acc(i){const a=j.accessors[i],v=bv(a.bufferView),[C,bs]=NC[a.componentType],n=NS[a.type],o=v.off+(a.byteOffset||0);
+  if(!v.stride||v.stride===n*bs)return new C(v.buf.slice(o,o+a.count*n*bs));const out=new C(a.count*n),src=new C(v.buf);const st=v.stride/bs;for(let k=0;k<a.count;k++)for(let c=0;c<n;c++)out[k*n+c]=src[o/bs+k*st+c];return out}
+ const imgs=await Promise.all(j.images.map(async im=>{const v=bv(im.bufferView);const b=new Blob([new Uint8Array(v.buf,v.off,v.len)],{type:im.mimeType});return await createImageBitmap(b,{imageOrientation:'none'})}));
+ const tex=j.textures.map(t=>{const x=new T.Texture(imgs[t.source]);x.flipY=false;x.encoding=T.sRGBEncoding;x.wrapS=x.wrapT=T.RepeatWrapping;x.needsUpdate=true;return x});
+ const root=new T.Group();
+ function node(i,par){const n=j.nodes[i],o=new T.Group();o.name=n.name||'';if(n.matrix){o.matrix.fromArray(n.matrix);o.matrix.decompose(o.position,o.quaternion,o.scale)}else{if(n.translation)o.position.fromArray(n.translation);if(n.rotation)o.quaternion.fromArray(n.rotation);if(n.scale)o.scale.fromArray(n.scale)}
+  par.add(o);if(n.mesh!=null)j.meshes[n.mesh].primitives.forEach(p=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(acc(p.attributes.POSITION),3));if(p.attributes.NORMAL!=null)g.setAttribute('normal',new T.BufferAttribute(acc(p.attributes.NORMAL),3));if(p.attributes.TEXCOORD_0!=null)g.setAttribute('uv',new T.BufferAttribute(acc(p.attributes.TEXCOORD_0),2));if(p.indices!=null)g.setIndex(new T.BufferAttribute(acc(p.indices),1));if(p.attributes.NORMAL==null)g.computeVertexNormals();
+   const md=j.materials[p.material||0],pb=md.pbrMetallicRoughness||{};const m=new T.MeshLambertMaterial({side:T.DoubleSide});if(pb.baseColorTexture)m.map=tex[pb.baseColorTexture.index];if(pb.baseColorFactor)m.color.setRGB(pb.baseColorFactor[0],pb.baseColorFactor[1],pb.baseColorFactor[2]);m.userData.name=md.name;
+   const me=new T.Mesh(g,m);me.name=o.name;o.add(me)});(n.children||[]).forEach(c=>node(c,o))}
+ j.scenes[0].nodes.forEach(r=>node(r,root));return root}
+window.bake=async function(P){
+ const ren=new T.WebGLRenderer({preserveDrawingBuffer:true,alpha:true});ren.outputEncoding=T.sRGBEncoding;ren.setSize(P.W,P.H);document.body.appendChild(ren.domElement);
+ const sc=new T.Scene();const car=await loadGLB('car.glb');sc.add(car);sc.updateMatrixWorld(true);
+ const GLASS=/Glass_ext-tinted|glass-windshield/;const HIDE=new RegExp(P.hide);
+ const mask=new T.MeshBasicMaterial({color:0xff00ff,side:T.DoubleSide});
+ car.traverse(o=>{if(!o.isMesh)return;if(HIDE.test(o.name)){o.visible=false;return}if(/glass-sunroof/.test(o.name))o.material=new T.MeshLambertMaterial({color:0x3c3c3e,side:T.DoubleSide});else if(GLASS.test(o.material.userData.name))o.material=mask;else if(o.material.userData.name.match(/^glass-headlight|Glass_-_Red/)){}});
+ sc.add(new T.HemisphereLight(0xffffff,0x606060,P.hemi));const d=new T.DirectionalLight(0xffffff,P.dir);d.position.set(.3,1,.4);sc.add(d);sc.add(new T.AmbientLight(0xffffff,P.amb));
+ const crt=new T.WebGLCubeRenderTarget(P.cube,{encoding:T.sRGBEncoding});const cc=new T.CubeCamera(.01,20,crt);cc.position.set(...P.eye);sc.add(cc);
+ ren.setClearColor(0xff00ff,1);cc.update(ren,sc);
+ const q=new T.Mesh(new T.PlaneGeometry(2,2),new T.ShaderMaterial({uniforms:{c:{value:crt.texture},t0:{value:Math.PI/2-1.05},tl:{value:2.1}},
+  vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position,1.);}',
+  fragmentShader:`uniform samplerCube c;uniform float t0,tl;varying vec2 v;void main(){float ph=6.2831853*v.x;float th=t0+tl*(1.-v.y);vec3 d=vec3(-cos(ph)*sin(th),cos(th),sin(ph)*sin(th));gl_FragColor=textureCube(c,vec3(${P.flip}*d.x,d.y,d.z));}`}));
+ const s2=new T.Scene();s2.add(q);const oc=new T.OrthographicCamera(-1,1,1,-1,0,1);ren.outputEncoding=T.LinearEncoding;ren.render(s2,oc);
+ return ren.domElement.toDataURL('image/png')}
+</script></body></html>
