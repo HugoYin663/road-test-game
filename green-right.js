@@ -287,7 +287,7 @@ function step(dt){if(!playing||R.over)return;R.t+=dt;gt=R.t;let v=R.v,u=R.u,m=R.
   else if(lt<1){R.yaw+=(MRYAW-R.yaw)*k9;R.pit+=(MRPIT-R.pit)*k9}           // 2 看右镜
   else{const l3=lt-1;if(!R.chk){R.chk=true;R.chkT=R.t}if(!R.lkOn){R.lkOn=true;R.lastLook=R.t}R.pit+=(0-R.pit)*k9;                // 3 回头看右后盲区
    if(!R.tgt||!R.tgt.o.visible)R.tgt=pickTgt(qq);
-   let want=1.9;R.lookD=14;if(R.tgt){const a=pedPos(R.tgt,R.t),dx=a[0]-qq[0],dz=a[1]-qq[1];want=Math.max(1.5,Math.min(2.1,normA(Math.atan2(dx,dz)-qq[2])));R.lookD=Math.max(3,Math.hypot(dx,dz))}
+   let want=2.25;R.lookD=14;if(R.tgt){const a=pedPos(R.tgt,R.t),dx=a[0]-qq[0],dz=a[1]-qq[1];want=Math.max(1.5,Math.min(2.35,normA(Math.atan2(dx,dz)-qq[2])));R.lookD=Math.max(3,Math.hypot(dx,dz))}
    if(R.tgt&&Math.abs(want-R.yaw)<.35)R.seen=(R.seen||0)+dt;
    const hold=(R.tgt?(R.seen>=.8||l3>2.2):l3>=.95)&&!R.lkHold;
    if(!hold)R.yaw+=(want-R.yaw)*Math.min(1,dt*12);
