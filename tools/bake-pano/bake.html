@@ -18,8 +18,11 @@ window.bake=async function(P){
  const ren=new T.WebGLRenderer({preserveDrawingBuffer:true,alpha:true});ren.outputEncoding=T.sRGBEncoding;ren.setSize(P.W,P.H);document.body.appendChild(ren.domElement);
  const sc=new T.Scene();const car=await loadGLB('car.glb');sc.add(car);sc.updateMatrixWorld(true);
  const GLASS=/Glass_ext-tinted|glass-windshield/;const HIDE=new RegExp(P.hide);
- const mask=new T.MeshBasicMaterial({color:0xff00ff,side:T.DoubleSide});
- car.traverse(o=>{if(!o.isMesh)return;if(HIDE.test(o.name)){o.visible=false;return}if(/glass-sunroof/.test(o.name))o.material=new T.MeshLambertMaterial({color:0x3c3c3e,side:T.DoubleSide});else if(GLASS.test(o.material.userData.name))o.material=mask;else if(o.material.userData.name.match(/^glass-headlight|Glass_-_Red/)){}});
+ const mask=new T.MeshBasicMaterial({color:0xff00ff,side:T.DoubleSide});const ROOF=new T.MeshLambertMaterial({color:P.roof,side:T.DoubleSide});
+ car.traverse(o=>{if(!o.isMesh)return;if(HIDE.test(o.name)){o.visible=false;return}if(/sunroof/.test(o.name))o.material=ROOF;      // 天窗玻璃、天窗框、顶棚：统一成一块平的深色顶棚，看不出天窗
+   else if(!GLASS.test(o.material.userData.name)){o.material.color.multiplyScalar(P.dark);}      // 其余内饰：贴图保留细节，整体压暗
+   if(GLASS.test(o.material.userData.name)&&!/sunroof/.test(o.name))o.material=mask;return;
+   if(GLASS.test(o.material.userData.name))o.material=mask;else if(o.material.userData.name.match(/^glass-headlight|Glass_-_Red/)){}});
  sc.add(new T.HemisphereLight(0xffffff,0x606060,P.hemi));const d=new T.DirectionalLight(0xffffff,P.dir);d.position.set(.3,1,.4);sc.add(d);sc.add(new T.AmbientLight(0xffffff,P.amb));
  const crt=new T.WebGLCubeRenderTarget(P.cube,{encoding:T.sRGBEncoding});const cc=new T.CubeCamera(.01,20,crt);cc.position.set(...P.eye);sc.add(cc);
  ren.setClearColor(0xff00ff,1);cc.update(ren,sc);
